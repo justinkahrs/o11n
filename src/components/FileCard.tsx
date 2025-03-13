@@ -1,5 +1,5 @@
 import React from "react";
-import { ListItem, ListItemText, IconButton } from "@mui/material";
+import { Box, Typography, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { FileNode } from "./SelectedFiles";
 import { formatFileSize } from "../utils/formatFileSize";
@@ -12,30 +12,38 @@ interface FileCardProps {
 
 export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
   return (
-    <ListItem
+    <Box
       sx={{
-        display: "inline-flex",
+        position: "relative",
         borderRadius: "10px",
         border: "1px solid",
-        padding: 0.5,
+        padding: 2,
         margin: 0,
         flex: "0 0 23%",
         maxWidth: "23%",
+        boxSizing: "border-box",
+        overflow: "hidden",
       }}
-      secondaryAction={
-        <IconButton
-          edge="end"
-          aria-label="delete"
-          onClick={() => onRemoveFile(file.id)}
-        >
-          <DeleteIcon />
-        </IconButton>
-      }
     >
-      <ListItemText
-        primary={`📄 ${file.name}`}
-        secondary={`${formatFileSize(file.size)} (${percentage}%)`}
-      />
-    </ListItem>
+      <IconButton
+        aria-label="delete"
+        onClick={() => onRemoveFile(file.id)}
+        sx={{
+          position: "absolute",
+          top: 4,
+          right: 4,
+        }}
+      >
+        <DeleteIcon />
+      </IconButton>
+      <Box sx={{ wordWrap: "break-word", whiteSpace: "normal", paddingRight: "40px" }}>
+        <Typography variant="subtitle1" sx={{ wordBreak: "break-all" }}>
+          📄 {file.name}
+        </Typography>
+        <Typography variant="body2">
+          {formatFileSize(file.size)} ({percentage}%)
+        </Typography>
+      </Box>
+    </Box>
   );
 }

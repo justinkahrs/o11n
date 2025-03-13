@@ -38,14 +38,16 @@ function App() {
       <CssBaseline />
       <Stack direction="row" spacing={2} justifyContent="space-around">
         <FileExplorer onFileSelect={handleFileSelect} />
-        <Stack sx={{ width: "100%" }} spacing={2}>
-          <InstructionsInput onChange={setInstructions} />
-          <SelectedFiles
-            files={selectedFiles}
-            onRemoveFile={handleRemoveFile}
-            onRemoveFolder={handleRemoveFolder}
-          />
-          <Copy files={selectedFiles} />
+        <Stack sx={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "space-between", pb: 2 }} spacing={2}>
+          <Stack spacing={2}>
+            <InstructionsInput onChange={setInstructions} />
+            <SelectedFiles
+              files={selectedFiles}
+              onRemoveFile={handleRemoveFile}
+              onRemoveFolder={handleRemoveFolder}
+            />
+          </Stack>
+          <Copy files={selectedFiles} userInstructions={instructions} />
         </Stack>
       </Stack>
     </ThemeProvider>
