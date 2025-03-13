@@ -1,7 +1,6 @@
-import React from "react";
 import { Box, Typography, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { FileNode } from "./SelectedFiles";
+import type { FileNode } from "./SelectedFiles";
 import { formatFileSize } from "../utils/formatFileSize";
 
 interface FileCardProps {

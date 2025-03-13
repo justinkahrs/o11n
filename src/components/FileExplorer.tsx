@@ -9,7 +9,7 @@ interface File {
   name: string;
   isDirectory: boolean;
   isFile: boolean;
-  isSymlink: false;
+  isSymlink: boolean;
 }
 
 interface ItemProps {
@@ -81,14 +81,6 @@ const FileExplorer = ({ onFileSelect }: FileExplorerProps): JSX.Element => {
       const contents = await readDir(currentPath, {
         baseDir: BaseDirectory.Home,
       });
-
-      let fileEntries = contents.map((entry) => ({
-        name: entry.name || "",
-        isDirectory: !!entry.isDirectory,
-        isFile: entry.isFile,
-        isSymlink: entry.isSymlink,
-      }));
-
       function getCategory(file: {
         name: string;
         isDirectory: boolean;
@@ -96,14 +88,21 @@ const FileExplorer = ({ onFileSelect }: FileExplorerProps): JSX.Element => {
         return file.isDirectory ? 0 : 1;
       }
 
-      fileEntries.sort((a, b) => {
-        const categoryA = getCategory(a);
-        const categoryB = getCategory(b);
-        if (categoryA !== categoryB) {
-          return categoryA - categoryB;
-        }
-        return a.name.localeCompare(b.name);
-      });
+      let fileEntries = contents
+        .map((entry) => ({
+          name: entry.name || "",
+          isDirectory: !!entry.isDirectory,
+          isFile: entry.isFile,
+          isSymlink: entry.isSymlink,
+        }))
+        .sort((a, b) => {
+          const categoryA = getCategory(a);
+          const categoryB = getCategory(b);
+          if (categoryA !== categoryB) {
+            return categoryA - categoryB;
+          }
+          return a.name.localeCompare(b.name);
+        });
 
       if (!showDotfiles) {
         fileEntries = fileEntries.filter(
@@ -111,7 +110,7 @@ const FileExplorer = ({ onFileSelect }: FileExplorerProps): JSX.Element => {
         );
       }
 
-      setFiles([...fileEntries]);
+      setFiles(fileEntries);
     }
     getFiles();
   }, [currentPath, showDotfiles]);

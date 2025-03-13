@@ -4,41 +4,11 @@ import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import type { FileNode } from "./SelectedFiles";
 import { generateFileMap } from "../utils/generateFileMap";
 import xmlFormattingInstructions from "../utils/xmlFormattingInstructions.txt?raw";
-
+import markdownLanguages from "../utils/markdownLanguages";
 interface CopyProps {
   files: FileNode[];
   userInstructions: string;
 }
-const markdownLanguages = {
-  js: "js",
-  jsx: "jsx",
-  ts: "ts",
-  tsx: "tsx",
-  json: "json",
-  html: "html",
-  css: "css",
-  md: "markdown",
-  sh: "sh",
-  py: "python",
-  java: "java",
-  cpp: "cpp",
-  c: "c",
-  cs: "csharp",
-  php: "php",
-  rb: "ruby",
-  go: "go",
-  rs: "rust",
-  swift: "swift",
-  kt: "kotlin",
-  lua: "lua",
-  sql: "sql",
-  toml: "toml",
-  ini: "ini",
-  yml: "yaml",
-  yaml: "yaml",
-  dockerfile: "dockerfile",
-  graphql: "graphql",
-};
 
 // Function to map extension to a markdown language identifier
 const getMarkdownLanguage = (ext: string) =>
@@ -69,6 +39,7 @@ export default function Copy({ files, userInstructions }: CopyProps) {
       const getExtension = (path: string) => {
         const parts = path.split("/");
         const filename = parts.pop(); // Get the last part after the last '/'
+        // biome-ignore lint/style/noNonNullAssertion: <explanation>
         return filename?.includes(".") ? filename.split(".").pop()! : "";
       };
 

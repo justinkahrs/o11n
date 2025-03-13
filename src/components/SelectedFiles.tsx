@@ -1,4 +1,4 @@
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { FolderGroup } from "./FolderGroup";
 import { FileCard } from "./FileCard";
 
