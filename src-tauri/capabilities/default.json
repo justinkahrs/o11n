@@ -6,6 +6,7 @@
   "permissions": [
     "core:default",
     "opener:default",
+    "clipboard-manager:allow-write-text",
     "fs:default",
     "fs:allow-app-read-recursive",
     "fs:allow-app-write-recursive",
@@ -182,6 +183,7 @@
     "fs:allow-write",
     "fs:allow-write-file",
     "fs:allow-write-text-file",
-    "log:default"
+    "log:default",
+    "clipboard-manager:default"
   ]
 }

@@ -37,7 +37,6 @@ export function SelectedFiles({
 
   return (
     <Box sx={{ p: 2 }}>
-      <Typography variant="h6">Selected Files</Typography>
       {Object.keys(groupedFiles)
         .sort()
         .map((folder) => {

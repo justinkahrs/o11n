@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { BaseDirectory, readDir, stat } from "@tauri-apps/plugin-fs";
 
 import "./FileExplorer.css";
+import { Stack } from "@mui/material";
 
 interface File {
   name: string;
@@ -122,14 +123,12 @@ const FileExplorer = ({ onFileSelect }: FileExplorerProps): JSX.Element => {
   }
 
   return (
-    <div className="files">
-      <div
+    <Stack className="files">
+      <Stack
         className="dirname"
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}
+        direction="row"
+        justifyContent="space-between"
+        sx={{ backgroundColor: "white", position: "sticky", top: 0 }}
       >
         <div>
           {(() => {
@@ -205,8 +204,8 @@ const FileExplorer = ({ onFileSelect }: FileExplorerProps): JSX.Element => {
             Dotfiles
           </label>
         </div>
-      </div>
-      <div className="filelist">
+      </Stack>
+      <Stack className="filelist">
         {files.map((file: File, i) => (
           <Item
             key={`${file.name}-${i}`}
@@ -216,8 +215,8 @@ const FileExplorer = ({ onFileSelect }: FileExplorerProps): JSX.Element => {
             onFileSelect={onFileSelect}
           />
         ))}
-      </div>
-    </div>
+      </Stack>
+    </Stack>
   );
 };
 

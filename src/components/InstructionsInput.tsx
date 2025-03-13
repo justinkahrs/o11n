@@ -7,7 +7,7 @@ interface InstructionsInputProps {
 
 export function InstructionsInput({ onChange }: InstructionsInputProps) {
   const [inputValue, setInputValue] = useState("");
-  const userPrompts = ["web-app v2 (no nextjs)", "UI Overhaul", "Optimize Code"];
+  const userPrompts: string[] = [];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -24,7 +24,7 @@ export function InstructionsInput({ onChange }: InstructionsInputProps) {
         onChange={handleInputChange}
       />
       <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-        {userPrompts.map(prompt => (
+        {userPrompts.map((prompt: string) => (
           <Chip
             key={prompt}
             label={prompt}

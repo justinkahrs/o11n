@@ -37,7 +37,7 @@ export function FolderGroup({
       >
         <Box sx={{ flexGrow: 1 }}>
           <Typography variant="subtitle1">
-            📁 {folder} - {count} files selected
+            {`📁 ${folder} - ${count} file${count === 1 ? "" : "s"}`}
           </Typography>
           <Typography
             variant="caption"

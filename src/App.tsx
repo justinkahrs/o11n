@@ -3,6 +3,7 @@ import { ThemeProvider, CssBaseline, Stack } from "@mui/material";
 import FileExplorer from "./components/FileExplorer";
 import { InstructionsInput } from "./components/InstructionsInput";
 import { SelectedFiles, type FileNode } from "./components/SelectedFiles";
+import Copy from "./components/Copy";
 import { theme } from "./theme";
 
 function App() {
@@ -35,15 +36,16 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Stack direction="row">
+      <Stack direction="row" spacing={2} justifyContent="space-around">
         <FileExplorer onFileSelect={handleFileSelect} />
-        <Stack sx={{ width: "100%" }}>
+        <Stack sx={{ width: "100%" }} spacing={2}>
           <InstructionsInput onChange={setInstructions} />
           <SelectedFiles
             files={selectedFiles}
             onRemoveFile={handleRemoveFile}
             onRemoveFolder={handleRemoveFolder}
           />
+          <Copy files={selectedFiles} />
         </Stack>
       </Stack>
     </ThemeProvider>
