@@ -1,65 +1,17 @@
-import type { JSX } from "react";
-import { useEffect, useState } from "react";
-import { BaseDirectory, readDir, stat } from "@tauri-apps/plugin-fs";
+import { useState, useEffect } from "react";
+import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
 
-import "./FileExplorer.css";
-import { Stack } from "@mui/material";
+import { Box, FormControlLabel, Checkbox } from "@mui/material";
+import DirectoryView from "./DirectoryView";
 
-interface File {
+interface TreeItemData {
+  id: string;
   name: string;
+  path: string;
   isDirectory: boolean;
-  isFile: boolean;
-  isSymlink: boolean;
+  children: TreeItemData[];
+  loadedChildren: boolean;
 }
-
-interface ItemProps {
-  file: File;
-  currentPath: string;
-  handleClick: (fileName: string) => void;
-  onFileSelect: (file: {
-    id: string;
-    name: string;
-    path: string;
-    size: number;
-  }) => void;
-}
-
-const Item = ({
-  file,
-  currentPath,
-  handleClick,
-  onFileSelect,
-}: ItemProps): JSX.Element => (
-  <div
-    key={file.name}
-    className={file.isDirectory ? "dir" : "file"}
-    onClick={async () => {
-      if (file.isDirectory) {
-        handleClick(file.name);
-      } else {
-        const filePath =
-          currentPath === "." ? file.name : `${currentPath}/${file.name}`;
-        const metadata = await stat(filePath, { baseDir: BaseDirectory.Home });
-        const selectedFile = {
-          id: `${file.name}-${Date.now()}`,
-          name: file.name,
-          path: filePath,
-          size: metadata.size / (1024 * 1024),
-        };
-        onFileSelect(selectedFile);
-      }
-    }}
-    onKeyDown={() => {
-      if (file.isDirectory) {
-        handleClick(file.name);
-      }
-    }}
-  >
-    {file.isDirectory ? "📁" : "📄"}
-    {file.name}
-    {file.isDirectory ? "/" : ""}
-  </div>
-);
 
 interface FileExplorerProps {
   onFileSelect: (file: {
@@ -70,153 +22,102 @@ interface FileExplorerProps {
   }) => void;
 }
 
-const FileExplorer = ({ onFileSelect }: FileExplorerProps): JSX.Element => {
-  // Use relative path (starting at ".") relative to BaseDirectory.Home
-  const [files, setFiles] = useState<File[]>([]);
-  const [currentPath, setCurrentPath] = useState<string>(".");
-  const [showDotfiles, setShowDotfiles] = useState<boolean>(false);
+export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
+  const [showDotfiles, setShowDotfiles] = useState(false);
 
-  useEffect(() => {
-    async function getFiles() {
-      const contents = await readDir(currentPath, {
-        baseDir: BaseDirectory.Home,
-      });
-      function getCategory(file: {
-        name: string;
-        isDirectory: boolean;
-      }): number {
-        return file.isDirectory ? 0 : 1;
-      }
+  // The root node: "Home" at path "."
+  const [root, setRoot] = useState<TreeItemData>({
+    id: "Home",
+    name: "Home",
+    path: ".",
+    isDirectory: true,
+    children: [],
+    loadedChildren: false,
+  });
 
-      let fileEntries = contents
-        .map((entry) => ({
-          name: entry.name || "",
-          isDirectory: !!entry.isDirectory,
-          isFile: entry.isFile,
-          isSymlink: entry.isSymlink,
-        }))
-        .sort((a, b) => {
-          const categoryA = getCategory(a);
-          const categoryB = getCategory(b);
-          if (categoryA !== categoryB) {
-            return categoryA - categoryB;
-          }
-          return a.name.localeCompare(b.name);
-        });
+  // Load the children for a directory node if not already loaded
+  async function loadChildren(node: TreeItemData) {
+    if (!node.isDirectory) return;
+    const contents = await readDir(node.path, {
+      baseDir: BaseDirectory.Home,
+    });
 
-      if (!showDotfiles) {
-        fileEntries = fileEntries.filter(
-          (entry) => !entry.name.startsWith(".")
-        );
-      }
+    let entries = contents.map((entry) => ({
+      id: node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
+      name: entry.name || "",
+      path: node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
+      isDirectory: !!entry.isDirectory,
+      children: [],
+      loadedChildren: false,
+    }));
 
-      setFiles(fileEntries);
+    // Filter out dotfiles if showDotfiles is false
+    if (!showDotfiles) {
+      entries = entries.filter((entry) => !entry.name.startsWith("."));
     }
-    getFiles();
-  }, [currentPath, showDotfiles]);
 
-  function handleClick(name: string) {
-    setFiles([]);
-    const newPath = currentPath === "." ? name : `${currentPath}/${name}`;
-    setCurrentPath(newPath);
+    // Sort: directories first, then files
+    entries.sort((a, b) => {
+      if (a.isDirectory && !b.isDirectory) return -1;
+      if (!a.isDirectory && b.isDirectory) return 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    node.children = entries;
+    node.loadedChildren = true;
+
+    // Force a re-render of root if we changed a node inside it
+    setRoot((prev) => ({ ...prev }));
   }
 
+  // Whenever showDotfiles changes, reset the tree
+  useEffect(() => {
+    setRoot({
+      id: "Home",
+      name: "Home",
+      path: ".",
+      isDirectory: true,
+      children: [],
+      loadedChildren: false,
+    });
+  }, [showDotfiles]);
+
+  useEffect(() => {
+    (async () => {
+      if (!root.loadedChildren && root.isDirectory) {
+        await loadChildren(root);
+      }
+    })();
+  }, [root]);
+
   return (
-    <Stack className="files">
-      <Stack
-        className="dirname"
-        direction="row"
-        justifyContent="space-between"
-        sx={{ backgroundColor: "white", position: "sticky", top: 0 }}
-      >
-        <div>
-          {(() => {
-            const parts =
-              currentPath === "." ? [] : currentPath.split("/").filter(Boolean);
-            // Build full breadcrumbs array: always start with Home
-            const breadcrumbs: { name: string; path: string }[] = [
-              { name: "Home", path: "." },
-            ];
-            let accumulated = "";
-            for (let i = 0; i < parts.length; i++) {
-              accumulated = accumulated
-                ? `${accumulated}/${parts[i]}`
-                : parts[i];
-              breadcrumbs.push({ name: parts[i], path: accumulated });
-            }
-            // If there are more than 4 levels deep (i.e. more than 5 items including Home), truncate with an ellipsis.
-
-            if (breadcrumbs.length > 4) {
-              const ellipsisTarget = breadcrumbs[breadcrumbs.length - 4].path;
-              const displayedBreadcrumbs = [
-                breadcrumbs[0],
-                { name: "...", path: ellipsisTarget },
-                ...breadcrumbs.slice(breadcrumbs.length - 2),
-              ];
-              return displayedBreadcrumbs.map((crumb, index) => (
-                <span key={`${crumb.path}-${index}`}>
-                  <span
-                    style={{ cursor: "pointer", textDecoration: "underline" }}
-                    onClick={() => {
-                      setFiles([]);
-                      setCurrentPath(crumb.path);
-                    }}
-                    onKeyDown={() => {
-                      setFiles([]);
-                      setCurrentPath(crumb.path);
-                    }}
-                  >
-                    {crumb.name}
-                  </span>
-                  {index < displayedBreadcrumbs.length - 1 ? " / " : ""}
-                </span>
-              ));
-            }
-            return breadcrumbs.map((crumb, index) => (
-              <span key={`${crumb.path}-${index}`}>
-                <span
-                  style={{ cursor: "pointer", textDecoration: "underline" }}
-                  onClick={() => {
-                    setFiles([]);
-                    setCurrentPath(crumb.path);
-                  }}
-                  onKeyDown={() => {
-                    setFiles([]);
-                    setCurrentPath(crumb.path);
-                  }}
-                >
-                  {crumb.name}
-                </span>
-                {index < breadcrumbs.length - 1 ? " / " : ""}
-              </span>
-            ));
-          })()}
-        </div>
-        <div>
-          <label style={{ cursor: "pointer", fontSize: "0.9rem" }}>
-            <input
-              type="checkbox"
-              checked={showDotfiles}
-              onChange={(e) => setShowDotfiles(e.target.checked)}
-              style={{ marginRight: "0.3rem" }}
-            />
-            Dotfiles
-          </label>
-        </div>
-      </Stack>
-      <Stack className="filelist">
-        {files.map((file: File, i) => (
-          <Item
-            key={`${file.name}-${i}`}
-            file={file}
-            currentPath={currentPath}
-            handleClick={handleClick}
-            onFileSelect={onFileSelect}
+    <Box
+      sx={{
+        width: 300,
+        maxHeight: "100%",
+        overflowY: "auto",
+        overflowX: "auto",
+        display: "flex",
+        flexDirection: "column",
+        gap: 1,
+      }}
+    >
+      <FormControlLabel
+        control={
+          <Checkbox
+            checked={showDotfiles}
+            onChange={(e) => setShowDotfiles(e.target.checked)}
           />
-        ))}
-      </Stack>
-    </Stack>
+        }
+        label="Dotfiles"
+      />
+      {/* Render the root as a directory node with its own TreeView */}
+      <DirectoryView
+        node={root}
+        onFileSelect={onFileSelect}
+        showDotfiles={showDotfiles}
+        loadChildren={loadChildren}
+      />
+    </Box>
   );
-};
-
-export default FileExplorer;
+}

@@ -51,7 +51,6 @@ function App() {
             flexDirection: "column",
           }}
           justifyContent="space-between"
-          spacing={2}
         >
           <Stack
             sx={{
