@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -18,6 +18,7 @@ interface FolderGroupProps {
   percentage: string;
   onRemoveFolder: (folder: string) => void;
   children: React.ReactNode;
+  totalFolders: number;
 }
 
 export function FolderGroup({
@@ -27,9 +28,22 @@ export function FolderGroup({
   percentage,
   onRemoveFolder,
   children,
+  totalFolders,
 }: FolderGroupProps) {
+  const [expanded, setExpanded] = useState(totalFolders < 3);
+  const prevTotalRef = useRef(totalFolders);
+  useEffect(() => {
+    if (prevTotalRef.current < 3 && totalFolders === 3) {
+      setExpanded(false);
+    }
+    prevTotalRef.current = totalFolders;
+  }, [totalFolders]);
+
   return (
-    <Accordion defaultExpanded sx={{ mb: 2 }}>
+    <Accordion
+      expanded={expanded}
+      onChange={(_, isExpanded) => setExpanded(isExpanded)}
+    >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls={`panel-${folder}-content`}

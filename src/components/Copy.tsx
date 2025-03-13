@@ -12,7 +12,7 @@ interface CopyProps {
 
 // Function to map extension to a markdown language identifier
 const getMarkdownLanguage = (ext: string) =>
-  markdownLanguages[ext] || "plaintext";
+  markdownLanguages[ext.toLowerCase()] || "plaintext";
 
 export default function Copy({ files, userInstructions }: CopyProps) {
   async function handleCopy() {

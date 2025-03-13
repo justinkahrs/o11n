@@ -22,6 +22,10 @@ export function InstructionsInput({ onChange }: InstructionsInputProps) {
         label="Enter your instructions..."
         value={inputValue}
         onChange={handleInputChange}
+        multiline
+        minRows={4}
+        inputProps={{ style: { resize: "both" } }}
+        InputLabelProps={{ shrink: true }}
       />
       <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
         {userPrompts.map((prompt: string) => (

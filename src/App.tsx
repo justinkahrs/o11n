@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ThemeProvider, CssBaseline, Stack } from "@mui/material";
+import { ThemeProvider, CssBaseline, Stack, Grid } from "@mui/material";
 import FileExplorer from "./components/FileExplorer";
 import { InstructionsInput } from "./components/InstructionsInput";
 import { SelectedFiles, type FileNode } from "./components/SelectedFiles";
@@ -36,10 +36,33 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Stack direction="row" spacing={2} justifyContent="space-around">
+      <Stack
+        sx={{ height: "100vh", p: 2 }}
+        direction="row"
+        // spacing={2}
+        justifyContent="space-around"
+      >
         <FileExplorer onFileSelect={handleFileSelect} />
-        <Stack sx={{ width: "100%", height: "100vh", display: "flex", flexDirection: "column", justifyContent: "space-between", pb: 2 }} spacing={2}>
-          <Stack spacing={2}>
+        <Grid
+          sx={{
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+          justifyContent="space-between"
+          spacing={2}
+        >
+          <Stack
+            sx={{
+              width: "100%",
+              flex: 1,
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            alignContent="space-between"
+          >
             <InstructionsInput onChange={setInstructions} />
             <SelectedFiles
               files={selectedFiles}
@@ -48,7 +71,7 @@ function App() {
             />
           </Stack>
           <Copy files={selectedFiles} userInstructions={instructions} />
-        </Stack>
+        </Grid>
       </Stack>
     </ThemeProvider>
   );

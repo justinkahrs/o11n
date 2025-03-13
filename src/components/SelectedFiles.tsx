@@ -36,7 +36,7 @@ export function SelectedFiles({
   );
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ overflowY: "auto" }}>
       {Object.keys(groupedFiles)
         .sort()
         .map((folder) => {
@@ -54,6 +54,7 @@ export function SelectedFiles({
               folderSize={folderSize}
               percentage={percentage}
               onRemoveFolder={onRemoveFolder}
+              totalFolders={Object.keys(groupedFiles).length}
             >
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {filesInFolder
