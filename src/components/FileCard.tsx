@@ -19,8 +19,8 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
         border: "1px solid",
         padding: 2,
         margin: 0,
-        flex: "0 0 23%",
-        maxWidth: "23%",
+        minWidth: "20%",
+        maxWidth: "50%",
         boxSizing: "border-box",
         overflow: "hidden",
       }}
@@ -34,13 +34,18 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
           right: 4,
         }}
       >
-        <DeleteIcon />
+        <DeleteIcon sx={{ fontSize: "18px" }} />
       </IconButton>
-      <Box sx={{ wordWrap: "break-word", whiteSpace: "normal", paddingRight: "40px" }}>
-        <Typography variant="subtitle1" sx={{ wordBreak: "break-all" }}>
-          📄 {file.name}
-        </Typography>
-        <Typography variant="body2">
+      <Box
+        sx={{
+          wordWrap: "break-word",
+          whiteSpace: "normal",
+          paddingRight: "40px",
+        }}
+      >
+        <Typography variant="subtitle2">📄</Typography>
+        <Typography variant="subtitle2">{file.name}</Typography>
+        <Typography variant="caption">
           {formatFileSize(file.size)} ({percentage}%)
         </Typography>
       </Box>
