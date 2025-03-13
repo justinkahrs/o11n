@@ -1,236 +1,216 @@
+import type { JSX } from "react";
 import { useEffect, useState } from "react";
-import {
-  Box,
-  Checkbox,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  List,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  Select,
-} from "@mui/material";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-import * as fs from "@tauri-apps/plugin-fs";
+import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
 
-interface FileNode {
+import "./FileExplorer.css";
+
+interface File {
   name: string;
-  path: string;
-  isFile: boolean;
   isDirectory: boolean;
-  isSymlink: boolean;
-  children?: FileNode[];
+  isFile: boolean;
+  isSymlink: false;
 }
+
+interface ItemProps {
+  file: File;
+  currentPath: string;
+  handleClick: (fileName: string) => void;
+  onFileSelect: (file: {
+    id: string;
+    name: string;
+    path: string;
+    size: number;
+  }) => void;
+}
+
+const Item = ({
+  file,
+  currentPath,
+  handleClick,
+  onFileSelect,
+}: ItemProps): JSX.Element => (
+  <div
+    key={file.name}
+    className={file.isDirectory ? "dir" : "file"}
+    onClick={() => {
+      if (file.isDirectory) {
+        handleClick(file.name);
+      } else {
+        const selectedFile = {
+          id: file.name + "-" + Date.now(),
+          name: file.name,
+          path: currentPath === "." ? file.name : `${currentPath}/${file.name}`,
+          size: 0,
+        };
+        onFileSelect(selectedFile);
+      }
+    }}
+    onKeyDown={() => {
+      if (file.isDirectory) {
+        handleClick(file.name);
+      }
+    }}
+  >
+    {file.isDirectory ? "📁" : "📄"}
+    {file.name}
+    {file.isDirectory ? "/" : ""}
+  </div>
+);
 
 interface FileExplorerProps {
-  onSelectionChange: (paths: string[]) => void;
+  onFileSelect: (file: {
+    id: string;
+    name: string;
+    path: string;
+    size: number;
+  }) => void;
 }
 
-export function FileExplorer({ onSelectionChange }: FileExplorerProps) {
-  const [baseDir, setBaseDir] = useState<fs.BaseDirectory>(
-    fs.BaseDirectory.Home
-  );
-  const [root, setRoot] = useState<FileNode[]>([]);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [loadingRoot, setLoadingRoot] = useState(false);
+const FileExplorer = ({ onFileSelect }: FileExplorerProps): JSX.Element => {
+  // Use relative path (starting at ".") relative to BaseDirectory.Home
+  const [files, setFiles] = useState<File[]>([]);
+  const [currentPath, setCurrentPath] = useState<string>(".");
+  const [showDotfiles, setShowDotfiles] = useState<boolean>(true);
 
   useEffect(() => {
-    async function loadRoot() {
-      setLoadingRoot(true);
-      try {
-        const entries = await fs.readDir(".", { baseDir });
-        setRoot(
-          entries.map((e) => ({
-            name: e.name,
-            path: e.path,
-            isFile: e.isFile,
-            isDirectory: e.isDirectory,
-            isSymlink: e.isSymlink,
-          }))
-        );
-      } catch (error) {
-        console.error(error);
+    async function getFiles() {
+      const contents = await readDir(currentPath, {
+        baseDir: BaseDirectory.Home,
+      });
+      // Pseudo entries for current (".") and parent ("..") directories.
+
+      console.log({ contents });
+      let fileEntries = contents.map((entry) => ({
+        name: entry.name || "",
+        isDirectory: !!entry.isDirectory,
+        isFile: entry.isFile,
+        isSymlink: entry.isSymlink,
+      }));
+
+      function getCategory(file: { name: string; isDirectory: boolean }): number {
+        return file.isDirectory ? 0 : 1;
       }
-      setLoadingRoot(false);
-    }
-    loadRoot();
-  }, [baseDir]);
 
-  function handleSelectionChange(newSelected: Set<string>) {
-    setSelected(newSelected);
-    onSelectionChange(Array.from(newSelected));
-  }
+      fileEntries.sort((a, b) => {
+        const categoryA = getCategory(a);
+        const categoryB = getCategory(b);
+        if (categoryA !== categoryB) {
+          return categoryA - categoryB;
+        }
+        return a.name.localeCompare(b.name);
+      });
 
-  return (
-    <Box
-      sx={{
-        width: 250,
-        bgcolor: "background.paper",
-        height: "100vh",
-        overflowY: "auto",
-      }}
-    >
-      <FormControl fullWidth sx={{ m: 1 }}>
-        <InputLabel>Base Directory</InputLabel>
-        <Select
-          value={baseDir}
-          label="Base Directory"
-          onChange={(e) => setBaseDir(e.target.value as fs.BaseDirectory)}
-        >
-          {Object.keys(fs.BaseDirectory)
-            .filter((k) => isNaN(Number(k)))
-            .map((k) => (
-              <MenuItem key={k} value={fs.BaseDirectory[k]}>
-                {k}
-              </MenuItem>
-            ))}
-        </Select>
-      </FormControl>
-      {loadingRoot ? (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <List>
-          {root.map((node) => (
-            <FileNodeItem
-              key={node.path}
-              node={node}
-              selected={selected}
-              onChange={handleSelectionChange}
-              baseDir={baseDir}
-            />
-          ))}
-        </List>
-      )}
-    </Box>
-  );
-}
-
-function FileNodeItem({
-  node,
-  selected,
-  onChange,
-  baseDir,
-}: {
-  node: FileNode;
-  selected: Set<string>;
-  onChange: (newSelected: Set<string>) => void;
-  baseDir: fs.BaseDirectory;
-}) {
-  const [expanded, setExpanded] = useState(false);
-  const [children, setChildren] = useState<FileNode[] | undefined>(
-    node.children
-  );
-  const [loading, setLoading] = useState(false);
-
-  async function loadChildren() {
-    if (node.isDirectory && !children) {
-      setLoading(true);
-      try {
-        const entries = await fs.readDir(node.path, { dir: undefined });
-        setChildren(
-          entries.map((e) => ({
-            name: e.name,
-            path: e.path,
-            isFile: e.isFile,
-            isDirectory: e.isDirectory,
-            isSymlink: e.isSymlink,
-          }))
-        );
-      } catch (error) {
-        console.error(error);
+      if (!showDotfiles) {
+        fileEntries = fileEntries.filter(entry => !entry.name.startsWith("."));
       }
-      setLoading(false);
+
+      setFiles([...fileEntries]);
+    }
+    getFiles();
+    }, [currentPath, showDotfiles]);
+
+  function handleClick(name: string) {
+    console.log({ name });
+    if (name === "..") {
+      // Go one level up
+      const parts = currentPath.split("/").filter(Boolean);
+      if (parts.length === 0) return;
+      parts.pop();
+      setFiles([]);
+      setCurrentPath(parts.length === 0 ? "." : parts.join("/"));
+    } else if (name === ".") {
+      // Do nothing on current directory
+      return;
+    } else {
+      // Navigate into the clicked directory.
+      setFiles([]);
+      const newPath = currentPath === "." ? name : `${currentPath}/${name}`;
+      setCurrentPath(newPath);
     }
   }
 
-  function getAllFiles(n: FileNode): string[] {
-    if (n.isFile) return [n.path];
-    if (!n.children) return [];
-    return n.children.flatMap((c) => getAllFiles(c));
-  }
-
-  function isFullySelected(n: FileNode): boolean {
-    if (n.isFile) return selected.has(n.path);
-    if (!children) return false;
-    const files = getAllFiles({ ...n, children });
-    return files.length > 0 && files.every((p) => selected.has(p));
-  }
-
-  function isPartiallySelected(n: FileNode): boolean {
-    if (n.isFile) return selected.has(n.path);
-    if (!children) return false;
-    const files = getAllFiles({ ...n, children });
-    const someSelected = files.some((p) => selected.has(p));
-    return someSelected && !files.every((p) => selected.has(p));
-  }
-
-  async function handleToggle() {
-    if (!node.isFile && !children) {
-      await loadChildren();
-    }
-    const newSelected = new Set(selected);
-    const fully = isFullySelected(node);
-    const files = node.isFile
-      ? [node.path]
-      : getAllFiles({ ...node, children });
-    if (fully) files.forEach((f) => newSelected.delete(f));
-    else files.forEach((f) => newSelected.add(f));
-    onChange(newSelected);
-  }
-
-  async function handleExpand() {
-    if (!expanded) await loadChildren();
-    setExpanded(!expanded);
-  }
-
-  const checked = isFullySelected(node);
-  const indeterminate = isPartiallySelected(node) && !checked;
-
+  console.log({ currentPath });
   return (
-    <>
-      <ListItemButton onClick={node.isDirectory ? handleExpand : undefined}>
-        <ListItemIcon>
-          <Checkbox
-            edge="start"
-            checked={checked}
-            indeterminate={indeterminate}
-            tabIndex={-1}
-            disableRipple
-            onChange={(e) => {
-              e.stopPropagation();
-              handleToggle();
-            }}
+    <div className="files">
+      <div className="dirname" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          {(() => {
+            const parts = currentPath === "." ? [] : currentPath.split("/").filter(Boolean);
+            // Build full breadcrumbs array: always start with Home
+            const breadcrumbs: { name: string; path: string }[] = [{ name: "Home", path: "." }];
+            let accumulated = "";
+            for (let i = 0; i < parts.length; i++) {
+              accumulated = accumulated ? `${accumulated}/${parts[i]}` : parts[i];
+              breadcrumbs.push({ name: parts[i], path: accumulated });
+            }
+            // If there are more than 4 levels deep (i.e. more than 5 items including Home), truncate with an ellipsis.
+            if (breadcrumbs.length > 5) {
+              const ellipsisTarget = breadcrumbs[breadcrumbs.length - 5].path;
+              const displayedBreadcrumbs = [
+                breadcrumbs[0],
+                { name: '...', path: ellipsisTarget },
+                ...breadcrumbs.slice(breadcrumbs.length - 3)
+              ];
+              return displayedBreadcrumbs.map((crumb, index) => (
+                <span key={index}>
+                  <span
+                    style={{ cursor: "pointer", textDecoration: "underline" }}
+                    onClick={() => {
+                      setFiles([]);
+                      setCurrentPath(crumb.path);
+                    }}
+                    onKeyDown={() => {
+                      setFiles([]);
+                      setCurrentPath(crumb.path);
+                    }}
+                  >
+                    {crumb.name}
+                  </span>
+                  {index < displayedBreadcrumbs.length - 1 ? " / " : ""}
+                </span>
+              ));
+            } else {
+              return breadcrumbs.map((crumb, index) => (
+                <span key={index}>
+                  <span
+                    style={{ cursor: "pointer", textDecoration: "underline" }}
+                    onClick={() => {
+                      setFiles([]);
+                      setCurrentPath(crumb.path);
+                    }}
+                    onKeyDown={() => {
+                      setFiles([]);
+                      setCurrentPath(crumb.path);
+                    }}
+                  >
+                    {crumb.name}
+                  </span>
+                  {index < breadcrumbs.length - 1 ? " / " : ""}
+                </span>
+              ));
+            }
+          })()}
+        </div>
+        <div>
+          <label style={{ cursor: "pointer", fontSize: "0.9rem" }}>
+            <input type="checkbox" checked={showDotfiles} onChange={(e) => setShowDotfiles(e.target.checked)} style={{ marginRight: "0.3rem" }} />
+            Dotfiles
+          </label>
+        </div>
+      </div>
+      <div className="filelist">
+        {files.map((file: File, i) => (
+          <Item
+            key={`${file.name}-${i}`}
+            file={file}
+            currentPath={currentPath}
+            handleClick={handleClick}
+            onFileSelect={onFileSelect}
           />
-        </ListItemIcon>
-        <ListItemText primary={node.name} />
-        {loading ? (
-          <CircularProgress size={20} />
-        ) : node.isDirectory ? (
-          expanded ? (
-            <ExpandLess />
-          ) : (
-            <ExpandMore />
-          )
-        ) : null}
-      </ListItemButton>
-      {expanded && children && (
-        <Box sx={{ pl: 4 }}>
-          {children.map((child) => (
-            <FileNodeItem
-              key={child.path}
-              node={child}
-              selected={selected}
-              onChange={onChange}
-              baseDir={baseDir}
-            />
-          ))}
-        </Box>
-      )}
-    </>
+        ))}
+      </div>
+    </div>
   );
-}
+};
+
+export default FileExplorer;
