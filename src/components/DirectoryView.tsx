@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { BaseDirectory, stat } from "@tauri-apps/plugin-fs";
 import { TreeView, TreeItem } from "@mui/lab";
-import { ExpandMore, ChevronRight, Folder as FolderIcon, InsertDriveFile as FileIcon } from "@mui/icons-material";
+import {
+  ExpandMore,
+  ChevronRight,
+  Folder as FolderIcon,
+  InsertDriveFile as FileIcon,
+} from "@mui/icons-material";
 import { Box } from "@mui/material";
 
 export interface TreeItemData {
@@ -20,21 +25,39 @@ export interface DirectoryViewProps {
   loadChildren: (node: TreeItemData) => Promise<void>;
 }
 
-export default function DirectoryView({ node, onFileSelect, showDotfiles, loadChildren }: DirectoryViewProps) {
+export default function DirectoryView({
+  node,
+  onFileSelect,
+  showDotfiles,
+  loadChildren,
+}: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
 
   const handleToggle = async (event: React.SyntheticEvent, nodeIds: string[]) => {
     const newlyExpanded = nodeIds.filter(id => !expanded.includes(id));
+    // If the current node is expanded and its children haven't been loaded yet, load them.
+    if (newlyExpanded.includes(node.id) && !node.loadedChildren) {
+      await loadChildren(node);
+    }
+    // For each expanded child directory that hasn't been loaded, load its children.
     for (const id of newlyExpanded) {
-      const child = node.children.find(c => c.id === id && c.isDirectory && !c.loadedChildren);
-      if (child) {
-        await loadChildren(child);
+      if (id !== node.id) {
+        const child = node.children.find(
+          c => c.id === id && c.isDirectory && !c.loadedChildren
+        );
+        if (child) {
+          await loadChildren(child);
+        }
       }
     }
     setExpanded(nodeIds);
   };
 
   const handleNodeSelect = async (event: React.SyntheticEvent, nodeId: string) => {
+    // Ignore selection on the dummy node.
+    if (nodeId === `${node.id}-dummy`) {
+      return;
+    }
     if (nodeId === node.id) {
       return;
     }
@@ -73,18 +96,22 @@ export default function DirectoryView({ node, onFileSelect, showDotfiles, loadCh
           </Box>
         }
       >
-        {node.children.map(child => {
-          if (child.isDirectory) {
-            return (
-              <DirectoryView
-                key={child.id}
-                node={child}
-                onFileSelect={onFileSelect}
-                showDotfiles={showDotfiles}
-                loadChildren={loadChildren}
-              />
-            );
-          } else {
+        { !node.loadedChildren ? (
+          // Render a hidden dummy child to force the expand icon to show
+          <TreeItem nodeId={`${node.id}-dummy`} label=" " sx={{ display: "none" }} />
+        ) : (
+          node.children.map((child) => {
+            if (child.isDirectory) {
+              return (
+                <DirectoryView
+                  key={child.id}
+                  node={child}
+                  onFileSelect={onFileSelect}
+                  showDotfiles={showDotfiles}
+                  loadChildren={loadChildren}
+                />
+              );
+            }
             return (
               <TreeItem
                 key={child.id}
@@ -97,8 +124,8 @@ export default function DirectoryView({ node, onFileSelect, showDotfiles, loadCh
                 }
               />
             );
-          }
-        })}
+          })
+        )}
       </TreeItem>
     </TreeView>
   );

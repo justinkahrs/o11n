@@ -95,6 +95,8 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
       sx={{
         width: 300,
         maxHeight: "100%",
+        overflowY: "auto",
+        overflowX: "auto",
         display: "flex",
         flexDirection: "column",
         gap: 1,
