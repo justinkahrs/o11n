@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
+import { open } from "@tauri-apps/plugin-dialog";
 
-import { Box, FormControlLabel, Checkbox } from "@mui/material";
+import { Box, FormControlLabel, Checkbox, Button } from "@mui/material";
 import DirectoryView from "./DirectoryView";
 
 interface TreeItemData {
@@ -25,7 +26,7 @@ interface FileExplorerProps {
 export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
   const [showDotfiles, setShowDotfiles] = useState(false);
 
-  // The root node: "Home" at path "."
+  // The root node: by default "Home" at path ".", can be updated to project directory
   const [root, setRoot] = useState<TreeItemData>({
     id: "Home",
     name: "Home",
@@ -38,9 +39,11 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
   // Load the children for a directory node if not already loaded
   async function loadChildren(node: TreeItemData) {
     if (!node.isDirectory) return;
-    const contents = await readDir(node.path, {
-      baseDir: BaseDirectory.Home,
-    });
+    let options = {};
+    if (node.path === ".") {
+      options = { baseDir: BaseDirectory.Home };
+    }
+    const contents = await readDir(node.path, options);
 
     let entries = contents.map((entry) => ({
       id: node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
@@ -70,16 +73,34 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
     setRoot((prev) => ({ ...prev }));
   }
 
+  // Function to open project directory picker
+  const openProject = async () => {
+    const selected = await open({
+      directory: true,
+      multiple: false,
+    });
+    if (selected && typeof selected === "string") {
+      // Extract directory name from selected path
+      const parts = selected.split(/[\\/]/);
+      const dirName = parts[parts.length - 1] || selected;
+      setRoot({
+        id: dirName,
+        name: dirName,
+        path: selected,
+        isDirectory: true,
+        children: [],
+        loadedChildren: false,
+      });
+    }
+  };
+
   // Whenever showDotfiles changes, reset the tree
   useEffect(() => {
-    setRoot({
-      id: "Home",
-      name: "Home",
-      path: ".",
-      isDirectory: true,
+    setRoot((prevRoot) => ({
+      ...prevRoot,
       children: [],
       loadedChildren: false,
-    });
+    }));
   }, [showDotfiles]);
 
   useEffect(() => {
@@ -102,6 +123,9 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
         gap: 1,
       }}
     >
+      <Button variant="contained" onClick={openProject}>
+        Open Project
+      </Button>
       <FormControlLabel
         control={
           <Checkbox
