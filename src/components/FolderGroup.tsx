@@ -19,6 +19,7 @@ interface FolderGroupProps {
   onRemoveFolder: (folder: string) => void;
   children: React.ReactNode;
   totalFolders: number;
+  projectRoot?: string;
 }
 
 export function FolderGroup({
@@ -29,15 +30,21 @@ export function FolderGroup({
   onRemoveFolder,
   children,
   totalFolders,
+  projectRoot,
 }: FolderGroupProps) {
   const [expanded, setExpanded] = useState(totalFolders < 3);
   const prevTotalRef = useRef(totalFolders);
+  
   useEffect(() => {
     if (prevTotalRef.current < 3 && totalFolders === 3) {
       setExpanded(false);
     }
     prevTotalRef.current = totalFolders;
   }, [totalFolders]);
+
+  const displayedFolder = projectRoot && folder.startsWith(projectRoot)
+    ? folder.slice(projectRoot.length).replace(/^[/\\]+/, '')
+    : folder;
 
   return (
     <Accordion
@@ -46,12 +53,12 @@ export function FolderGroup({
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
-        aria-controls={`panel-${folder}-content`}
-        id={`panel-${folder}-header`}
+        aria-controls={`panel-${displayedFolder}-content`}
+        id={`panel-${displayedFolder}-header`}
       >
         <Box sx={{ flexGrow: 1 }}>
           <Typography variant="subtitle1">
-            {`📁 ${folder} - ${count} file${count === 1 ? "" : "s"}`}
+            {`📁 ${displayedFolder} - ${count} file${count === 1 ? "" : "s"}`}
           </Typography>
           <Typography
             variant="caption"

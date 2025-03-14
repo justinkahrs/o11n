@@ -5,6 +5,7 @@ import type { FileNode } from "./SelectedFiles";
 import { generateFileMap } from "../utils/generateFileMap";
 import xmlFormattingInstructions from "../utils/xmlFormattingInstructions.txt?raw";
 import markdownLanguages from "../utils/markdownLanguages";
+import { ContentCopy } from "@mui/icons-material";
 interface CopyProps {
   files: FileNode[];
   userInstructions: string;
@@ -66,6 +67,7 @@ export default function Copy({ files, userInstructions }: CopyProps) {
       fullWidth
       variant="contained"
       onClick={handleCopy}
+      startIcon={<ContentCopy />}
       sx={{ width: "20%" }}
     >
       Copy
