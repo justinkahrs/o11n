@@ -15,7 +15,7 @@ export function InstructionsInput({ onChange }: InstructionsInputProps) {
   };
 
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ px: 2, pt: 2 }}>
       <TextField
         variant="outlined"
         fullWidth

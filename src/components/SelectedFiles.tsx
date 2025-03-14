@@ -37,7 +37,7 @@ export function SelectedFiles({
   );
 
   return (
-    <Box sx={{ overflowY: "auto" }}>
+    <Box sx={{ overflowY: "auto", px: 2 }}>
       {Object.keys(groupedFiles)
         .sort()
         .map((folder) => {
