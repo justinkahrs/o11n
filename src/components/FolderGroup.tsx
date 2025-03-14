@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Accordion,
   AccordionSummary,
@@ -9,6 +10,7 @@ import {
 } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import DeleteIcon from "@mui/icons-material/Delete";
+import Folder from "@mui/icons-material/Folder";
 import { formatFileSize } from "../utils/formatFileSize";
 
 interface FolderGroupProps {
@@ -51,7 +53,6 @@ export function FolderGroup({
     }
   }
 
-  console.log({ folder, projectRoot });
   return (
     <Accordion
       expanded={expanded}
@@ -63,8 +64,9 @@ export function FolderGroup({
         id={`panel-${displayedFolder}-header`}
       >
         <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="subtitle1">
-            {`📁 ${displayedFolder} - ${count} file${count === 1 ? "" : "s"}`}
+          <Typography variant="subtitle1" style={{ display: "flex" }}>
+            <Folder style={{ marginRight: ".5rem" }} />
+            {`${displayedFolder} - ${count} file${count === 1 ? "" : "s"}`}
           </Typography>
           <Typography
             variant="caption"

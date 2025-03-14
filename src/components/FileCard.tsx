@@ -1,5 +1,7 @@
 import { Box, Typography, IconButton } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
+import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
+
 import type { FileNode } from "./SelectedFiles";
 import { formatFileSize } from "../utils/formatFileSize";
 
@@ -42,7 +44,9 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
           paddingRight: "40px",
         }}
       >
-        <Typography variant="subtitle2">📄</Typography>
+        <Typography variant="subtitle2">
+          <InsertDriveFile />
+        </Typography>
         <Typography variant="subtitle2">{file.name}</Typography>
         <Typography variant="caption">
           {formatFileSize(file.size)} ({percentage}%)
