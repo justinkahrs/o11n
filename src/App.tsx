@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { ThemeProvider, CssBaseline, Stack, Grid } from "@mui/material";
+import { ThemeProvider, CssBaseline, Stack, Grid, Button } from "@mui/material";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { load } from "@tauri-apps/plugin-store";
 
@@ -7,15 +7,20 @@ import FileExplorer from "./components/FileExplorer";
 import { InstructionsInput } from "./components/InstructionsInput";
 import { SelectedFiles } from "./components/SelectedFiles";
 import Copy from "./components/Copy";
+import { PlanInput } from "./components/PlanInput";
 import { theme } from "./theme";
 
 // Import our shared types
 import type { FileNode, TreeItemData } from "./types";
+import { ChevronLeft, Create } from "@mui/icons-material";
 
 function App() {
   const [instructions, setInstructions] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
   const [projects, setProjects] = useState<TreeItemData[]>([]);
+  const [planMode, setPlanMode] = useState(false);
+  const [plan, setPlan] = useState("");
+
   const projectsRef = useRef(projects);
   const selectedFilesRef = useRef(selectedFiles);
 
@@ -51,6 +56,10 @@ function App() {
     );
   }
 
+  const handleApply = async () => {
+    setPlanMode(true);
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -73,24 +82,62 @@ function App() {
           }}
           justifyContent="space-between"
         >
-          <Stack
-            sx={{
-              width: "100%",
-              flex: 1,
-              overflowY: "auto",
-              display: "flex",
-              flexDirection: "column",
-            }}
-            alignContent="space-between"
-          >
-            <InstructionsInput onChange={setInstructions} />
-            <SelectedFiles
-              files={selectedFiles}
-              onRemoveFile={handleRemoveFile}
-              onRemoveFolder={handleRemoveFolder}
-            />
-          </Stack>
-          <Copy files={selectedFiles} userInstructions={instructions} />
+          <>
+            <Stack
+              sx={{
+                width: "100%",
+                flex: 1,
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+              }}
+              alignContent="space-between"
+            >
+              {planMode ? (
+                <PlanInput plan={plan} onChange={setPlan} />
+              ) : (
+                <>
+                  <InstructionsInput onChange={setInstructions} />
+                  <SelectedFiles
+                    files={selectedFiles}
+                    onRemoveFile={handleRemoveFile}
+                    onRemoveFolder={handleRemoveFolder}
+                  />
+                </>
+              )}
+            </Stack>
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{ mt: 2 }}
+              justifyContent={planMode ? "flex-end" : "space-between"}
+            >
+              {planMode ? (
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<ChevronLeft />}
+                  sx={{ mt: 2, width: "40%" }}
+                  onClick={() => setPlanMode(false)}
+                >
+                  Go back
+                </Button>
+              ) : (
+                <>
+                  <Copy files={selectedFiles} userInstructions={instructions} />
+                  <Button
+                    fullWidth
+                    startIcon={<Create />}
+                    variant="outlined"
+                    onClick={handleApply}
+                    sx={{ width: "40%" }}
+                  >
+                    Apply Changes
+                  </Button>
+                </>
+              )}
+            </Stack>
+          </>
         </Grid>
       </Stack>
     </ThemeProvider>

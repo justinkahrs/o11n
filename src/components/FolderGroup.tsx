@@ -55,6 +55,7 @@ export function FolderGroup({
 
   return (
     <Accordion
+      disableGutters
       expanded={expanded}
       onChange={(_, isExpanded) => setExpanded(isExpanded)}
     >

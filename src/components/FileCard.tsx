@@ -17,7 +17,7 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
       sx={{
         position: "relative",
         borderRadius: "10px",
-        border: "1px solid",
+        border: "1px solid lightgrey",
         padding: 2,
         margin: 0,
         minWidth: "20%",

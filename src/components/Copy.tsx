@@ -9,13 +9,14 @@ import { ContentCopy } from "@mui/icons-material";
 interface CopyProps {
   files: FileNode[];
   userInstructions: string;
+  variant?: string;
 }
 
 // Function to map extension to a markdown language identifier
 const getMarkdownLanguage = (ext: string) =>
   markdownLanguages[ext.toLowerCase()] || "plaintext";
 
-export default function Copy({ files, userInstructions }: CopyProps) {
+export default function Copy({ files, userInstructions, variant }: CopyProps) {
   async function handleCopy() {
     const lines: string[] = [];
     const filePaths = files.map((file) => file.path);
@@ -65,7 +66,7 @@ export default function Copy({ files, userInstructions }: CopyProps) {
   return (
     <Button
       fullWidth
-      variant="contained"
+      variant="outlined"
       onClick={handleCopy}
       startIcon={<ContentCopy />}
       sx={{ width: "40%" }}
