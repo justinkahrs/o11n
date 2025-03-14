@@ -14,35 +14,15 @@ import {
 } from "@mui/material";
 import DirectoryView from "./DirectoryView";
 import { FolderSpecial, Settings, Delete } from "@mui/icons-material";
+import { FileExplorerProps, TreeItemData } from "../types";
 
-interface TreeItemData {
-  id: string;
-  name: string;
-  path: string; // This may be '.' or a full path
-  isDirectory: boolean;
-  children: TreeItemData[];
-  loadedChildren: boolean;
-}
-
-interface FileExplorerProps {
-  onFileSelect: (file: {
-    id: string;
-    name: string;
-    path: string;
-    size: number;
-  }) => void;
-}
-
-export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
+export default function FileExplorer({
+  onFileSelect,
+  projects,
+  setProjects
+}: FileExplorerProps) {
   const [showDotfiles, setShowDotfiles] = useState(false);
-  // We remove the gitignore usage for now, or keep it commented out or hidden
-  // For demonstration, let's keep it out of the UI
-  // const [useGitignore, setUseGitignore] = useState(true);
-
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-
-  // We can store an array of "projects" (root nodes)
-  const [projects, setProjects] = useState<TreeItemData[]>([]);
 
   // Helper to create a new project node
   function createRootNode(dirPath: string): TreeItemData {
@@ -132,7 +112,7 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
         loadedChildren: false,
       }))
     );
-  }, [showDotfiles]);
+  }, [showDotfiles, setProjects]);
 
   // If a root hasn't loaded children, load them
   useEffect(() => {

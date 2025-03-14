@@ -1,14 +1,32 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ThemeProvider, CssBaseline, Stack, Grid } from "@mui/material";
+import { ask } from "@tauri-apps/plugin-dialog";
+import { load } from "@tauri-apps/plugin-store";
+
 import FileExplorer from "./components/FileExplorer";
 import { InstructionsInput } from "./components/InstructionsInput";
-import { SelectedFiles, type FileNode } from "./components/SelectedFiles";
+import { SelectedFiles } from "./components/SelectedFiles";
 import Copy from "./components/Copy";
 import { theme } from "./theme";
+
+// Import our shared types
+import type { FileNode, TreeItemData } from "./types";
 
 function App() {
   const [instructions, setInstructions] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
+  const [projects, setProjects] = useState<TreeItemData[]>([]);
+  const projectsRef = useRef(projects);
+  const selectedFilesRef = useRef(selectedFiles);
+
+  useEffect(() => {
+    projectsRef.current = projects;
+  }, [projects]);
+
+  useEffect(() => {
+    selectedFilesRef.current = selectedFiles;
+  }, [selectedFiles]);
+
   function handleFileSelect(file: FileNode) {
     setSelectedFiles((prev) => {
       if (prev.some((f) => f.path === file.path)) {
@@ -39,10 +57,13 @@ function App() {
       <Stack
         sx={{ height: "100vh", p: 2 }}
         direction="row"
-        // spacing={2}
         justifyContent="space-around"
       >
-        <FileExplorer onFileSelect={handleFileSelect} />
+        <FileExplorer
+          onFileSelect={handleFileSelect}
+          projects={projects}
+          setProjects={setProjects}
+        />
         <Grid
           sx={{
             width: "100%",
