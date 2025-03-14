@@ -34,7 +34,7 @@ export function FolderGroup({
 }: FolderGroupProps) {
   const [expanded, setExpanded] = useState(totalFolders < 3);
   const prevTotalRef = useRef(totalFolders);
-  
+
   useEffect(() => {
     if (prevTotalRef.current < 3 && totalFolders === 3) {
       setExpanded(false);
@@ -42,10 +42,16 @@ export function FolderGroup({
     prevTotalRef.current = totalFolders;
   }, [totalFolders]);
 
-  const displayedFolder = projectRoot && folder.startsWith(projectRoot)
-    ? folder.slice(projectRoot.length).replace(/^[/\\]+/, '')
-    : folder;
+  let displayedFolder = folder;
+  if (projectRoot) {
+    const segments = folder.split("/").filter(Boolean);
+    const projIndex = segments.indexOf(projectRoot);
+    if (projIndex !== -1) {
+      displayedFolder = segments.slice(projIndex).join("/");
+    }
+  }
 
+  console.log({ folder, projectRoot });
   return (
     <Accordion
       expanded={expanded}

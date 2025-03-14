@@ -7,6 +7,7 @@ export interface FileNode {
   name: string;
   path: string;
   size: number;
+  projectRoot?: string;
 }
 
 interface SelectedFilesProps {
@@ -46,6 +47,10 @@ export function SelectedFiles({
           const percentage = totalSize
             ? ((folderSize / totalSize) * 100).toFixed(1)
             : "0";
+          const projectRoot = filesInFolder[0].projectRoot
+            ?.split("/")
+            .filter(Boolean)
+            .pop();
           return (
             <FolderGroup
               key={folder}
@@ -55,6 +60,7 @@ export function SelectedFiles({
               percentage={percentage}
               onRemoveFolder={onRemoveFolder}
               totalFolders={Object.keys(groupedFiles).length}
+              projectRoot={projectRoot}
             >
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                 {filesInFolder

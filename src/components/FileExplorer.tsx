@@ -206,10 +206,10 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
               <Box sx={{ p: 1 }}>
                 <DirectoryView
                   node={root}
-                  onFileSelect={onFileSelect}
+                  onFileSelect={(file) => onFileSelect({ ...file, projectRoot: root.path })}
                   showDotfiles={showDotfiles}
                   loadChildren={loadChildren}
-                />
+              />
               </Box>
             </Box>
           ))
