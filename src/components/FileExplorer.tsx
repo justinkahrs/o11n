@@ -170,7 +170,8 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
       <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 1 }}>
         {projects.length === 0 ? (
           <Typography variant="body1">
-            Load a project and choose which files will add context.
+            Load a project and choose which files will add context to your
+            prompt.
           </Typography>
         ) : (
           projects.map((root) => (
@@ -206,10 +207,12 @@ export default function FileExplorer({ onFileSelect }: FileExplorerProps) {
               <Box sx={{ p: 1 }}>
                 <DirectoryView
                   node={root}
-                  onFileSelect={(file) => onFileSelect({ ...file, projectRoot: root.path })}
+                  onFileSelect={(file) =>
+                    onFileSelect({ ...file, projectRoot: root.path })
+                  }
                   showDotfiles={showDotfiles}
                   loadChildren={loadChildren}
-              />
+                />
               </Box>
             </Box>
           ))

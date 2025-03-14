@@ -68,9 +68,9 @@ export default function Copy({ files, userInstructions }: CopyProps) {
       variant="contained"
       onClick={handleCopy}
       startIcon={<ContentCopy />}
-      sx={{ width: "20%" }}
+      sx={{ width: "40%" }}
     >
-      Copy
+      Copy Prompt
     </Button>
   );
 }
