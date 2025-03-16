@@ -1,8 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ThemeProvider, CssBaseline, Stack, Grid, Button } from "@mui/material";
-import { ask } from "@tauri-apps/plugin-dialog";
-import { load } from "@tauri-apps/plugin-store";
-
+import { invoke } from "@tauri-apps/api/core";
 import FileExplorer from "./components/FileExplorer";
 import { InstructionsInput } from "./components/InstructionsInput";
 import { SelectedFiles } from "./components/SelectedFiles";
@@ -60,6 +58,15 @@ function App() {
     setPlanMode(true);
   };
 
+  const handleCommit = async () => {
+    try {
+      const result = await invoke("apply_changes", { xmlInput: instructions });
+      console.log("Success:", result);
+    } catch (error) {
+      console.error("Failed to apply changes:", error);
+    }
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -113,15 +120,26 @@ function App() {
               justifyContent={planMode ? "flex-end" : "space-between"}
             >
               {planMode ? (
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<ChevronLeft />}
-                  sx={{ mt: 2, width: "40%" }}
-                  onClick={() => setPlanMode(false)}
-                >
-                  Go back
-                </Button>
+                <>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<ChevronLeft />}
+                    sx={{ mt: 2, width: "40%" }}
+                    onClick={() => setPlanMode(false)}
+                  >
+                    Go back
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Create />}
+                    sx={{ mt: 2, width: "40%" }}
+                    onClick={handleCommit}
+                  >
+                    Commit Changes
+                  </Button>
+                </>
               ) : (
                 <>
                   <Copy files={selectedFiles} userInstructions={instructions} />
