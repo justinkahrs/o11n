@@ -60,7 +60,8 @@ function App() {
 
   const handleCommit = async () => {
     try {
-      const result = await invoke("apply_changes", { xmlInput: instructions });
+      console.log({ plan });
+      const result = await invoke("apply_protocol", { xmlInput: plan });
       console.log("Success:", result);
     } catch (error) {
       console.error("Failed to apply changes:", error);
