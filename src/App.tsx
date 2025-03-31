@@ -69,10 +69,25 @@ function App() {
 
   const handleCommit = async () => {
     try {
-      const result = await invoke("apply_protocol", { xmlInput: plan });
+      const result = await invoke("apply_protocol", {
+        xmlInput: plan,
+        reverse: false,
+      });
       console.log("Success:", result);
     } catch (error) {
       console.error("Failed to apply changes:", error);
+    }
+  };
+
+  const handleRevert = async () => {
+    try {
+      const result = await invoke("apply_protocol", {
+        xmlInput: plan,
+        reverse: true,
+      });
+      console.log("Success:", result);
+    } catch (error) {
+      console.error("Failed to revert changes:", error);
     }
   };
 
@@ -152,7 +167,7 @@ function App() {
                     fullWidth
                     variant="outlined"
                     startIcon={<ChevronLeft />}
-                    sx={{ mt: 2, width: "40%" }}
+                    sx={{ mt: 2, width: "30%" }}
                     onClick={() => setPlanMode(false)}
                   >
                     Go back
@@ -161,10 +176,19 @@ function App() {
                     fullWidth
                     variant="contained"
                     startIcon={<Create />}
-                    sx={{ mt: 2, width: "40%" }}
+                    sx={{ mt: 2, width: "30%" }}
                     onClick={handleCommit}
                   >
                     Commit Changes
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Create />}
+                    sx={{ mt: 2, width: "30%" }}
+                    onClick={handleRevert}
+                  >
+                    Revert Changes
                   </Button>
                 </>
               ) : (

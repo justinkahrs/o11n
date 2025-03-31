@@ -7,9 +7,15 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
-fn apply_protocol(xml_input: &str) -> Result<String, String> {
-    match crate::apply_changes::apply_changes(xml_input) {
-        Ok(_) => Ok("Changes applied successfully!".to_string()),
+fn apply_protocol(xml_input: &str, reverse: bool) -> Result<String, String> {
+    match crate::apply_changes::apply_changes(xml_input, reverse) {
+        Ok(_) => {
+            if reverse {
+                Ok("Changes reverted successfully!".to_string())
+            } else {
+                Ok("Changes applied successfully!".to_string())
+            }
+        },
         Err(e) => Err(format!("Failed to apply changes: {}", e))
     }
 }
