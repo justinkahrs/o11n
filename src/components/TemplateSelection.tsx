@@ -42,23 +42,16 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
   onRemoveTemplate,
   onToggleTemplate,
 }) => {
-  const [expanded, setExpanded] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateInstructions, setTemplateInstructions] = useState("");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
 
-  const handlePlusClick = () => {
-    setExpanded(!expanded);
-  };
-
   const handleCreateClick = () => {
     setCreateDialogOpen(true);
-    setExpanded(false);
   };
 
   const handleOpenClick = async () => {
-    setExpanded(false);
     try {
       const selectedPath = await open({
         multiple: false,
@@ -116,21 +109,37 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
       }}
     >
       <Stack direction="row" spacing={1}>
-        <Chip label={<Add />} onClick={handlePlusClick} />
-        {expanded && (
-          <>
-            <Chip
-              icon={<Create />}
-              label="Create"
-              onClick={handleCreateClick}
-            />
-            <Chip
-              icon={<FolderOpen />}
-              label="Open"
-              onClick={handleOpenClick}
-            />
-          </>
-        )}
+        <Chip
+          label="Add saved prompt"
+          avatar={
+            hoveredId === "add" ? (
+              <>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCreateClick();
+                  }}
+                >
+                  <Create fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOpenClick();
+                  }}
+                >
+                  <FolderOpen fontSize="small" />
+                </IconButton>
+              </>
+            ) : (
+              <Add />
+            )
+          }
+          onMouseEnter={() => setHoveredId("add")}
+          onMouseLeave={() => setHoveredId(null)}
+        />
       </Stack>
       <Stack direction="row" spacing={1}>
         {templates.map((template) => (
@@ -141,33 +150,27 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
             onMouseLeave={() => setHoveredId(null)}
           >
             <Chip
+              avatar={
+                hoveredId === template.id ? (
+                  <>
+                    <IconButton
+                      size="small"
+                      onClick={() => onToggleTemplate(template.id)}
+                    >
+                      <VisibilityOff fontSize="small" />
+                    </IconButton>
+                    <IconButton
+                      size="small"
+                      onClick={() => onRemoveTemplate(template.id)}
+                    >
+                      <Close fontSize="small" />
+                    </IconButton>
+                  </>
+                ) : undefined
+              }
               label={template.name}
               color={template.active ? "primary" : "default"}
             />
-            {hoveredId === template.id && (
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: -8,
-                  right: -8,
-                  display: "flex",
-                  gap: 0.5,
-                }}
-              >
-                <IconButton
-                  size="small"
-                  onClick={() => onToggleTemplate(template.id)}
-                >
-                  <VisibilityOff fontSize="small" />
-                </IconButton>
-                <IconButton
-                  size="small"
-                  onClick={() => onRemoveTemplate(template.id)}
-                >
-                  <Close fontSize="small" />
-                </IconButton>
-              </Box>
-            )}
           </Box>
         ))}
       </Stack>

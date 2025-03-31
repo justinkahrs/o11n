@@ -21,10 +21,8 @@ interface CopyProps {
 }
 
 // Function to map extension to a markdown language identifier
-const getMarkdownLanguage = (ext: string) => {
-  console.log({ ext });
-  return markdownLanguages[ext.toLowerCase()] || "plaintext";
-};
+const getMarkdownLanguage = (ext: string) =>
+  markdownLanguages[ext.toLowerCase()] || "plaintext";
 
 export default function Copy({
   customTemplates,
@@ -68,8 +66,8 @@ export default function Copy({
       lines.push("");
     }
     lines.push("</file_contents>");
-    lines.push("<custom_instructions>");
     if (customTemplates?.length) {
+      lines.push("<custom_instructions>");
       for (const template of customTemplates.filter((t) => t.active)) {
         let content: string;
         try {
@@ -89,8 +87,8 @@ export default function Copy({
         lines.push("```");
         lines.push("");
       }
+      lines.push("</custom_instructions>");
     }
-    lines.push("</custom_instructions>");
 
     lines.push(xmlFormattingInstructions);
 
