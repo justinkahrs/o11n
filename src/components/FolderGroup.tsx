@@ -38,9 +38,6 @@ export function FolderGroup({
   const prevTotalRef = useRef(totalFolders);
 
   useEffect(() => {
-    if (prevTotalRef.current < 3 && totalFolders === 3) {
-      setExpanded(false);
-    }
     prevTotalRef.current = totalFolders;
   }, [totalFolders]);
 

@@ -27,6 +27,7 @@ const markdownLanguages: Record<string, string> = {
   yaml: "yaml",
   dockerfile: "dockerfile",
   graphql: "graphql",
+  xml: "xml",
 };
 
 export default markdownLanguages;

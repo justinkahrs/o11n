@@ -2494,6 +2494,7 @@ dependencies = [
  "anyhow",
  "log",
  "quick-xml 0.30.0",
+ "regex",
  "serde",
  "serde_json",
  "tauri",

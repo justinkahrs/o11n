@@ -5,6 +5,7 @@ import FileExplorer from "./components/FileExplorer";
 import { InstructionsInput } from "./components/InstructionsInput";
 import { SelectedFiles } from "./components/SelectedFiles";
 import Copy from "./components/Copy";
+import TemplateSelection from "./components/TemplateSelection";
 import { PlanInput } from "./components/PlanInput";
 import { theme } from "./theme";
 
@@ -12,8 +13,16 @@ import { theme } from "./theme";
 import type { FileNode, TreeItemData } from "./types";
 import { ChevronLeft, Create } from "@mui/icons-material";
 
+interface CustomTemplate {
+  id: string;
+  name: string;
+  path: string;
+  active: boolean;
+}
+
 function App() {
   const [instructions, setInstructions] = useState("");
+  const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
   const [projects, setProjects] = useState<TreeItemData[]>([]);
   const [planMode, setPlanMode] = useState(false);
@@ -33,7 +42,7 @@ function App() {
   function handleFileSelect(file: FileNode) {
     setSelectedFiles((prev) => {
       if (prev.some((f) => f.path === file.path)) {
-        return prev;
+        return prev.filter((f) => f.path !== file.path);
       }
       return [...prev, file];
     });
@@ -60,7 +69,6 @@ function App() {
 
   const handleCommit = async () => {
     try {
-      console.log({ plan });
       const result = await invoke("apply_protocol", { xmlInput: plan });
       console.log("Success:", result);
     } catch (error) {
@@ -106,6 +114,24 @@ function App() {
               ) : (
                 <>
                   <InstructionsInput onChange={setInstructions} />
+                  <TemplateSelection
+                    templates={customTemplates}
+                    onAddTemplate={(template) =>
+                      setCustomTemplates((prev) => [...prev, template])
+                    }
+                    onRemoveTemplate={(id) =>
+                      setCustomTemplates((prev) =>
+                        prev.filter((t) => t.id !== id)
+                      )
+                    }
+                    onToggleTemplate={(id) =>
+                      setCustomTemplates((prev) =>
+                        prev.map((t) =>
+                          t.id === id ? { ...t, active: !t.active } : t
+                        )
+                      )
+                    }
+                  />
                   <SelectedFiles
                     files={selectedFiles}
                     onRemoveFile={handleRemoveFile}
@@ -143,7 +169,11 @@ function App() {
                 </>
               ) : (
                 <>
-                  <Copy files={selectedFiles} userInstructions={instructions} />
+                  <Copy
+                    files={selectedFiles}
+                    userInstructions={instructions}
+                    customTemplates={customTemplates}
+                  />
                   <Button
                     fullWidth
                     startIcon={<Create />}

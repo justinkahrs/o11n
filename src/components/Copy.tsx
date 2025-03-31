@@ -6,18 +6,40 @@ import { generateFileMap } from "../utils/generateFileMap";
 import xmlFormattingInstructions from "../utils/xmlFormattingInstructions.txt?raw";
 import markdownLanguages from "../utils/markdownLanguages";
 import { ContentCopy } from "@mui/icons-material";
+interface CustomTemplate {
+  id: string;
+  name: string;
+  path: string;
+  active: boolean;
+}
+
 interface CopyProps {
   files: FileNode[];
   userInstructions: string;
+  customTemplates?: CustomTemplate[];
   variant?: string;
 }
 
 // Function to map extension to a markdown language identifier
-const getMarkdownLanguage = (ext: string) =>
-  markdownLanguages[ext.toLowerCase()] || "plaintext";
+const getMarkdownLanguage = (ext: string) => {
+  console.log({ ext });
+  return markdownLanguages[ext.toLowerCase()] || "plaintext";
+};
 
-export default function Copy({ files, userInstructions, variant }: CopyProps) {
+export default function Copy({
+  customTemplates,
+  files,
+  userInstructions,
+}: CopyProps) {
+  /* COPY PROMPT SECTION */
   async function handleCopy() {
+    // Function to get the file extension
+    const getExtension = (path: string) => {
+      const parts = path.split("/");
+      const filename = parts.pop(); // Get the last part after the last '/'
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      return filename?.includes(".") ? filename.split(".").pop()! : "";
+    };
     const lines: string[] = [];
     const filePaths = files.map((file) => file.path);
     const fileMap = generateFileMap(filePaths);
@@ -37,13 +59,6 @@ export default function Copy({ files, userInstructions, variant }: CopyProps) {
         // If reading fails, store an error message
         content = `/* Error reading file: ${err} */`;
       }
-      // Function to get the file extension
-      const getExtension = (path: string) => {
-        const parts = path.split("/");
-        const filename = parts.pop(); // Get the last part after the last '/'
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        return filename?.includes(".") ? filename.split(".").pop()! : "";
-      };
 
       const markdownExtension = getMarkdownLanguage(getExtension(file.path));
       lines.push(`File: ${file.path}`);
@@ -53,6 +68,29 @@ export default function Copy({ files, userInstructions, variant }: CopyProps) {
       lines.push("");
     }
     lines.push("</file_contents>");
+    lines.push("<custom_instructions>");
+    if (customTemplates?.length) {
+      for (const template of customTemplates.filter((t) => t.active)) {
+        let content: string;
+        try {
+          content = await readTextFile(template.path, {
+            baseDir: BaseDirectory.Home,
+          });
+        } catch (err) {
+          content = `/* Error reading template file: ${err} */`;
+        }
+        const markdownExtension = getMarkdownLanguage(
+          getExtension(template.path)
+        );
+
+        lines.push(`File: ${template.path}`);
+        lines.push(`\`\`\`${markdownExtension}`);
+        lines.push(content);
+        lines.push("```");
+        lines.push("");
+      }
+    }
+    lines.push("</custom_instructions>");
 
     lines.push(xmlFormattingInstructions);
 

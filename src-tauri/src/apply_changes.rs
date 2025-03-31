@@ -162,14 +162,19 @@ fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
 fn apply_file_change(file_change: &FileChange) -> Result<()> {
     match file_change.action {
         Action::Modify => {
-            let mut original_contents = fs::read_to_string(&file_change.path)
-                .context(format!("Could not read file: {:?}", file_change.path))?;
+            log::debug!("Attempting to read file: {}", file_change.path.display());
+            let mut original_contents = match fs::read_to_string(&file_change.path) {
+                Ok(contents) => {
+                    log::debug!("Successfully read file: {} ({} bytes)", file_change.path.display(), contents.len());
+                    contents
+                },
+                Err(e) => {
+                    log::error!("Could not read file: {}. Error: {}", file_change.path.display(), e);
+                    return Err(e).context(format!("Could not read file: {}", file_change.path.display()));
+                }
+            };
 
-            log::debug!(
-                "Current contents of {:?}: \n{}",
-                file_change.path,
-                original_contents
-            );
+            log::debug!("Current contents of {}: \n{}", file_change.path.display(), original_contents);
             for chg in &file_change.changes {
                 let search_text = match &chg.search {
                     Some(s) => s,
@@ -177,66 +182,55 @@ fn apply_file_change(file_change: &FileChange) -> Result<()> {
                 };
                 let content_text = &chg.content;
 
-                log::info!(
-                    "Applying change: {}. Searching for: '{}'",
-                    chg.description,
-                    search_text
-                );
+                log::info!("Applying change: {}. Searching for: '{}'", chg.description, search_text);
 
                 let normalized_contents = original_contents.replace("\r\n", "\n");
                 let normalized_search = search_text.replace("\r\n", "\n");
                 if let Some(pos) = normalized_contents.find(&normalized_search) {
-                    log::info!(
-                        "Found search text at position {}. Replacing with: '{}'",
-                        pos,
-                        content_text
-                    );
+                    log::info!("Found search text at position {}. Replacing with: '{}'", pos, content_text);
                     original_contents.replace_range(pos..pos + search_text.len(), content_text);
                 } else {
-                    log::error!(
-                        "Search block not found in file {:?}:\n{}",
-                        file_change.path,
-                        search_text
-                    );
-                    return Err(anyhow!(
-                        "Search block not found in file {:?}:\n{}",
-                        file_change.path,
-                        search_text
-                    ));
+                    log::error!("Search block not found in file {}:\n{}", file_change.path.display(), search_text);
+                    return Err(anyhow!("Search block not found in file {}:\n{}", file_change.path.display(), search_text));
                 }
             }
 
+            log::debug!("Attempting to write file: {} (new content length: {})", file_change.path.display(), original_contents.len());
             fs::write(&file_change.path, original_contents)
-                .context(format!("Could not write file: {:?}", file_change.path))?;
+                .context(format!("Could not write file: {}", file_change.path.display()))?;
+            log::info!("Successfully wrote changes to file: {}", file_change.path.display());
         }
         Action::Rewrite => {
             let mut final_contents = String::new();
             for chg in &file_change.changes {
                 final_contents.push_str(&chg.content);
             }
+            log::debug!("Attempting to rewrite file: {} (new content length: {})", file_change.path.display(), final_contents.len());
             fs::write(&file_change.path, final_contents)
-                .context(format!("Could not rewrite file: {:?}", file_change.path))?;
+                .context(format!("Could not rewrite file: {}", file_change.path.display()))?;
+            log::info!("Successfully rewrote file: {}", file_change.path.display());
         }
         Action::Create => {
             if file_change.path.exists() {
-                return Err(anyhow!("File already exists: {:?}", file_change.path));
+                return Err(anyhow!("File already exists: {}", file_change.path.display()));
             }
             let mut new_contents = String::new();
             for chg in &file_change.changes {
                 new_contents.push_str(&chg.content);
             }
+            log::debug!("Attempting to create file: {} (content length: {})", file_change.path.display(), new_contents.len());
             fs::write(&file_change.path, new_contents)
-                .context(format!("Could not create file: {:?}", file_change.path))?;
+                .context(format!("Could not create file: {}", file_change.path.display()))?;
+            log::info!("Successfully created file: {}", file_change.path.display());
         }
         Action::Delete => {
             if file_change.path.exists() {
+                log::debug!("Attempting to delete file: {}", file_change.path.display());
                 fs::remove_file(&file_change.path)
-                    .context(format!("Could not delete file: {:?}", file_change.path))?;
+                    .context(format!("Could not delete file: {}", file_change.path.display()))?;
+                log::info!("Successfully deleted file: {}", file_change.path.display());
             } else {
-                return Err(anyhow!(
-                    "Cannot delete, file does not exist: {:?}",
-                    file_change.path
-                ));
+                return Err(anyhow!("Cannot delete, file does not exist: {}", file_change.path.display()));
             }
         }
     }
@@ -246,6 +240,8 @@ fn apply_file_change(file_change: &FileChange) -> Result<()> {
 
 /// Main entry function to parse an XML protocol and apply each <file> block in sequence.
 pub fn apply_changes(xml_protocol: &str) -> Result<()> {
+    let cwd = std::env::current_dir().context("Failed to get current working directory")?;
+    log::debug!("Current working directory: {}", cwd.display());
     let parsed = parse_change_protocol(xml_protocol)
         .context("Failed to parse the change management protocol XML")?;
 
