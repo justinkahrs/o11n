@@ -54,11 +54,8 @@ export default function DirectoryView({
   };
 
   const handleNodeSelect = async (event: React.SyntheticEvent, nodeId: string) => {
-    // Ignore selection on the dummy node.
+    // Ignore selection on a dummy node.
     if (nodeId === `${node.id}-dummy`) {
-      return;
-    }
-    if (nodeId === node.id) {
       return;
     }
     const child = node.children.find(c => c.id === nodeId);
@@ -87,46 +84,43 @@ export default function DirectoryView({
       onNodeSelect={handleNodeSelect}
       sx={{ marginLeft: 1 }}
     >
-      <TreeItem
-        nodeId={node.id}
-        label={
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <FolderIcon fontSize="small" />
-            <span>{node.name}/</span>
-          </Box>
-        }
-      >
-        { !node.loadedChildren ? (
-          // Render a hidden dummy child to force the expand icon to show
-          <TreeItem nodeId={`${node.id}-dummy`} label=" " sx={{ display: "none" }} />
-        ) : (
-          node.children.map((child) => {
-            if (child.isDirectory) {
-              return (
-                <DirectoryView
-                  key={child.id}
-                  node={child}
-                  onFileSelect={onFileSelect}
-                  showDotfiles={showDotfiles}
-                  loadChildren={loadChildren}
-                />
-              );
-            }
-            return (
-              <TreeItem
-                key={child.id}
-                nodeId={child.id}
-                label={
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <FileIcon fontSize="small" />
-                    <span>{child.name}</span>
-                  </Box>
-                }
+      {node.loadedChildren ? (
+        node.children.map((child) =>
+          child.isDirectory ? (
+            <TreeItem
+              key={child.id}
+              nodeId={child.id}
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <FolderIcon fontSize="small" />
+                  <span>{child.name}/</span>
+                </Box>
+              }
+            >
+              <DirectoryView
+                node={child}
+                onFileSelect={onFileSelect}
+                showDotfiles={showDotfiles}
+                loadChildren={loadChildren}
               />
-            );
-          })
-        )}
-      </TreeItem>
+            </TreeItem>
+          ) : (
+            <TreeItem
+              key={child.id}
+              nodeId={child.id}
+              label={
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  <FileIcon fontSize="small" />
+                  <span>{child.name}</span>
+                </Box>
+              }
+            />
+          )
+        )
+      ) : (
+        // Render a hidden dummy child to force the expand icon to show if necessary
+        <TreeItem nodeId={`${node.id}-dummy`} label=" " sx={{ display: "none" }} />
+      )}
     </TreeView>
   );
 }

@@ -169,7 +169,7 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
                 ) : undefined
               }
               label={template.name}
-              color={template.active ? "primary" : "default"}
+              color={template.active ? "secondary" : "default"}
             />
           </Box>
         ))}

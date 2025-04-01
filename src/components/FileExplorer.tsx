@@ -2,21 +2,12 @@ import { useState, useEffect } from "react";
 import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
 
-import {
-  Box,
-  Button,
-  Checkbox,
-  FormControlLabel,
-  IconButton,
-  Menu,
-  MenuItem,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
-import { FolderSpecial, Settings, Delete } from "@mui/icons-material";
+import { FolderSpecial, Delete } from "@mui/icons-material";
 import type { FileExplorerProps, TreeItemData } from "../types";
+import { motion, Reorder } from "framer-motion";
 
 export default function FileExplorer({
   onFileSelect,
@@ -26,6 +17,12 @@ export default function FileExplorer({
 }: FileExplorerProps) {
   const theme = useTheme();
   const [showDotfiles, setShowDotfiles] = useState(false);
+  const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
+
+  const accordionVariants = {
+    open: { height: "auto", opacity: 1, transition: { duration: 0.3 } },
+    collapsed: { height: 0, opacity: 0, transition: { duration: 0.3 } },
+  };
 
   // Helper to create a new project node
   function createRootNode(dirPath: string): TreeItemData {
@@ -89,12 +86,19 @@ export default function FileExplorer({
       // Create the new root node and add it
       const newRoot = createRootNode(selected);
       setProjects((prev) => [...prev, newRoot]);
+      // default expanded state is true
+      setExpanded((prev) => ({ ...prev, [newRoot.path]: true }));
     }
   };
 
   // Remove a project by path
   function removeProject(path: string) {
     setProjects((prev) => prev.filter((proj) => proj.path !== path));
+    setExpanded((prev) => {
+      const newState = { ...prev };
+      delete newState[path];
+      return newState;
+    });
   }
 
   // If user toggles dotfiles, re-load all projects
@@ -148,48 +152,77 @@ export default function FileExplorer({
             prompt.
           </Typography>
         ) : (
-          projects.map((root) => (
-            <Box
-              key={root.path}
-              sx={{
-                mb: 3,
-                border: "1px solid #ccc",
-                borderRadius: 1,
-                overflow: "hidden",
-              }}
-            >
-              {/* Header with project name + delete */}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  backgroundColor: theme.palette.secondary.main,
-                  px: 1,
-                  py: 0.5,
-                  justifyContent: "space-between",
-                }}
-              >
-                <Typography>{root.name}</Typography>
-                <IconButton
-                  onClick={() => removeProject(root.path)}
-                  size="small"
+          <Reorder.Group
+            as="div"
+            axis="y"
+            values={projects}
+            onReorder={setProjects}
+          >
+            {projects.map((root) => (
+              <Reorder.Item key={root.path} value={root}>
+                <Box
+                  sx={{
+                    mb: 3,
+                    border: "1px solid #ccc",
+                    borderRadius: 1,
+                    overflow: "hidden",
+                  }}
                 >
-                  <Delete fontSize="inherit" />
-                </IconButton>
-              </Box>
-              {/* Directory tree */}
-              <Box sx={{ p: 1 }}>
-                <DirectoryView
-                  node={root}
-                  onFileSelect={(file) =>
-                    onFileSelect({ ...file, projectRoot: root.path })
-                  }
-                  showDotfiles={showDotfiles}
-                  loadChildren={loadChildren}
-                />
-              </Box>
-            </Box>
-          ))
+                  {/* Header with project name + delete */}
+                  <Box
+                    onClick={() =>
+                      setExpanded((prev) => ({
+                        ...prev,
+                        [root.path]: prev[root.path] === false ? true : false,
+                      }))
+                    }
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      backgroundColor: theme.palette.secondary.main,
+                      px: 1,
+                      py: 0.5,
+                      justifyContent: "space-between",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Typography>{root.name}</Typography>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeProject(root.path);
+                      }}
+                      size="small"
+                    >
+                      <Delete fontSize="inherit" />
+                    </IconButton>
+                  </Box>
+                  {/* Animated Directory tree */}
+                  <motion.div
+                    initial={
+                      expanded[root.path] !== false ? "open" : "collapsed"
+                    }
+                    animate={
+                      expanded[root.path] !== false ? "open" : "collapsed"
+                    }
+                    variants={accordionVariants}
+                    style={{ overflow: "hidden" }}
+                  >
+                    <Box sx={{ p: 1 }}>
+                      <DirectoryView
+                        node={root}
+                        onFileSelect={(file) =>
+                          onFileSelect({ ...file, projectRoot: root.path })
+                        }
+                        showDotfiles={showDotfiles}
+                        loadChildren={loadChildren}
+                      />
+                    </Box>
+                  </motion.div>
+                </Box>
+              </Reorder.Item>
+            ))}
+          </Reorder.Group>
         )}
       </Box>
       <Box sx={{ p: 1, display: "flex", justifyContent: "flex-start" }}>

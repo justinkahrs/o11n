@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use quick_xml::events::Event;
+use quick_xml::name::QName;
 use quick_xml::Reader;
 use std::fs;
 use std::path::PathBuf;
@@ -11,7 +12,7 @@ struct Change {
     content: String,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 enum Action {
     Modify,
     Rewrite,
@@ -19,7 +20,7 @@ enum Action {
     Delete,
 }
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 struct FileChange {
     path: PathBuf,
     action: Action,
@@ -27,7 +28,9 @@ struct FileChange {
 }
 
 /// Parse the entire XML protocol to retrieve an ordered list of file changes.
+/// This function now skips any <Plan> elements that may be present in the XML input.
 fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
+    log::debug!("Starting parse_change_protocol");
     let mut reader = Reader::from_str(xml_input);
     reader.trim_text(true);
 
@@ -46,22 +49,37 @@ fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
 
     loop {
         let event = reader.read_event()?;
+        
+        // Skip any <Plan> elements entirely
+        if let Event::Start(ref evt) = event {
+            if evt.name() == QName(b"Plan") {
+                log::debug!("Skipping <Plan> block");
+                reader.read_to_end(QName(b"Plan"))?;
+                continue;
+            }
+        }
+        if let Event::End(ref evt) = event {
+            if evt.name() == QName(b"Plan") {
+                log::debug!("Skipping </Plan> block");
+                continue;
+            }
+        }
+        
+        log::debug!("Event: {:?}", event);
         match event {
             Event::Start(evt) => {
                 let e = evt.into_owned();
                 let tag_name = String::from_utf8_lossy(e.name().as_ref()).to_string();
-
+                log::debug!("Start tag: {}", tag_name);
                 match tag_name.as_str() {
                     "file" => {
-                        // Extract path=, action= from attributes
                         let mut path_val = String::new();
                         let mut action_val = String::new();
                         for attr in e.attributes() {
                             let attr = attr?;
-                            let key_bytes = attr.key.as_ref();
-                            let val_bytes = attr.value.as_ref();
-                            let key = String::from_utf8_lossy(key_bytes).to_string();
-                            let val = String::from_utf8_lossy(val_bytes).to_string();
+                            let key = String::from_utf8_lossy(attr.key.as_ref()).to_string();
+                            let val = String::from_utf8_lossy(attr.value.as_ref()).to_string();
+                            log::debug!("Attribute: {} = {}", key, val);
                             match key.as_str() {
                                 "path" => path_val = val,
                                 "action" => action_val = val,
@@ -81,26 +99,33 @@ fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
                         current_changes.clear();
                     }
                     "change" => {
+                        log::debug!("Starting a new change block");
                         current_description.clear();
                         current_search = None;
                         current_content.clear();
                     }
                     "description" => {
+                        log::debug!("Entering description block");
                         in_description_block = true;
                     }
                     "search" => {
+                        log::debug!("Entering search block");
                         in_search_block = true;
                         current_search = Some(String::new());
                     }
                     "content" => {
+                        log::debug!("Entering content block");
                         in_content_block = true;
                         current_content.clear();
                     }
-                    _ => {}
+                    other_tag => {
+                        log::debug!("Encountered unknown start tag: {}", other_tag);
+                    }
                 }
             }
             Event::Text(e) => {
                 let txt = e.unescape()?.into_owned();
+                log::debug!("Text event: {}", txt);
                 if in_description_block {
                     current_description.push_str(&txt);
                 } else if in_search_block {
@@ -110,11 +135,11 @@ fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
                 } else if in_content_block {
                     current_content.push_str(&txt);
                 }
-                // Start of Selection
             }
             Event::End(evt) => {
                 let e = evt.into_owned();
                 let end_tag = String::from_utf8_lossy(e.name().as_ref()).to_string();
+                log::debug!("End tag: {}", end_tag);
                 match end_tag.as_str() {
                     "file" => {
                         let fc = FileChange {
@@ -122,6 +147,7 @@ fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
                             action: current_action.clone().unwrap(),
                             changes: current_changes.clone(),
                         };
+                        log::debug!("Completed file change for path: {:?}", fc.path);
                         file_changes.push(fc);
 
                         current_file_path = None;
@@ -134,12 +160,15 @@ fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
                             search: current_search.clone(),
                             content: current_content.clone(),
                         };
+                        log::debug!("Completed change: {}", ch.description);
                         current_changes.push(ch);
                     }
                     "description" => {
+                        log::debug!("Exiting description block");
                         in_description_block = false;
                     }
                     "search" => {
+                        log::debug!("Exiting search block");
                         in_search_block = false;
                         if let Some(ref mut s) = current_search {
                             *s = s
@@ -150,6 +179,7 @@ fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
                         }
                     }
                     "content" => {
+                        log::debug!("Exiting content block");
                         in_content_block = false;
                         current_content = current_content
                             .lines()
@@ -157,16 +187,27 @@ fn parse_change_protocol(xml_input: &str) -> Result<Vec<FileChange>> {
                             .collect::<Vec<&str>>()
                             .join("\n");
                     }
-                    _ => {}
+                    other_end => {
+                        log::debug!("Encountered unknown end tag: {}", other_end);
+                    }
                 }
             }
             Event::Eof => {
+                log::debug!("Reached end of XML input");
                 break;
             }
-            _ => {}
+            other => {
+                log::debug!("Other event: {:?}", other);
+            }
         }
     }
 
+    log::debug!("Finished parsing XML. Total file changes: {}", file_changes.len());
+    if file_changes.is_empty() {
+        log::warn!("No file changes were found in the XML input. Parsed file changes: {:?}", file_changes);
+    } else {
+        log::debug!("Parsed file changes: {:?}", file_changes);
+    }
     Ok(file_changes)
 }
 
@@ -342,6 +383,7 @@ fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> {
 
     Ok(())
 }
+
 /// Main entry function to parse an XML protocol and apply each <file> block in sequence.
 pub fn apply_changes(xml_protocol: &str, reverse: bool) -> Result<()> {
     let cwd = std::env::current_dir().context("Failed to get current working directory")?;
