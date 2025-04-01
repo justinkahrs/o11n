@@ -11,18 +11,21 @@ import {
   Menu,
   MenuItem,
   Typography,
+  useTheme,
 } from "@mui/material";
+import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
 import { FolderSpecial, Settings, Delete } from "@mui/icons-material";
-import { FileExplorerProps, TreeItemData } from "../types";
+import type { FileExplorerProps, TreeItemData } from "../types";
 
 export default function FileExplorer({
   onFileSelect,
+  onThemeChange,
   projects,
-  setProjects
+  setProjects,
 }: FileExplorerProps) {
+  const theme = useTheme();
   const [showDotfiles, setShowDotfiles] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   // Helper to create a new project node
   function createRootNode(dirPath: string): TreeItemData {
@@ -94,15 +97,6 @@ export default function FileExplorer({
     setProjects((prev) => prev.filter((proj) => proj.path !== path));
   }
 
-  // Handlers for settings menu
-  const handleSettingsOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleSettingsClose = () => {
-    setAnchorEl(null);
-  };
-
   // If user toggles dotfiles, re-load all projects
   useEffect(() => {
     setProjects((prev) =>
@@ -169,7 +163,7 @@ export default function FileExplorer({
                 sx={{
                   display: "flex",
                   alignItems: "center",
-                  backgroundColor: "#f5f5f5",
+                  backgroundColor: theme.palette.secondary.main,
                   px: 1,
                   py: 0.5,
                   justifyContent: "space-between",
@@ -199,34 +193,11 @@ export default function FileExplorer({
         )}
       </Box>
       <Box sx={{ p: 1, display: "flex", justifyContent: "flex-start" }}>
-        <IconButton onClick={handleSettingsOpen}>
-          <Settings />
-        </IconButton>
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleSettingsClose}
-          anchorOrigin={{
-            vertical: "top",
-            horizontal: "right",
-          }}
-          transformOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
-          }}
-        >
-          <MenuItem>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={showDotfiles}
-                  onChange={(e) => setShowDotfiles(e.target.checked)}
-                />
-              }
-              label="Show .dotfiles"
-            />
-          </MenuItem>
-        </Menu>
+        <SettingsMenu
+          showDotfiles={showDotfiles}
+          setShowDotfiles={setShowDotfiles}
+          onThemeChange={onThemeChange}
+        />
       </Box>
     </Box>
   );

@@ -7,7 +7,8 @@ import { SelectedFiles } from "./components/SelectedFiles";
 import Copy from "./components/Copy";
 import TemplateSelection from "./components/TemplateSelection";
 import { PlanInput } from "./components/PlanInput";
-import { theme } from "./theme";
+import { theme as defaultTheme } from "./theme";
+import { createTheme } from "@mui/material/styles";
 
 // Import our shared types
 import type { FileNode, TreeItemData } from "./types";
@@ -26,7 +27,8 @@ function App() {
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
   const [projects, setProjects] = useState<TreeItemData[]>([]);
   const [planMode, setPlanMode] = useState(false);
-  const [plan, setPlan] = useState("");
+const [plan, setPlan] = useState("");
+const [currentTheme, setCurrentTheme] = useState(defaultTheme);
 
   const projectsRef = useRef(projects);
   const selectedFilesRef = useRef(selectedFiles);
@@ -92,7 +94,7 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={currentTheme}>
       <CssBaseline />
       <Stack
         sx={{ height: "100vh", p: 2 }}
@@ -103,6 +105,16 @@ function App() {
           onFileSelect={handleFileSelect}
           projects={projects}
           setProjects={setProjects}
+          onThemeChange={(primary, secondary) => {
+            setCurrentTheme(createTheme({
+              typography: defaultTheme.typography,
+              palette: {
+                mode: "light",
+                primary: { main: primary },
+                secondary: { main: secondary },
+              },
+            }));
+          }}
         />
         <Grid
           sx={{
@@ -113,104 +125,103 @@ function App() {
           }}
           justifyContent="space-between"
         >
-          <>
-            <Stack
-              sx={{
-                width: "100%",
-                flex: 1,
-                overflowY: "auto",
-                display: "flex",
-                flexDirection: "column",
-              }}
-              alignContent="space-between"
-            >
-              {planMode ? (
-                <PlanInput plan={plan} onChange={setPlan} />
-              ) : (
-                <>
-                  <InstructionsInput onChange={setInstructions} />
-                  <TemplateSelection
-                    templates={customTemplates}
-                    onAddTemplate={(template) =>
-                      setCustomTemplates((prev) => [...prev, template])
-                    }
-                    onRemoveTemplate={(id) =>
-                      setCustomTemplates((prev) =>
-                        prev.filter((t) => t.id !== id)
+          <Stack
+            sx={{
+              width: "100%",
+              flex: 1,
+              overflowY: "auto",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            alignContent="space-between"
+          >
+            {planMode ? (
+              <PlanInput plan={plan} onChange={setPlan} />
+            ) : (
+              <>
+                <InstructionsInput onChange={setInstructions} />
+                <TemplateSelection
+                  templates={customTemplates}
+                  onAddTemplate={(template) =>
+                    setCustomTemplates((prev) => [...prev, template])
+                  }
+                  onRemoveTemplate={(id) =>
+                    setCustomTemplates((prev) =>
+                      prev.filter((t) => t.id !== id)
+                    )
+                  }
+                  onToggleTemplate={(id) =>
+                    setCustomTemplates((prev) =>
+                      prev.map((t) =>
+                        t.id === id ? { ...t, active: !t.active } : t
                       )
-                    }
-                    onToggleTemplate={(id) =>
-                      setCustomTemplates((prev) =>
-                        prev.map((t) =>
-                          t.id === id ? { ...t, active: !t.active } : t
-                        )
-                      )
-                    }
-                  />
-                  <SelectedFiles
-                    files={selectedFiles}
-                    onRemoveFile={handleRemoveFile}
-                    onRemoveFolder={handleRemoveFolder}
-                  />
-                </>
-              )}
-            </Stack>
-            <Stack
-              direction="row"
-              spacing={2}
-              sx={{ mt: 2 }}
-              justifyContent={planMode ? "flex-end" : "space-between"}
-            >
-              {planMode ? (
-                <>
-                  <Button
-                    fullWidth
-                    variant="outlined"
-                    startIcon={<ChevronLeft />}
-                    sx={{ mt: 2, width: "30%" }}
-                    onClick={() => setPlanMode(false)}
-                  >
-                    Go back
-                  </Button>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<Create />}
-                    sx={{ mt: 2, width: "30%" }}
-                    onClick={handleCommit}
-                  >
-                    Commit Changes
-                  </Button>
-                  <Button
-                    fullWidth
-                    variant="contained"
-                    startIcon={<Create />}
-                    sx={{ mt: 2, width: "30%" }}
-                    onClick={handleRevert}
-                  >
-                    Revert Changes
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Copy
-                    files={selectedFiles}
-                    userInstructions={instructions}
-                    customTemplates={customTemplates}
-                  />
-                  <Button
-                    fullWidth
-                    startIcon={<Create />}
-                    variant="outlined"
-                    onClick={handleApply}
-                    sx={{ width: "40%" }}
-                  >
-                    Apply Changes
-                  </Button>
-                </>
-              )}
-            </Stack>
-          </>
+                    )
+                  }
+                />
+                <SelectedFiles
+                  files={selectedFiles}
+                  onRemoveFile={handleRemoveFile}
+                  onRemoveFolder={handleRemoveFolder}
+                />
+              </>
+            )}
+          </Stack>
+          <Stack
+            direction="row"
+            spacing={2}
+            sx={{ mt: 2 }}
+            justifyContent={planMode ? "flex-end" : "space-between"}
+          >
+            {planMode ? (
+              <>
+                <Button
+                  fullWidth
+                  variant="outlined"
+                  startIcon={<ChevronLeft />}
+                  sx={{ mt: 2, width: "30%" }}
+                  onClick={() => setPlanMode(false)}
+                >
+                  Go back
+                </Button>
+
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<Create />}
+                  sx={{ mt: 2, width: "30%" }}
+                  onClick={handleRevert}
+                >
+                  Revert Changes
+                </Button>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  startIcon={<Create />}
+                  sx={{ mt: 2, width: "30%" }}
+                  onClick={handleCommit}
+                >
+                  Commit Changes
+                </Button>
+              </>
+            ) : (
+              <>
+                <Copy
+                  files={selectedFiles}
+                  userInstructions={instructions}
+                  customTemplates={customTemplates}
+                />
+                <Button
+                  fullWidth
+                  startIcon={<Create />}
+                  variant="outlined"
+                  onClick={handleApply}
+                  sx={{ width: "40%" }}
+                >
+                  Apply Changes
+                </Button>
+              </>
+            )}
+          </Stack>
         </Grid>
       </Stack>
     </ThemeProvider>

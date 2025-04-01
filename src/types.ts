@@ -16,6 +16,7 @@ export interface TreeItemData {
 }
 
 export interface FileExplorerProps {
+  onThemeChange: (primary: string, secondary: string) => void;
   onFileSelect: (file: {
     id: string;
     name: string;
