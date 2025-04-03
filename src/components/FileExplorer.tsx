@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
 
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
-import { FolderSpecial, Delete } from "@mui/icons-material";
+import { FolderSpecial, Delete, DragIndicator } from "@mui/icons-material";
 import type { FileExplorerProps, TreeItemData } from "../types";
 import { motion, Reorder } from "framer-motion";
 
@@ -39,42 +39,37 @@ export default function FileExplorer({
   }
 
   // Load the children for a directory node if not already loaded
-  async function loadChildren(node: TreeItemData) {
-    if (!node.isDirectory) return;
-    let options: any = {};
-    if (node.path === ".") {
-      options.baseDir = BaseDirectory.Home;
-    }
-
-    const contents = await readDir(node.path, options);
-
-    let entries = contents.map((entry) => ({
-      id: node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
-      name: entry.name || "",
-      path: node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
-      isDirectory: !!entry.isDirectory,
-      children: [],
-      loadedChildren: false,
-    }));
-
-    // Filter out dotfiles if showDotfiles is false
-    if (!showDotfiles) {
-      entries = entries.filter((entry) => !entry.name.startsWith("."));
-    }
-
-    // Sort: directories first, then files
-    entries.sort((a, b) => {
-      if (a.isDirectory && !b.isDirectory) return -1;
-      if (!a.isDirectory && b.isDirectory) return 1;
-      return a.name.localeCompare(b.name);
-    });
-
-    node.children = entries;
-    node.loadedChildren = true;
-
-    // Force a re-render by updating the array
-    setProjects((prev) => [...prev]);
-  }
+  const loadChildren = useCallback(
+    async (node: TreeItemData) => {
+      if (!node.isDirectory) return;
+      const options: { baseDir?: number } = {};
+      if (node.path === ".") {
+        options.baseDir = BaseDirectory.Home;
+      }
+      const contents = await readDir(node.path, options);
+      let entries = contents.map((entry) => ({
+        id: node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
+        name: entry.name || "",
+        path:
+          node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
+        isDirectory: !!entry.isDirectory,
+        children: [],
+        loadedChildren: false,
+      }));
+      if (!showDotfiles) {
+        entries = entries.filter((entry) => !entry.name.startsWith("."));
+      }
+      entries.sort((a, b) => {
+        if (a.isDirectory && !b.isDirectory) return -1;
+        if (!a.isDirectory && b.isDirectory) return 1;
+        return a.name.localeCompare(b.name);
+      });
+      node.children = entries;
+      node.loadedChildren = true;
+      setProjects((prev) => [...prev]);
+    },
+    [showDotfiles, setProjects]
+  );
 
   // Called when we want to add a new project
   const openProject = async () => {
@@ -102,6 +97,7 @@ export default function FileExplorer({
   }
 
   // If user toggles dotfiles, re-load all projects
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     setProjects((prev) =>
       prev.map((root) => ({
@@ -121,7 +117,7 @@ export default function FileExplorer({
         }
       }
     })();
-  }, [projects]);
+  }, [loadChildren, projects]);
 
   const buttonLabel =
     projects.length > 0 ? "Load Another Project" : "Load Project";
@@ -168,14 +164,8 @@ export default function FileExplorer({
                     overflow: "hidden",
                   }}
                 >
-                  {/* Header with project name + delete */}
+                  {/* Header with project name on left and drag icon + delete on right */}
                   <Box
-                    onClick={() =>
-                      setExpanded((prev) => ({
-                        ...prev,
-                        [root.path]: prev[root.path] === false ? true : false,
-                      }))
-                    }
                     sx={{
                       display: "flex",
                       alignItems: "center",
@@ -183,19 +173,40 @@ export default function FileExplorer({
                       px: 1,
                       py: 0.5,
                       justifyContent: "space-between",
-                      cursor: "pointer",
                     }}
                   >
-                    <Typography>{root.name}</Typography>
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeProject(root.path);
-                      }}
-                      size="small"
+                    <Typography
+                      onClick={() =>
+                        setExpanded((prev) => ({
+                          ...prev,
+                          [root.path]: prev[root.path] === false,
+                        }))
+                      }
+                      sx={{ cursor: "pointer" }}
                     >
-                      <Delete fontSize="inherit" />
-                    </IconButton>
+                      {root.name}
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                      {/* Drag icon */}
+                      <Box
+                        onMouseDown={(e) => {
+                          // Prevent toggling accordion while dragging
+                          e.stopPropagation();
+                        }}
+                        sx={{ cursor: "grab" }}
+                      >
+                        <DragIndicator fontSize="inherit" />
+                      </Box>
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeProject(root.path);
+                        }}
+                        size="small"
+                      >
+                        <Delete fontSize="inherit" />
+                      </IconButton>
+                    </Box>
                   </Box>
                   {/* Animated Directory tree */}
                   <motion.div

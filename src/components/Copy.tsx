@@ -18,6 +18,7 @@ interface CopyProps {
   userInstructions: string;
   customTemplates?: CustomTemplate[];
   variant?: string;
+  isTalkMode?: boolean;
 }
 
 // Function to map extension to a markdown language identifier
@@ -28,6 +29,7 @@ export default function Copy({
   customTemplates,
   files,
   userInstructions,
+  isTalkMode,
 }: CopyProps) {
   /* COPY PROMPT SECTION */
   async function handleCopy() {
@@ -90,7 +92,9 @@ export default function Copy({
       lines.push("</custom_instructions>");
     }
 
-    lines.push(xmlFormattingInstructions);
+    if (!isTalkMode) {
+      lines.push(xmlFormattingInstructions);
+    }
 
     lines.push("<user_instructions>");
     lines.push(userInstructions);
@@ -102,7 +106,7 @@ export default function Copy({
   return (
     <Button
       fullWidth
-      variant="outlined"
+      variant="contained"
       onClick={handleCopy}
       startIcon={<ContentCopy />}
       sx={{ width: "40%" }}

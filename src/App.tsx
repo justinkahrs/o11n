@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-import { ThemeProvider, CssBaseline, Stack, Grid, Button } from "@mui/material";
+import {
+  ThemeProvider,
+  CssBaseline,
+  Stack,
+  Grid,
+  Button,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
 import FileExplorer from "./components/FileExplorer";
 import { InstructionsInput } from "./components/InstructionsInput";
@@ -26,9 +34,9 @@ function App() {
   const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
   const [projects, setProjects] = useState<TreeItemData[]>([]);
-  const [planMode, setPlanMode] = useState(false);
-const [plan, setPlan] = useState("");
-const [currentTheme, setCurrentTheme] = useState(defaultTheme);
+  const [plan, setPlan] = useState("");
+  const [currentTheme, setCurrentTheme] = useState(defaultTheme);
+  const [mode, setMode] = useState<"talk" | "plan" | "do">("talk");
 
   const projectsRef = useRef(projects);
   const selectedFilesRef = useRef(selectedFiles);
@@ -64,10 +72,6 @@ const [currentTheme, setCurrentTheme] = useState(defaultTheme);
       })
     );
   }
-
-  const handleApply = async () => {
-    setPlanMode(true);
-  };
 
   const handleCommit = async () => {
     try {
@@ -105,15 +109,17 @@ const [currentTheme, setCurrentTheme] = useState(defaultTheme);
           onFileSelect={handleFileSelect}
           projects={projects}
           setProjects={setProjects}
-          onThemeChange={(primary, secondary) => {
-            setCurrentTheme(createTheme({
-              typography: defaultTheme.typography,
-              palette: {
-                mode: "light",
-                primary: { main: primary },
-                secondary: { main: secondary },
-              },
-            }));
+          onThemeChange={(primary, secondary, mode) => {
+            setCurrentTheme(
+              createTheme({
+                typography: defaultTheme.typography,
+                palette: {
+                  mode: mode,
+                  primary: { main: primary },
+                  secondary: { main: secondary },
+                },
+              })
+            );
           }}
         />
         <Grid
@@ -135,60 +141,72 @@ const [currentTheme, setCurrentTheme] = useState(defaultTheme);
             }}
             alignContent="space-between"
           >
-            {planMode ? (
-              <PlanInput plan={plan} onChange={setPlan} />
-            ) : (
-              <>
-                <InstructionsInput onChange={setInstructions} />
-                <TemplateSelection
-                  templates={customTemplates}
-                  onAddTemplate={(template) =>
-                    setCustomTemplates((prev) => [...prev, template])
-                  }
-                  onRemoveTemplate={(id) =>
-                    setCustomTemplates((prev) =>
-                      prev.filter((t) => t.id !== id)
+            <>
+              <ToggleButtonGroup
+                color="primary"
+                value={mode}
+                exclusive
+                onChange={(e, newMode) => {
+                  if (newMode !== null) setMode(newMode);
+                }}
+                sx={{ m: 2 }}
+              >
+                <ToggleButton size="small" value="talk">
+                  Let's talk
+                </ToggleButton>
+                <ToggleButton size="small" value="plan">
+                  Let's plan
+                </ToggleButton>
+                <ToggleButton size="small" value="do">
+                  Let's do it
+                </ToggleButton>
+              </ToggleButtonGroup>
+              {mode === "do" ? (
+                <PlanInput plan={plan} onChange={setPlan} />
+              ) : (
+                <InstructionsInput mode={mode} onChange={setInstructions} />
+              )}
+
+              <TemplateSelection
+                templates={customTemplates}
+                onAddTemplate={(template) =>
+                  setCustomTemplates((prev) => [...prev, template])
+                }
+                onRemoveTemplate={(id) =>
+                  setCustomTemplates((prev) => prev.filter((t) => t.id !== id))
+                }
+                onToggleTemplate={(id) =>
+                  setCustomTemplates((prev) =>
+                    prev.map((t) =>
+                      t.id === id ? { ...t, active: !t.active } : t
                     )
-                  }
-                  onToggleTemplate={(id) =>
-                    setCustomTemplates((prev) =>
-                      prev.map((t) =>
-                        t.id === id ? { ...t, active: !t.active } : t
-                      )
-                    )
-                  }
-                />
-                <SelectedFiles
-                  files={selectedFiles}
-                  onRemoveFile={handleRemoveFile}
-                  onRemoveFolder={handleRemoveFolder}
-                />
-              </>
-            )}
+                  )
+                }
+              />
+              <SelectedFiles
+                files={selectedFiles}
+                onRemoveFile={handleRemoveFile}
+                onRemoveFolder={handleRemoveFolder}
+              />
+            </>
           </Stack>
           <Stack
             direction="row"
             spacing={2}
             sx={{ mt: 2 }}
-            justifyContent={planMode ? "flex-end" : "space-between"}
+            justifyContent={mode === "do" ? "flex-end" : "space-between"}
           >
-            {planMode ? (
+            {mode === "do" ? (
               <>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<ChevronLeft />}
-                  sx={{ mt: 2, width: "30%" }}
-                  onClick={() => setPlanMode(false)}
-                >
-                  Go back
-                </Button>
-
                 <Button
                   fullWidth
                   variant="contained"
                   startIcon={<Create />}
-                  sx={{ mt: 2, width: "30%" }}
+                  sx={{
+                    display: "none",
+                    mt: 2,
+                    width: "30%",
+                  }} /* hiding for now */
                   onClick={handleRevert}
                 >
                   Revert Changes
@@ -209,16 +227,8 @@ const [currentTheme, setCurrentTheme] = useState(defaultTheme);
                   files={selectedFiles}
                   userInstructions={instructions}
                   customTemplates={customTemplates}
+                  isTalkMode={mode === "talk"}
                 />
-                <Button
-                  fullWidth
-                  startIcon={<Create />}
-                  variant="outlined"
-                  onClick={handleApply}
-                  sx={{ width: "40%" }}
-                >
-                  Apply Changes
-                </Button>
               </>
             )}
           </Stack>

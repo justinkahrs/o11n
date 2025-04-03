@@ -63,7 +63,7 @@ export function FolderGroup({
       >
         <Box sx={{ flexGrow: 1 }}>
           <Typography variant="subtitle1" style={{ display: "flex" }}>
-            <Folder style={{ marginRight: ".5rem" }} />
+            <Folder color="primary" style={{ marginRight: ".5rem" }} />
             {`${displayedFolder} - ${count} file${count === 1 ? "" : "s"}`}
           </Typography>
           <Typography

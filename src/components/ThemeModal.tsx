@@ -6,13 +6,15 @@ import {
   DialogActions,
   Button,
   TextField,
+  Switch,
+  FormControlLabel,
   useTheme,
 } from "@mui/material";
 
 type ThemeModalProps = {
   open: boolean;
   onClose: () => void;
-  onApply: (primary: string, secondary: string) => void;
+  onApply: (primary: string, secondary: string, mode: "light" | "dark") => void;
 };
 
 export default function ThemeModal({
@@ -25,6 +27,7 @@ export default function ThemeModal({
   const [secondaryColor, setSecondaryColor] = useState(
     theme.palette.secondary.main
   );
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   return (
     <Dialog open={open} onClose={onClose}>
@@ -46,10 +49,20 @@ export default function ThemeModal({
           margin="normal"
           fullWidth
         />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={isDarkMode}
+              onChange={(e) => setIsDarkMode(e.target.checked)}
+              color="primary"
+            />
+          }
+          label="Dark Mode"
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={() => onApply(primaryColor, secondaryColor)}>
+        <Button onClick={() => onApply(primaryColor, secondaryColor, isDarkMode ? "dark" : "light")}>
           Apply
         </Button>
       </DialogActions>

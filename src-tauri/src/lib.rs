@@ -15,8 +15,8 @@ fn apply_protocol(xml_input: &str, reverse: bool) -> Result<String, String> {
             } else {
                 Ok("Changes applied successfully!".to_string())
             }
-        },
-        Err(e) => Err(format!("Failed to apply changes: {}", e))
+        }
+        Err(e) => Err(format!("Failed to apply changes: {}", e)),
     }
 }
 

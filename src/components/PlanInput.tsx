@@ -28,7 +28,8 @@ export function PlanInput({ plan, onChange }: PlanInputProps) {
         onChange={handleInputChange}
         multiline
         minRows={4}
-        inputProps={{ style: { resize: "both" } }}
+        maxRows={8}
+        inputProps={{ style: { resize: "none" } }}
         InputLabelProps={{ shrink: true }}
       />
     </Box>

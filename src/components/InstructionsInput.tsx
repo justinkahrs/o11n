@@ -3,9 +3,10 @@ import { useState } from "react";
 
 interface InstructionsInputProps {
   onChange: (value: string) => void;
+  mode: string;
 }
 
-export function InstructionsInput({ onChange }: InstructionsInputProps) {
+export function InstructionsInput({ mode, onChange }: InstructionsInputProps) {
   const [inputValue, setInputValue] = useState("");
   const userPrompts: string[] = [];
 
@@ -13,18 +14,22 @@ export function InstructionsInput({ onChange }: InstructionsInputProps) {
     setInputValue(e.target.value);
     onChange(e.target.value);
   };
+  const label =
+    mode === "talk"
+      ? "Chat about your files"
+      : "Describe what you want changed ";
 
   return (
     <Box sx={{ px: 2, pt: 2 }}>
       <TextField
         variant="outlined"
         fullWidth
-        label="Enter your instructions..."
+        label={label}
         value={inputValue}
         onChange={handleInputChange}
         multiline
         minRows={4}
-        inputProps={{ style: { resize: "both" } }}
+        inputProps={{ style: { resize: "none" } }}
         InputLabelProps={{ shrink: true }}
       />
       <Stack direction="row" spacing={1} sx={{ mt: 2 }}>

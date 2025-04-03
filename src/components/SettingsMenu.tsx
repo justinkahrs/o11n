@@ -12,7 +12,7 @@ import ThemeModal from "./ThemeModal";
 type SettingsMenuProps = {
   showDotfiles: boolean;
   setShowDotfiles: (value: boolean) => void;
-  onThemeChange?: (primary: string, secondary: string) => void;
+  onThemeChange?: (primary: string, secondary: string, mode: "light" | "dark") => void;
 };
 
 export default function SettingsMenu({
@@ -72,8 +72,8 @@ export default function SettingsMenu({
       <ThemeModal
         open={themeModalOpen}
         onClose={() => setThemeModalOpen(false)}
-        onApply={(primary, secondary) => {
-          if (onThemeChange) onThemeChange(primary, secondary);
+        onApply={(primary, secondary, mode) => {
+          if (onThemeChange) onThemeChange(primary, secondary, mode);
           setThemeModalOpen(false);
         }}
       />

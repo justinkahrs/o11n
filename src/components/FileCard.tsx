@@ -45,7 +45,7 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
         }}
       >
         <Typography variant="subtitle2">
-          <InsertDriveFile />
+          <InsertDriveFile color="secondary" />
         </Typography>
         <Typography variant="subtitle2">{file.name}</Typography>
         <Typography variant="caption">
