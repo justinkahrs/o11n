@@ -1,6 +1,9 @@
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
+mod change_types;
+mod parse_change_protocol;
+mod apply_file_change;
 mod apply_changes;
 
+// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)

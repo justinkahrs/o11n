@@ -106,6 +106,7 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
         justifyContent: "space-between",
         alignItems: "center",
         my: 2,
+        mx: 2,
       }}
     >
       <Stack direction="row" spacing={1}>

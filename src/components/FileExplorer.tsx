@@ -141,7 +141,9 @@ export default function FileExplorer({
           {buttonLabel}
         </Button>
       </Box>
-      <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 1 }}>
+      <Box
+        sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 1, mr: 2 }}
+      >
         {projects.length === 0 ? (
           <Typography variant="body1">
             Load a project and choose which files will add context to your
@@ -173,6 +175,9 @@ export default function FileExplorer({
                       px: 1,
                       py: 0.5,
                       justifyContent: "space-between",
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 1,
                     }}
                   >
                     <Typography
@@ -219,7 +224,14 @@ export default function FileExplorer({
                     variants={accordionVariants}
                     style={{ overflow: "hidden" }}
                   >
-                    <Box sx={{ p: 1 }}>
+                    <Box
+                      sx={{
+                        p: 1,
+                        maxHeight: 300,
+                        overflowY: "auto",
+                        overscrollBehavior: "contain",
+                      }}
+                    >
                       <DirectoryView
                         node={root}
                         onFileSelect={(file) =>

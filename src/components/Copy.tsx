@@ -3,9 +3,10 @@ import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import type { FileNode } from "./SelectedFiles";
 import { generateFileMap } from "../utils/generateFileMap";
-import xmlFormattingInstructions from "../utils/xmlFormattingInstructions.txt?raw";
+import formattingInstructions from "../utils/mdFormattingInstructions.txt?raw";
 import markdownLanguages from "../utils/markdownLanguages";
 import { ContentCopy } from "@mui/icons-material";
+
 interface CustomTemplate {
   id: string;
   name: string;
@@ -40,15 +41,22 @@ export default function Copy({
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
       return filename?.includes(".") ? filename.split(".").pop()! : "";
     };
+
     const lines: string[] = [];
+
+    // Generate the file map for the prompt
     const filePaths = files.map((file) => file.path);
     const fileMap = generateFileMap(filePaths);
-    lines.push("<file_map>");
-    lines.push(fileMap);
-    lines.push("</file_map>");
-    lines.push("");
-    lines.push("<file_contents>");
 
+    // 1. File Map (Markdown)
+    lines.push("## File Map");
+    lines.push("```");
+    lines.push(fileMap);
+    lines.push("```");
+    lines.push("");
+
+    // 2. File Contents (Markdown)
+    lines.push("## File Contents");
     for (const file of files) {
       let content: Uint8Array | string;
       try {
@@ -61,45 +69,55 @@ export default function Copy({
       }
 
       const markdownExtension = getMarkdownLanguage(getExtension(file.path));
-      lines.push(`File: ${file.path}`);
+      lines.push(`**File:** ${file.path}`);
       lines.push(`\`\`\`${markdownExtension}`);
       lines.push(content as string);
       lines.push("```");
       lines.push("");
     }
-    lines.push("</file_contents>");
+
+    // 3. Custom Templates (Markdown)
     if (customTemplates?.length) {
-      lines.push("<custom_instructions>");
-      for (const template of customTemplates.filter((t) => t.active)) {
-        let content: string;
-        try {
-          content = await readTextFile(template.path, {
-            baseDir: BaseDirectory.Home,
-          });
-        } catch (err) {
-          content = `/* Error reading template file: ${err} */`;
+      const activeTemplates = customTemplates.filter((t) => t.active);
+      if (activeTemplates.length) {
+        lines.push("## Custom Templates");
+        for (const template of activeTemplates) {
+          let content: string;
+          try {
+            content = await readTextFile(template.path, {
+              baseDir: BaseDirectory.Home,
+            });
+          } catch (err) {
+            content = `/* Error reading template file: ${err} */`;
+          }
+          const markdownExtension = getMarkdownLanguage(
+            getExtension(template.path)
+          );
+
+          lines.push(`**File:** ${template.path}`);
+          lines.push("```" + markdownExtension);
+          lines.push(content);
+          lines.push("```");
+          lines.push("");
         }
-        const markdownExtension = getMarkdownLanguage(
-          getExtension(template.path)
-        );
-
-        lines.push(`File: ${template.path}`);
-        lines.push(`\`\`\`${markdownExtension}`);
-        lines.push(content);
-        lines.push("```");
-        lines.push("");
       }
-      lines.push("</custom_instructions>");
     }
 
+    // 4. Formatting instructions (only if not Talk Mode)
     if (!isTalkMode) {
-      lines.push(xmlFormattingInstructions);
+      lines.push("## Additional Formatting Instructions");
+      lines.push("```");
+      lines.push(formattingInstructions);
+      lines.push("```");
     }
 
-    lines.push("<user_instructions>");
+    // 5. User Instructions
+    lines.push("## User Instructions");
+    lines.push("```");
     lines.push(userInstructions);
-    lines.push("</user_instructions>");
+    lines.push("```");
 
+    // Write the final joined text to clipboard
     await writeText(lines.join("\n"));
   }
 

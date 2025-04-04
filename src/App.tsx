@@ -8,6 +8,7 @@ import {
   ToggleButton,
   ToggleButtonGroup,
 } from "@mui/material";
+import type { PaletteMode } from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
 import FileExplorer from "./components/FileExplorer";
 import { InstructionsInput } from "./components/InstructionsInput";
@@ -109,12 +110,12 @@ function App() {
           onFileSelect={handleFileSelect}
           projects={projects}
           setProjects={setProjects}
-          onThemeChange={(primary, secondary) => {
+          onThemeChange={(primary, secondary, themeMode) => {
             setCurrentTheme(
               createTheme({
                 typography: defaultTheme.typography,
                 palette: {
-                  // mode: mode,
+                  mode: themeMode as PaletteMode,
                   primary: { main: primary },
                   secondary: { main: secondary },
                 },
