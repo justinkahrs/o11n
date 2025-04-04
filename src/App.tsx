@@ -109,12 +109,12 @@ function App() {
           onFileSelect={handleFileSelect}
           projects={projects}
           setProjects={setProjects}
-          onThemeChange={(primary, secondary, mode) => {
+          onThemeChange={(primary, secondary) => {
             setCurrentTheme(
               createTheme({
                 typography: defaultTheme.typography,
                 palette: {
-                  mode: mode,
+                  // mode: mode,
                   primary: { main: primary },
                   secondary: { main: secondary },
                 },
