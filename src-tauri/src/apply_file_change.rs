@@ -1,7 +1,6 @@
+use crate::change_types::{Action, FileChange};
 use anyhow::{anyhow, Context, Result};
 use std::fs;
-use std::path::PathBuf;
-use crate::change_types::{Change, Action, FileChange};
 
 pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> {
     let resolved_path = if file_change.path.is_relative() {
@@ -46,7 +45,11 @@ pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> 
                 let (find_text, replace_text) = if reverse {
                     match &chg.search {
                         Some(s) => (chg.content.clone(), s.clone()),
-                        None => return Err(anyhow!("Missing <search> block in modify action for reversal")),
+                        None => {
+                            return Err(anyhow!(
+                                "Missing <search> block in modify action for reversal"
+                            ))
+                        }
                     }
                 } else {
                     match &chg.search {
@@ -123,8 +126,14 @@ pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> 
         Action::Create => {
             if reverse {
                 if resolved_path.exists() {
-                    fs::remove_file(&resolved_path).context(format!("Could not delete file: {}", resolved_path.display()))?;
-                    log::info!("Successfully reverted creation by deleting file: {}", resolved_path.display());
+                    fs::remove_file(&resolved_path).context(format!(
+                        "Could not delete file: {}",
+                        resolved_path.display()
+                    ))?;
+                    log::info!(
+                        "Successfully reverted creation by deleting file: {}",
+                        resolved_path.display()
+                    );
                 }
             } else {
                 if resolved_path.exists() {
@@ -152,8 +161,14 @@ pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> 
                 for chg in &file_change.changes {
                     new_contents.push_str(&chg.content);
                 }
-                fs::write(&resolved_path, new_contents).context(format!("Could not recreate file: {}", resolved_path.display()))?;
-                log::info!("Successfully reverted deletion by recreating file: {}", resolved_path.display());
+                fs::write(&resolved_path, new_contents).context(format!(
+                    "Could not recreate file: {}",
+                    resolved_path.display()
+                ))?;
+                log::info!(
+                    "Successfully reverted deletion by recreating file: {}",
+                    resolved_path.display()
+                );
             } else {
                 if resolved_path.exists() {
                     log::debug!("Attempting to delete file: {}", resolved_path.display());
