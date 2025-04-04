@@ -29,6 +29,7 @@ export function InstructionsInput({ mode, onChange }: InstructionsInputProps) {
         onChange={handleInputChange}
         multiline
         minRows={4}
+        maxRows={8}
         inputProps={{ style: { resize: "none" } }}
         InputLabelProps={{ shrink: true }}
       />
