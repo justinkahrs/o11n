@@ -132,6 +132,9 @@ export default function FileExplorer({
       }}
     >
       <Box sx={{ p: 1 }}>
+        <Box sx={{ textAlign: "center", mb: 2 }}>
+          <img src="/logo.png" alt="Logo" style={{ height: "20px" }} />
+        </Box>
         <Button
           startIcon={<FolderSpecial />}
           variant="contained"

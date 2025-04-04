@@ -23,7 +23,7 @@ export function PlanInput({ plan, onChange }: PlanInputProps) {
       <TextField
         variant="outlined"
         fullWidth
-        label="Plan"
+        label="Paste plan here"
         value={inputValue}
         onChange={handleInputChange}
         multiline

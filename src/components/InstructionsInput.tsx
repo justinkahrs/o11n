@@ -17,7 +17,7 @@ export function InstructionsInput({ mode, onChange }: InstructionsInputProps) {
   const label =
     mode === "talk"
       ? "Chat about your files"
-      : "Describe what you want changed ";
+      : "Describe how the files should change";
 
   return (
     <Box sx={{ px: 2, pt: 2 }}>
