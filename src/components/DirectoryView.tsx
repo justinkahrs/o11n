@@ -20,7 +20,12 @@ export interface TreeItemData {
 
 export interface DirectoryViewProps {
   node: TreeItemData;
-  onFileSelect: (file: { id: string; name: string; path: string; size: number }) => void;
+  onFileSelect: (file: {
+    id: string;
+    name: string;
+    path: string;
+    size: number;
+  }) => void;
   showDotfiles: boolean;
   loadChildren: (node: TreeItemData) => Promise<void>;
 }
@@ -33,8 +38,11 @@ export default function DirectoryView({
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
 
-  const handleToggle = async (event: React.SyntheticEvent, nodeIds: string[]) => {
-    const newlyExpanded = nodeIds.filter(id => !expanded.includes(id));
+  const handleToggle = async (
+    _event: React.SyntheticEvent,
+    nodeIds: string[]
+  ) => {
+    const newlyExpanded = nodeIds.filter((id) => !expanded.includes(id));
     // If the current node is expanded and its children haven't been loaded yet, load them.
     if (newlyExpanded.includes(node.id) && !node.loadedChildren) {
       await loadChildren(node);
@@ -43,7 +51,7 @@ export default function DirectoryView({
     for (const id of newlyExpanded) {
       if (id !== node.id) {
         const child = node.children.find(
-          c => c.id === id && c.isDirectory && !c.loadedChildren
+          (c) => c.id === id && c.isDirectory && !c.loadedChildren
         );
         if (child) {
           await loadChildren(child);
@@ -53,12 +61,15 @@ export default function DirectoryView({
     setExpanded(nodeIds);
   };
 
-  const handleNodeSelect = async (event: React.SyntheticEvent, nodeId: string) => {
+  const handleNodeSelect = async (
+    _event: React.SyntheticEvent,
+    nodeId: string
+  ) => {
     // Ignore selection on a dummy node.
     if (nodeId === `${node.id}-dummy`) {
       return;
     }
-    const child = node.children.find(c => c.id === nodeId);
+    const child = node.children.find((c) => c.id === nodeId);
     if (!child) return;
     if (child.isDirectory && !child.loadedChildren) {
       await loadChildren(child);
@@ -119,7 +130,11 @@ export default function DirectoryView({
         )
       ) : (
         // Render a hidden dummy child to force the expand icon to show if necessary
-        <TreeItem nodeId={`${node.id}-dummy`} label=" " sx={{ display: "none" }} />
+        <TreeItem
+          nodeId={`${node.id}-dummy`}
+          label=" "
+          sx={{ display: "none" }}
+        />
       )}
     </TreeView>
   );

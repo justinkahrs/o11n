@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -62,7 +62,11 @@ export default function ThemeModal({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={() => onApply(primaryColor, secondaryColor, isDarkMode ? "dark" : "light")}>
+        <Button
+          onClick={() =>
+            onApply(primaryColor, secondaryColor, isDarkMode ? "dark" : "light")
+          }
+        >
           Apply
         </Button>
       </DialogActions>

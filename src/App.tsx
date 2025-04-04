@@ -20,7 +20,7 @@ import { createTheme } from "@mui/material/styles";
 
 // Import our shared types
 import type { FileNode, TreeItemData } from "./types";
-import { ChevronLeft, Create } from "@mui/icons-material";
+import { Create } from "@mui/icons-material";
 
 interface CustomTemplate {
   id: string;
@@ -146,7 +146,7 @@ function App() {
                 color="primary"
                 value={mode}
                 exclusive
-                onChange={(e, newMode) => {
+                onChange={(_e, newMode) => {
                   if (newMode !== null) setMode(newMode);
                 }}
                 sx={{ m: 2 }}
