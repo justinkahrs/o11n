@@ -1,7 +1,7 @@
+mod apply_changes;
+mod apply_file_change;
 mod change_types;
 mod parse_change_protocol;
-mod apply_file_change;
-mod apply_changes;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -26,6 +26,7 @@ fn apply_protocol(xml_input: &str, reverse: bool) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_store::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_clipboard_manager::init())

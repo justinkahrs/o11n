@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
-import { open } from "@tauri-apps/plugin-dialog";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import SettingsMenu from "./SettingsMenu";
@@ -73,7 +74,7 @@ export default function FileExplorer({
 
   // Called when we want to add a new project
   const openProject = async () => {
-    const selected = await open({
+    const selected = await openDialog({
       directory: true,
       multiple: false,
     });
@@ -121,6 +122,18 @@ export default function FileExplorer({
 
   const buttonLabel =
     projects.length > 0 ? "Load Another Project" : "Load Project";
+  // Spotify Playback SDK integration constants and handler
+  const CLIENT_ID = "393d9d98f2d540639403ff6ea947f563";
+  const CALLBACK_URL = "http://localhost:1420/spotify_callback";
+  const handleSpotifyLogin = async () => {
+    const scopes =
+      "streaming user-read-playback-state user-modify-playback-state";
+    const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
+      CALLBACK_URL
+    )}&scope=${encodeURIComponent(scopes)}`;
+    const response = await openUrl(authUrl);
+    console.log({ response });
+  };
 
   return (
     <Box
@@ -133,7 +146,7 @@ export default function FileExplorer({
     >
       <Box sx={{ p: 1 }}>
         <Box sx={{ textAlign: "center", mb: 2 }}>
-          <img src="/logo.png" alt="Logo" style={{ height: "20px" }} />
+          <img src="/logo.png" alt="Logo" style={{ height: "55px" }} />
         </Box>
         <Button
           startIcon={<FolderSpecial />}
@@ -251,6 +264,9 @@ export default function FileExplorer({
           </Reorder.Group>
         )}
       </Box>
+      <Button fullWidth variant="contained" onClick={handleSpotifyLogin}>
+        Connect to Spotify
+      </Button>
       <Box sx={{ p: 1, display: "flex", justifyContent: "flex-start" }}>
         <SettingsMenu
           showDotfiles={showDotfiles}

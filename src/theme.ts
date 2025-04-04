@@ -16,7 +16,7 @@ export const theme = createTheme({
     ].join(","),
   },
   palette: {
-    mode: "light",
+    mode: "dark",
     primary: {
       main: "#F39C6E",
     },

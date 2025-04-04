@@ -16,6 +16,8 @@
     "core:path:allow-resolve",
     "core:path:allow-resolve-directory",
     "opener:default",
+    "opener:allow-default-urls",
+    "opener:allow-open-path",
     "clipboard-manager:allow-write-text",
     "fs:default",
     "fs:allow-app-read-recursive",
@@ -122,6 +124,7 @@
     "clipboard-manager:default",
     "dialog:default",
     "store:default",
-    "log:default"
+    "log:default",
+    "deep-link:default"
   ]
 }

@@ -11,6 +11,7 @@ import {
 import type { PaletteMode } from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
 import FileExplorer from "./components/FileExplorer";
+import SpotifyCallback from "./components/SpotifyCallback";
 import { InstructionsInput } from "./components/InstructionsInput";
 import { SelectedFiles } from "./components/SelectedFiles";
 import Copy from "./components/Copy";
@@ -31,6 +32,9 @@ interface CustomTemplate {
 }
 
 function App() {
+  if (window.location.pathname === "/spotify_callback") {
+    return <SpotifyCallback />;
+  }
   const [instructions, setInstructions] = useState("");
   const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);

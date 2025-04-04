@@ -131,6 +131,7 @@ A short explanation of this specific change.
    - The final Markdown should apply cleanly with no leftover syntax errors.
    - A script or automation can parse these blocks in a straightforward manner.
    - Wrap all markdown inside HTML <pre> tags.
+   - Do not wrap any code inside <![CDATA[ ... ]]> tags
 
 ---
 
