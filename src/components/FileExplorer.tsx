@@ -122,18 +122,7 @@ export default function FileExplorer({
 
   const buttonLabel =
     projects.length > 0 ? "Load Another Project" : "Load Project";
-  // Spotify Playback SDK integration constants and handler
-  const CLIENT_ID = "393d9d98f2d540639403ff6ea947f563";
-  const CALLBACK_URL = "http://localhost:1420/spotify_callback";
-  const handleSpotifyLogin = async () => {
-    const scopes =
-      "streaming user-read-playback-state user-modify-playback-state";
-    const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
-      CALLBACK_URL
-    )}&scope=${encodeURIComponent(scopes)}`;
-    const response = await openUrl(authUrl);
-    console.log({ response });
-  };
+
 
   return (
     <Box
@@ -264,9 +253,7 @@ export default function FileExplorer({
           </Reorder.Group>
         )}
       </Box>
-      <Button fullWidth variant="contained" onClick={handleSpotifyLogin}>
-        Connect to Spotify
-      </Button>
+
       <Box sx={{ p: 1, display: "flex", justifyContent: "flex-start" }}>
         <SettingsMenu
           showDotfiles={showDotfiles}

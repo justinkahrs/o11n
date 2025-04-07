@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Typography, Button } from "@mui/material";
-import { invoke } from "@tauri-apps/api/core";
+// import { invoke } from "@tauri-apps/api/core";
 export default function SpotifyCallback() {
   const [authCode, setAuthCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

@@ -16,7 +16,6 @@
     "@mui/lab": "^5.0.0-alpha.127",
     "@mui/material": "^5.16.14",
     "@mui/x-tree-view": "^7.26.0",
-    "@spotify/web-api-ts-sdk": "^1.2.0",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-clipboard-manager": "^2.2.2",
     "@tauri-apps/plugin-deep-link": "^2.2.1",
@@ -29,7 +28,8 @@
     "motion": "^12.6.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "tiktoken": "^1.0.20"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
