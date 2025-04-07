@@ -5,7 +5,6 @@ import {
   ExpandMore,
   ChevronRight,
   Folder as FolderIcon,
-  InsertDriveFile as FileIcon,
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
 import FileItemWithHover from "./FileItemWithHover";
@@ -33,6 +32,7 @@ export interface DirectoryViewProps {
   }) => void;
   showDotfiles: boolean;
   loadChildren: (node: TreeItemData) => Promise<void>;
+  searchQuery: string;
 }
 
 export default function DirectoryView({
@@ -41,8 +41,28 @@ export default function DirectoryView({
   onFileSelect,
   showDotfiles,
   loadChildren,
+  searchQuery,
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
+  const filterChildren = (nodes: TreeItemData[]): TreeItemData[] => {
+    if (!searchQuery) return nodes;
+    return nodes.reduce((acc: TreeItemData[], node) => {
+      if (node.isDirectory) {
+        const filteredSubChildren = filterChildren(node.children);
+        if (
+          node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          filteredSubChildren.length > 0
+        ) {
+          acc.push({ ...node, children: filteredSubChildren });
+        }
+      } else {
+        if (node.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+          acc.push(node);
+        }
+      }
+      return acc;
+    }, []);
+  };
 
   const handleToggle = async (
     _event: React.SyntheticEvent,
@@ -105,7 +125,7 @@ export default function DirectoryView({
         sx={{ marginLeft: 1 }}
       >
         {node.loadedChildren ? (
-          node.children.map((child) =>
+          filterChildren(node.children).map((child) =>
             child.isDirectory ? (
               <TreeItem
                 key={child.id}
@@ -123,6 +143,7 @@ export default function DirectoryView({
                   onFileSelect={onFileSelect}
                   showDotfiles={showDotfiles}
                   loadChildren={loadChildren}
+                  searchQuery={searchQuery}
                 />
               </TreeItem>
             ) : (

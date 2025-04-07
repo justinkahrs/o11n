@@ -7,7 +7,8 @@ import {
   Button,
   ToggleButton,
   ToggleButtonGroup,
-  Popover,
+  Modal,
+  Box,
 } from "@mui/material";
 import type { PaletteMode } from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
@@ -54,12 +55,17 @@ function App() {
     event: React.MouseEvent<HTMLElement>,
     file: { id: string; name: string; path: string } | null
   ) => {
-    console.log("hovering: ", file);
-    setHoveredFile(file);
-    if (event) {
-      setPreviewAnchor(event.currentTarget);
-    } else {
+    // If the same file is clicked again, toggle off the preview.
+    if (hoveredFile && file && hoveredFile.id === file.id) {
+      setHoveredFile(null);
       setPreviewAnchor(null);
+    } else {
+      setHoveredFile(file);
+      if (event) {
+        setPreviewAnchor(event.currentTarget);
+      } else {
+        setPreviewAnchor(null);
+      }
     }
   };
   const projectsRef = useRef(projects);
@@ -261,27 +267,19 @@ function App() {
           </Stack>
         </Grid>
       </Stack>
-      <Popover
-        open={Boolean(previewAnchor)}
-        anchorEl={previewAnchor}
-        onClose={() => {
-          setPreviewAnchor(null);
-          setHoveredFile(null);
-        }}
-        anchorOrigin={{
-          vertical: "center",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "center",
-          horizontal: "left",
-        }}
-        disableRestoreFocus
-        disableAutoFocus
-        PaperProps={{ sx: { pointerEvents: "none" } }}
-      >
-        {hoveredFile && <FilePreview file={hoveredFile} />}
-      </Popover>
+      <Modal open={Boolean(hoveredFile)} onClose={() => setHoveredFile(null)}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            minWidth: "90%",
+          }}
+        >
+          {hoveredFile && <FilePreview file={hoveredFile} />}
+        </Box>
+      </Modal>
     </ThemeProvider>
   );
 }

@@ -1,6 +1,14 @@
-import React, { useEffect, useState } from "react";
-import { Box, Card, CardContent, CardHeader, CircularProgress } from "@mui/material";
+import { useEffect, useState } from "react";
+import {
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+} from "@mui/material";
 import hljs from "highlight.js";
+import "highlight.js/styles/github.css";
+
 import { readTextFile } from "@tauri-apps/plugin-fs";
 interface FilePreviewProps {
   file: {
@@ -10,8 +18,8 @@ interface FilePreviewProps {
   };
 }
 const getLanguage = (fileName: string): string => {
-  const ext = fileName.split('.').pop()?.toLowerCase();
-  switch(ext) {
+  const ext = fileName.split(".").pop()?.toLowerCase();
+  switch (ext) {
     case "tsx":
     case "ts":
       return "typescript";
@@ -34,7 +42,7 @@ export default function FilePreview({ file }: FilePreviewProps) {
     let isMounted = true;
     setLoading(true);
     readTextFile(file.path)
-      .then(text => {
+      .then((text) => {
         if (isMounted) {
           const lang = getLanguage(file.name);
           const highlighted = hljs.highlight(text, { language: lang }).value;
@@ -42,18 +50,31 @@ export default function FilePreview({ file }: FilePreviewProps) {
           setLoading(false);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error reading file", error);
         if (isMounted) {
           setContent("Error loading file.");
           setLoading(false);
         }
       });
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [file]);
   return (
-    <Card variant="outlined" sx={{ maxHeight: "100%", overflow: "auto" }}>
-      <CardHeader title={file.name} />
+    <Card
+      variant="outlined"
+      sx={{ maxHeight: "80vh", width: "100%", overflow: "auto" }}
+    >
+      <CardHeader
+        title={file.name}
+        sx={{
+          position: "sticky",
+          top: 0,
+          backgroundColor: "background.paper",
+          zIndex: 1,
+        }}
+      />{" "}
       <CardContent>
         {loading ? (
           <CircularProgress />
@@ -63,8 +84,9 @@ export default function FilePreview({ file }: FilePreviewProps) {
             sx={{
               whiteSpace: "pre-wrap",
               wordBreak: "break-word",
-              overflowX: "auto"
+              overflowX: "auto",
             }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for syntax highlighting
             dangerouslySetInnerHTML={{ __html: content }}
           />
         )}

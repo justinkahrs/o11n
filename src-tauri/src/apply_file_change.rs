@@ -60,45 +60,10 @@ pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> 
                     chg.description,
                     find_text
                 );
-                // New line-by-line approach:
-                let file_lines: Vec<&str> = original_contents.lines().collect();
-                let search_lines: Vec<&str> = find_text.lines().collect();
-                let file_lines_normalized: Vec<String> =
-                    file_lines.iter().map(|line| line.trim().to_string()).collect();
-                let search_lines_normalized: Vec<String> =
-                    search_lines.iter().map(|line| line.trim().to_string()).collect();
-                let mut match_start: Option<usize> = None;
-                for i in 0..=file_lines_normalized.len().saturating_sub(search_lines_normalized.len()) {
-                    if file_lines_normalized[i..i + search_lines_normalized.len()] == search_lines_normalized[..] {
-                        match_start = Some(i);
-                        break;
-                    }
-                }
-                if let Some(start_line) = match_start {
-                    // Compute byte offsets for the matching block in the original content.
-                    let mut current_pos = 0;
-                    let mut start_pos = 0;
-                    let mut end_pos = 0;
-                    for (i, line) in file_lines.iter().enumerate() {
-                        if i == start_line {
-                            start_pos = current_pos;
-                        }
-                        // Include the line length and account for the newline (if not the last line)
-                        current_pos += line.len();
-                        if i < file_lines.len() - 1 {
-                            current_pos += 1; // for '\n'
-                        }
-                        if i == start_line + search_lines.len() - 1 {
-                            end_pos = current_pos;
-                            break;
-                        }
-                    }
-                    log::info!(
-                        "Found search text in lines {} to {}. Replacing with: '{}'",
-                        start_line,
-                        start_line + search_lines_normalized.len() - 1,
-                        replace_text
-                    );
+                // New partial substring approach:
+                if let Some(start_pos) = original_contents.find(&find_text) {
+                    let end_pos = start_pos + find_text.len();
+                    log::info!("Found search text. Replacing with: '{}'", replace_text);
                     original_contents.replace_range(start_pos..end_pos, &replace_text);
                 } else {
                     log::error!(

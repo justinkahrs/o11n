@@ -2,7 +2,14 @@ import { useState, useEffect, useCallback } from "react";
 import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
-import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  IconButton,
+  Typography,
+  useTheme,
+  TextField,
+} from "@mui/material";
 import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
 import { FolderSpecial, Delete, DragIndicator } from "@mui/icons-material";
@@ -19,6 +26,7 @@ export default function FileExplorer({
   const theme = useTheme();
   const [showDotfiles, setShowDotfiles] = useState(false);
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   const accordionVariants = {
     open: { height: "auto", opacity: 1, transition: { duration: 0.3 } },
@@ -144,10 +152,17 @@ export default function FileExplorer({
         >
           {buttonLabel}
         </Button>
+        <TextField
+          label="Search Files"
+          variant="outlined"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          fullWidth
+          sx={{ mt: 2 }}
+        />
       </Box>
-      <Box
-        sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 1, mr: 2 }}
-      >
+      <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 1 }}>
         {projects.length === 0 ? (
           <Typography variant="body1">
             Load a project and choose which files will add context to your
@@ -244,6 +259,7 @@ export default function FileExplorer({
                         }
                         showDotfiles={showDotfiles}
                         loadChildren={loadChildren}
+                        searchQuery={searchQuery}
                       />
                     </Box>
                   </motion.div>
