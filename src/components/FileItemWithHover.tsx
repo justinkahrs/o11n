@@ -21,7 +21,6 @@ export default function FileItemWithHover({
   const handleMouseEnter = (event) => {
     event.stopPropagation();
     if (onFileHover) {
-      console.log("sending file: ", file);
       onFileHover(event, file);
     }
   };

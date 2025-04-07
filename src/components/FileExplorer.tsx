@@ -8,8 +8,8 @@ import {
   IconButton,
   Typography,
   useTheme,
-  TextField,
 } from "@mui/material";
+import SearchFiles from "./SearchFiles";
 import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
 import { FolderSpecial, Delete, DragIndicator } from "@mui/icons-material";
@@ -152,14 +152,9 @@ export default function FileExplorer({
         >
           {buttonLabel}
         </Button>
-        <TextField
-          label="Search Files"
-          variant="outlined"
-          size="small"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          fullWidth
-          sx={{ mt: 2 }}
+<SearchFiles
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
         />
       </Box>
       <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 1 }}>

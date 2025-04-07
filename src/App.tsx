@@ -14,7 +14,6 @@ import type { PaletteMode } from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
 import FileExplorer from "./components/FileExplorer";
 import FilePreview from "./components/FilePreview";
-import SpotifyCallback from "./components/SpotifyCallback";
 import { InstructionsInput } from "./components/InstructionsInput";
 import { SelectedFiles } from "./components/SelectedFiles";
 import Copy from "./components/Copy";
@@ -35,9 +34,6 @@ interface CustomTemplate {
 }
 
 function App() {
-  if (window.location.pathname === "/spotify_callback") {
-    return <SpotifyCallback />;
-  }
   const [instructions, setInstructions] = useState("");
   const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
@@ -50,7 +46,6 @@ function App() {
     name: string;
     path: string;
   } | null>(null);
-  const [previewAnchor, setPreviewAnchor] = useState<HTMLElement | null>(null);
   const handleFileHover = (
     event: React.MouseEvent<HTMLElement>,
     file: { id: string; name: string; path: string } | null
@@ -58,14 +53,8 @@ function App() {
     // If the same file is clicked again, toggle off the preview.
     if (hoveredFile && file && hoveredFile.id === file.id) {
       setHoveredFile(null);
-      setPreviewAnchor(null);
     } else {
       setHoveredFile(file);
-      if (event) {
-        setPreviewAnchor(event.currentTarget);
-      } else {
-        setPreviewAnchor(null);
-      }
     }
   };
   const projectsRef = useRef(projects);
@@ -127,8 +116,6 @@ function App() {
     }
   };
 
-  console.log("hovered file, ", hoveredFile);
-  console.log("previewAnchor: ", previewAnchor);
   return (
     <ThemeProvider theme={currentTheme}>
       <CssBaseline />
