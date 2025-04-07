@@ -41,7 +41,7 @@ function App() {
   const [projects, setProjects] = useState<TreeItemData[]>([]);
   const [plan, setPlan] = useState("");
   const [currentTheme, setCurrentTheme] = useState(defaultTheme);
-  const [mode, setMode] = useState<"talk" | "plan" | "do">("talk");
+  const [mode, setMode] = useState<"talk" | "plan" | "do">("plan");
 
   const projectsRef = useRef(projects);
   const selectedFilesRef = useRef(selectedFiles);

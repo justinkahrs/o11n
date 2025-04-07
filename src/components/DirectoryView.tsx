@@ -8,6 +8,8 @@ import {
   InsertDriveFile as FileIcon,
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
+import FilePreview from "./FilePreview";
+import FileItemWithHover from "./FileItemWithHover";
 
 export interface TreeItemData {
   id: string;
@@ -36,6 +38,11 @@ export default function DirectoryView({
   showDotfiles,
   loadChildren,
 }: DirectoryViewProps) {
+  const [hoveredFile, setHoveredFile] = useState<{
+    id: string;
+    name: string;
+    path: string;
+  } | null>(null);
   const [expanded, setExpanded] = useState<string[]>([]);
 
   const handleToggle = async (
@@ -85,57 +92,66 @@ export default function DirectoryView({
     }
   };
 
+  function onFileHover(
+    file: { id: string; name: string; path: string } | null
+  ): void {
+    setHoveredFile(file);
+  }
+
   return (
-    <TreeView
-      aria-label="directory tree"
-      defaultCollapseIcon={<ExpandMore />}
-      defaultExpandIcon={<ChevronRight />}
-      expanded={expanded}
-      onNodeToggle={handleToggle}
-      onNodeSelect={handleNodeSelect}
-      sx={{ marginLeft: 1 }}
-    >
-      {node.loadedChildren ? (
-        node.children.map((child) =>
-          child.isDirectory ? (
-            <TreeItem
-              key={child.id}
-              nodeId={child.id}
-              label={
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <FolderIcon fontSize="small" />
-                  <span>{child.name}/</span>
-                </Box>
-              }
-            >
-              <DirectoryView
-                node={child}
-                onFileSelect={onFileSelect}
-                showDotfiles={showDotfiles}
-                loadChildren={loadChildren}
+    <>
+      <TreeView
+        aria-label="directory tree"
+        defaultCollapseIcon={<ExpandMore />}
+        defaultExpandIcon={<ChevronRight />}
+        expanded={expanded}
+        onNodeToggle={handleToggle}
+        onNodeSelect={handleNodeSelect}
+        sx={{ marginLeft: 1 }}
+      >
+        {node.loadedChildren ? (
+          node.children.map((child) =>
+            child.isDirectory ? (
+              <TreeItem
+                key={child.id}
+                nodeId={child.id}
+                label={
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <FolderIcon fontSize="small" />
+                    <span>{child.name}/</span>
+                  </Box>
+                }
+              >
+                <DirectoryView
+                  node={child}
+                  onFileSelect={onFileSelect}
+                  showDotfiles={showDotfiles}
+                  loadChildren={loadChildren}
+                />
+              </TreeItem>
+            ) : (
+              <FileItemWithHover
+                key={child.id}
+                file={{ id: child.id, name: child.name, path: child.path }}
+                nodeId={child.id}
+                onFileHover={onFileHover}
               />
-            </TreeItem>
-          ) : (
-            <TreeItem
-              key={child.id}
-              nodeId={child.id}
-              label={
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <FileIcon fontSize="small" />
-                  <span>{child.name}</span>
-                </Box>
-              }
-            />
+            )
           )
-        )
-      ) : (
-        // Render a hidden dummy child to force the expand icon to show if necessary
-        <TreeItem
-          nodeId={`${node.id}-dummy`}
-          label=" "
-          sx={{ display: "none" }}
-        />
+        ) : (
+          // Render a hidden dummy child to force the expand icon to show if necessary
+          <TreeItem
+            nodeId={`${node.id}-dummy`}
+            label=" "
+            sx={{ display: "none" }}
+          />
+        )}
+      </TreeView>
+      {hoveredFile && (
+        <Box sx={{ mt: 2 }}>
+          <FilePreview file={hoveredFile} />
+        </Box>
       )}
-    </TreeView>
+    </>
   );
 }
