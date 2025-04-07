@@ -8,7 +8,6 @@ import {
   InsertDriveFile as FileIcon,
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
-import FilePreview from "./FilePreview";
 import FileItemWithHover from "./FileItemWithHover";
 
 export interface TreeItemData {
@@ -22,6 +21,10 @@ export interface TreeItemData {
 
 export interface DirectoryViewProps {
   node: TreeItemData;
+  onFileHover: (
+    file: { id: string; name: string; path: string } | null,
+    event?: React.MouseEvent<HTMLElement>
+  ) => void;
   onFileSelect: (file: {
     id: string;
     name: string;
@@ -34,15 +37,11 @@ export interface DirectoryViewProps {
 
 export default function DirectoryView({
   node,
+  onFileHover,
   onFileSelect,
   showDotfiles,
   loadChildren,
 }: DirectoryViewProps) {
-  const [hoveredFile, setHoveredFile] = useState<{
-    id: string;
-    name: string;
-    path: string;
-  } | null>(null);
   const [expanded, setExpanded] = useState<string[]>([]);
 
   const handleToggle = async (
@@ -72,6 +71,7 @@ export default function DirectoryView({
     _event: React.SyntheticEvent,
     nodeId: string
   ) => {
+    _event.stopPropagation();
     // Ignore selection on a dummy node.
     if (nodeId === `${node.id}-dummy`) {
       return;
@@ -92,12 +92,6 @@ export default function DirectoryView({
     }
   };
 
-  function onFileHover(
-    file: { id: string; name: string; path: string } | null
-  ): void {
-    setHoveredFile(file);
-  }
-
   return (
     <>
       <TreeView
@@ -107,6 +101,7 @@ export default function DirectoryView({
         expanded={expanded}
         onNodeToggle={handleToggle}
         onNodeSelect={handleNodeSelect}
+        // onNodeFocus={onFileHover}
         sx={{ marginLeft: 1 }}
       >
         {node.loadedChildren ? (
@@ -123,6 +118,7 @@ export default function DirectoryView({
                 }
               >
                 <DirectoryView
+                  onFileHover={onFileHover}
                   node={child}
                   onFileSelect={onFileSelect}
                   showDotfiles={showDotfiles}
@@ -147,11 +143,6 @@ export default function DirectoryView({
           />
         )}
       </TreeView>
-      {hoveredFile && (
-        <Box sx={{ mt: 2 }}>
-          <FilePreview file={hoveredFile} />
-        </Box>
-      )}
     </>
   );
 }

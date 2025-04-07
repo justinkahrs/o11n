@@ -7,10 +7,12 @@ import {
   Button,
   ToggleButton,
   ToggleButtonGroup,
+  Popover,
 } from "@mui/material";
 import type { PaletteMode } from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
 import FileExplorer from "./components/FileExplorer";
+import FilePreview from "./components/FilePreview";
 import SpotifyCallback from "./components/SpotifyCallback";
 import { InstructionsInput } from "./components/InstructionsInput";
 import { SelectedFiles } from "./components/SelectedFiles";
@@ -42,7 +44,24 @@ function App() {
   const [plan, setPlan] = useState("");
   const [currentTheme, setCurrentTheme] = useState(defaultTheme);
   const [mode, setMode] = useState<"talk" | "plan" | "do">("plan");
-
+  const [hoveredFile, setHoveredFile] = useState<{
+    id: string;
+    name: string;
+    path: string;
+  } | null>(null);
+  const [previewAnchor, setPreviewAnchor] = useState<HTMLElement | null>(null);
+  const handleFileHover = (
+    event: React.MouseEvent<HTMLElement>,
+    file: { id: string; name: string; path: string } | null
+  ) => {
+    console.log("hovering: ", file);
+    setHoveredFile(file);
+    if (event) {
+      setPreviewAnchor(event.currentTarget);
+    } else {
+      setPreviewAnchor(null);
+    }
+  };
   const projectsRef = useRef(projects);
   const selectedFilesRef = useRef(selectedFiles);
 
@@ -102,6 +121,8 @@ function App() {
     }
   };
 
+  console.log("hovered file, ", hoveredFile);
+  console.log("previewAnchor: ", previewAnchor);
   return (
     <ThemeProvider theme={currentTheme}>
       <CssBaseline />
@@ -112,6 +133,7 @@ function App() {
       >
         <FileExplorer
           onFileSelect={handleFileSelect}
+          onFileHover={handleFileHover}
           projects={projects}
           setProjects={setProjects}
           onThemeChange={(primary, secondary, themeMode) => {
@@ -239,6 +261,27 @@ function App() {
           </Stack>
         </Grid>
       </Stack>
+      <Popover
+        open={Boolean(previewAnchor)}
+        anchorEl={previewAnchor}
+        onClose={() => {
+          setPreviewAnchor(null);
+          setHoveredFile(null);
+        }}
+        anchorOrigin={{
+          vertical: "center",
+          horizontal: "right",
+        }}
+        transformOrigin={{
+          vertical: "center",
+          horizontal: "left",
+        }}
+        disableRestoreFocus
+        disableAutoFocus
+        PaperProps={{ sx: { pointerEvents: "none" } }}
+      >
+        {hoveredFile && <FilePreview file={hoveredFile} />}
+      </Popover>
     </ThemeProvider>
   );
 }

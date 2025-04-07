@@ -8,7 +8,8 @@ interface FileItemWithHoverProps {
     path: string;
   };
   onFileHover?: (
-    file: { id: string; name: string; path: string } | null
+    file: { id: string; name: string; path: string } | null,
+    event?: React.MouseEvent<HTMLElement>
   ) => void;
   nodeId: string;
 }
@@ -17,22 +18,20 @@ export default function FileItemWithHover({
   onFileHover,
   nodeId,
 }: FileItemWithHoverProps) {
-  const handleMouseEnter = () => {
-    if (onFileHover) onFileHover(file);
+  const handleMouseEnter = (event) => {
+    event.stopPropagation();
+    if (onFileHover) {
+      console.log("sending file: ", file);
+      onFileHover(event, file);
+    }
   };
-  const handleMouseLeave = () => {
-    if (onFileHover) onFileHover(null);
-  };
+  // Removed handleMouseLeave to avoid flicker and allow selection.
   return (
     <TreeItem
       nodeId={nodeId}
       label={
-        <Box
-          onMouseEnter={handleMouseEnter}
-          onMouseLeave={handleMouseLeave}
-          sx={{ display: "flex", alignItems: "center", gap: 1 }}
-        >
-          <FileIcon fontSize="small" />
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <FileIcon onClick={handleMouseEnter} fontSize="small" />
           <span>{file.name}</span>
         </Box>
       }
