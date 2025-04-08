@@ -1,4 +1,5 @@
-import { Button } from "@mui/material";
+import { Button, CircularProgress } from "@mui/material";
+import { useState } from "react";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import type { FileNode } from "./SelectedFiles";
@@ -32,8 +33,10 @@ export default function Copy({
   userInstructions,
   isTalkMode,
 }: CopyProps) {
+  const [copying, setCopying] = useState(false);
   /* COPY PROMPT SECTION */
   async function handleCopy() {
+    setCopying(true);
     // Function to get the file extension
     const getExtension = (path: string) => {
       const parts = path.split("/");
@@ -95,7 +98,7 @@ export default function Copy({
           );
 
           lines.push(`**File:** ${template.path}`);
-          lines.push("```" + markdownExtension);
+          lines.push(`\`\`\`${markdownExtension}`);
           lines.push(content);
           lines.push("```");
           lines.push("");
@@ -119,6 +122,7 @@ export default function Copy({
 
     // Write the final joined text to clipboard
     await writeText(lines.join("\n"));
+    setCopying(false);
   }
 
   return (
@@ -126,10 +130,17 @@ export default function Copy({
       fullWidth
       variant="contained"
       onClick={handleCopy}
-      startIcon={<ContentCopy />}
+      startIcon={
+        copying ? (
+          <CircularProgress size={20} color="inherit" />
+        ) : (
+          <ContentCopy />
+        )
+      }
       sx={{ width: "40%" }}
+      disabled={copying}
     >
-      Copy Prompt
+      {copying ? "Processing..." : "Copy Prompt"}
     </Button>
   );
 }

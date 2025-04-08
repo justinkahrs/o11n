@@ -9,6 +9,7 @@ import {
   ToggleButtonGroup,
   Modal,
   Box,
+  CircularProgress,
 } from "@mui/material";
 import type { PaletteMode } from "@mui/material";
 import { invoke } from "@tauri-apps/api/core";
@@ -47,6 +48,7 @@ function App() {
     name: string;
     path: string;
   } | null>(null);
+  const [committing, setCommitting] = useState(false);
   const handleFilePreviewClick = (
     _event: React.SyntheticEvent<HTMLElement>,
     file: { id: string; name: string; path: string } | null
@@ -94,6 +96,7 @@ function App() {
   }
 
   const handleCommit = async () => {
+    setCommitting(true);
     try {
       const result = await invoke("apply_protocol", {
         xmlInput: plan,
@@ -103,6 +106,7 @@ function App() {
     } catch (error) {
       console.error("Failed to apply changes:", error);
     }
+    setCommitting(false);
   };
 
   const handleRevert = async () => {
@@ -200,7 +204,7 @@ function App() {
                 }
               />
               <PlanInput mode={mode} plan={plan} onChange={setPlan} />
-              <PlanPreview mode={mode} plan={plan} />
+<PlanPreview mode={mode} plan={plan} onFinalPlanChange={setPlan} />
               <SelectedFiles
                 mode={mode}
                 plan={plan}
@@ -235,11 +239,18 @@ function App() {
                 <Button
                   fullWidth
                   variant="contained"
-                  startIcon={<Create />}
+                  startIcon={
+                    committing ? (
+                      <CircularProgress size={20} color="inherit" />
+                    ) : (
+                      <Create />
+                    )
+                  }
                   sx={{ mt: 2, width: "30%" }}
                   onClick={handleCommit}
+                  disabled={committing}
                 >
-                  Commit Changes
+                  {committing ? "Processing..." : "Commit Changes"}
                 </Button>
               </>
             ) : (
