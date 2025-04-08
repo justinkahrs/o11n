@@ -35,8 +35,8 @@ export function PlanInput({ mode, plan, onChange }: PlanInputProps) {
           inputProps={{ style: { resize: "none" } }}
           InputLabelProps={{ shrink: true }}
           InputProps={{
-            endAdornment: inputValue ? (
-              <InputAdornment position="end">
+            startAdornment: inputValue ? (
+              <InputAdornment position="start">
                 <IconButton
                   color="primary"
                   size="small"
