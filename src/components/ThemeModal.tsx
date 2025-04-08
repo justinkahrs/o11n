@@ -10,6 +10,7 @@ import {
   FormControlLabel,
   useTheme,
 } from "@mui/material";
+import { Save } from "@mui/icons-material";
 type ThemeModalProps = {
   open: boolean;
   onClose: () => void;
@@ -29,7 +30,9 @@ export default function ThemeModal({
   } | null>(null);
   // State for preview
   const [primaryColor, setPrimaryColor] = useState(theme.palette.primary.main);
-  const [secondaryColor, setSecondaryColor] = useState(theme.palette.secondary.main);
+  const [secondaryColor, setSecondaryColor] = useState(
+    theme.palette.secondary.main
+  );
   const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
   // When the modal opens, capture the current theme values if not already captured
   useEffect(() => {
@@ -87,6 +90,7 @@ export default function ThemeModal({
       </DialogContent>
       <DialogActions>
         <Button
+          variant="outlined"
           onClick={() => {
             if (initialThemeRef.current) {
               const { primary, secondary, mode } = initialThemeRef.current;
@@ -103,8 +107,14 @@ export default function ThemeModal({
           Cancel
         </Button>
         <Button
+          variant="contained"
+          startIcon={<Save />}
           onClick={() => {
-            onApply(primaryColor, secondaryColor, isDarkMode ? "dark" : "light");
+            onApply(
+              primaryColor,
+              secondaryColor,
+              isDarkMode ? "dark" : "light"
+            );
             onClose();
           }}
         >

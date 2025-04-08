@@ -22,7 +22,7 @@ export function FileCard({
     <Box
       sx={{
         position: "relative",
-        borderRadius: "10px",
+        borderRadius: "4px",
         border: "1px solid lightgrey",
         padding: 2,
         margin: 0,

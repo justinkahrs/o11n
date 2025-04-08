@@ -21,7 +21,7 @@ import TemplateSelection from "./components/TemplateSelection";
 import { PlanInput } from "./components/PlanInput";
 import { theme as defaultTheme } from "./theme";
 import { createTheme } from "@mui/material/styles";
-
+import "./App.css";
 // Import our shared types
 import type { FileNode, TreeItemData } from "./types";
 import { Create } from "@mui/icons-material";

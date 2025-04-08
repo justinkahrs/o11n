@@ -3,6 +3,7 @@ import { BaseDirectory, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
+import { Folder as FolderIcon } from "@mui/icons-material";
 import SearchFiles from "./SearchFiles";
 import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
@@ -221,8 +222,19 @@ export default function FileExplorer({
                           [root.path]: prev[root.path] === false,
                         }))
                       }
-                      sx={{ cursor: "pointer", width: "100%" }}
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                        width: "100%",
+                      }}
                     >
+                      <FolderIcon
+                        className="file-icon"
+                        fontSize="small"
+                        sx={{ mr: 1 }}
+                      />
+
                       {root.name}
                     </Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

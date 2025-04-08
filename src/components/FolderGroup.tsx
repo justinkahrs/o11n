@@ -52,14 +52,18 @@ export function FolderGroup({
 
   return (
     <Accordion
+      disableGutters
+      square={false}
       expanded={expanded}
       onChange={(_, isExpanded) => setExpanded(isExpanded)}
+      sx={{ borderRadius: "10px" }}
     >
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls={`panel-${displayedFolder}-content`}
         id={`panel-${displayedFolder}-header`}
         sx={{
+          borderRadius: "4px 4px 0 0",
           borderLeft: "1px solid #ccc",
           borderRight: "1px solid #ccc",
           borderTop: "1px solid #ccc",
@@ -99,6 +103,8 @@ export function FolderGroup({
       </AccordionSummary>
       <AccordionDetails
         sx={{
+          borderRadius: " 0 0 4px 4px",
+
           borderLeft: "1px solid #ccc",
           borderRight: "1px solid #ccc",
           borderBottom: "1px solid #ccc",
