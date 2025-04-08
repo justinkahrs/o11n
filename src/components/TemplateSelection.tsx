@@ -182,26 +182,38 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
         <DialogTitle>Create Custom Template</DialogTitle>
         <DialogContent>
           <TextField
+            variant="outlined"
             autoFocus
             margin="dense"
             label="Template Name"
             fullWidth
             value={templateName}
             onChange={(e) => setTemplateName(e.target.value)}
+            InputLabelProps={{ shrink: true }}
           />
           <TextField
             margin="dense"
+            variant="outlined"
             label="Instructions"
             fullWidth
             multiline
             minRows={3}
             value={templateInstructions}
             onChange={(e) => setTemplateInstructions(e.target.value)}
+            InputLabelProps={{ shrink: true }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-          <Button onClick={handleCreateSubmit}>Create</Button>
+          <Button variant="outlined" onClick={() => setCreateDialogOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={handleCreateSubmit}
+            startIcon={<Create />}
+          >
+            Create
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
