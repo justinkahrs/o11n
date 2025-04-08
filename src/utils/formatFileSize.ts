@@ -1,4 +1,5 @@
 export function formatFileSize(size: number): string {
+  if (!size) return "";
   // The size parameter is provided in MB
   if (size < 1 / 1024) {
     // For extremely small sizes, convert MB to bytes (1 MB = 1048576 bytes)

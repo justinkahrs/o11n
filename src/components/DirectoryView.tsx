@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BaseDirectory, stat } from "@tauri-apps/plugin-fs";
 import { TreeView, TreeItem } from "@mui/lab";
 import {
@@ -42,6 +42,12 @@ export default function DirectoryView({
   searchQuery,
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
+  // Automatically refresh node children if the node is expanded but not loaded.
+  useEffect(() => {
+    if (expanded.includes(node.id) && !node.loadedChildren) {
+      loadChildren(node);
+    }
+  }, [expanded, node, loadChildren]);
   const filterChildren = (nodes: TreeItemData[]): TreeItemData[] => {
     if (!searchQuery) return nodes;
     return nodes.reduce((acc: TreeItemData[], node) => {

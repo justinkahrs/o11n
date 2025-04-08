@@ -59,6 +59,7 @@ function App() {
     } else {
       setSelectedFile(file);
     }
+    setMode("plan");
   };
   const projectsRef = useRef(projects);
   const selectedFilesRef = useRef(selectedFiles);
@@ -106,8 +107,42 @@ function App() {
     } catch (error) {
       console.error("Failed to apply changes:", error);
     }
-setCommitting(false);
-    setProjects((prev) => prev.map((proj) => ({ ...proj, loadedChildren: false })));
+    setCommitting(false);
+    setProjects((prev) =>
+      prev.map((proj) => ({ ...proj, loadedChildren: false }))
+    );
+    if (plan.includes("### File") && plan.includes("### Action create")) {
+      try {
+        const regex =
+          /### File\s+([^\n]+)[\s\S]+?### Action create[\s\S]+?\*\*Content\*\*:\s*\n\s*```(?:\w+)?\n([\s\S]*?)```/gi;
+        const newFiles: FileNode[] = [];
+        let match;
+        while ((match = regex.exec(plan)) !== null) {
+          const filePath = match[1].trim();
+          // Check for duplicate files based on file path
+          if (selectedFiles.some((f) => f.path === filePath)) {
+            continue;
+          }
+          const fileContent = match[2];
+          // Calculate size in MB similarly to DirectoryView using TextEncoder
+          const sizeInBytes = new TextEncoder().encode(fileContent).length;
+          const size = sizeInBytes / (1024 * 1024);
+          const parts = filePath.split("/");
+          const fileName = parts[parts.length - 1] || "New File";
+          newFiles.push({ id: filePath, name: fileName, path: filePath, size });
+        }
+        if (newFiles.length > 0) {
+          setSelectedFiles((prev) => [...prev, ...newFiles]);
+        }
+      } catch (e) {
+        console.error(
+          "Error parsing new file creation instructions from markdown",
+          e
+        );
+      }
+    }
+    setMode("plan");
+    setPlan("");
   };
 
   const handleRevert = async () => {
