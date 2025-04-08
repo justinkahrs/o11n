@@ -104,7 +104,6 @@ export function FolderGroup({
       <AccordionDetails
         sx={{
           borderRadius: " 0 0 4px 4px",
-
           borderLeft: "1px solid #ccc",
           borderRight: "1px solid #ccc",
           borderBottom: "1px solid #ccc",

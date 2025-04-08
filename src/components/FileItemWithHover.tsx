@@ -1,5 +1,6 @@
 import { TreeItem } from "@mui/lab";
 import { Box } from "@mui/material";
+import { motion } from "framer-motion";
 import { InsertDriveFile as FileIcon } from "@mui/icons-material";
 interface FileItemWithHoverProps {
   file: {
@@ -30,20 +31,26 @@ export default function FileItemWithHover({
       nodeId={nodeId}
       label={
         <Box
+          component={motion.div}
+          initial={{ marginLeft: 0 }}
+          whileHover={{ marginLeft: 4 }}
+          transition={{ type: "tween" }}
           sx={{
             display: "flex",
             alignItems: "center",
             gap: 1,
-            "&:hover .file-icon": { color: "primary.main" },
           }}
         >
           <FileIcon
             className="file-icon"
-            sx={{ color: "secondary.main" }}
+            sx={{
+              color: "secondary.main",
+              "&:hover": { color: "primary.main" },
+            }}
             onClick={handleClick}
             fontSize="small"
           />
-          <span>{file.name}</span>
+          <Box>{file.name}</Box>
         </Box>
       }
     />
