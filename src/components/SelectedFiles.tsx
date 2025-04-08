@@ -11,6 +11,8 @@ export interface FileNode {
 }
 
 interface SelectedFilesProps {
+  mode: "talk" | "plan" | "do";
+  plan: string;
   files: FileNode[];
   onRemoveFile: (fileId: string) => void;
   onRemoveFolder: (folderPath: string) => void;
@@ -18,11 +20,15 @@ interface SelectedFilesProps {
 }
 
 export function SelectedFiles({
+  mode,
+  plan,
   files,
   onPreviewFile,
   onRemoveFile,
   onRemoveFolder,
 }: SelectedFilesProps) {
+  const doMode = mode === "do";
+  const hide = doMode;
   const totalSize = files.reduce((sum, f) => sum + f.size, 0);
   const groupedFiles = files.reduce(
     (acc: { [folder: string]: FileNode[] }, file) => {
@@ -39,52 +45,59 @@ export function SelectedFiles({
   );
 
   return (
-    <Box sx={{ overflowY: "auto", px: 2 }}>
-      {Object.keys(groupedFiles)
-        .sort()
-        .map((folder) => {
-          const filesInFolder = groupedFiles[folder];
-          const count = filesInFolder.length;
-          const folderSize = filesInFolder.reduce((sum, f) => sum + f.size, 0);
-          const percentage = totalSize
-            ? ((folderSize / totalSize) * 100).toFixed(1)
-            : "0";
-          const projectRoot = filesInFolder[0].projectRoot
-            ?.split("/")
-            .filter(Boolean)
-            .pop();
-          return (
-            <FolderGroup
-              key={folder}
-              folder={folder}
-              count={count}
-              folderSize={folderSize}
-              percentage={percentage}
-              onRemoveFolder={onRemoveFolder}
-              totalFolders={Object.keys(groupedFiles).length}
-              projectRoot={projectRoot}
-            >
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
-                {filesInFolder
-                  .sort((a, b) => a.name.localeCompare(b.name))
-                  .map((file) => {
-                    const pct = totalSize
-                      ? ((file.size / totalSize) * 100).toFixed(1)
-                      : "0";
-                    return (
-                      <FileCard
-                        key={file.id}
-                        file={file}
-                        percentage={pct}
-                        onRemoveFile={onRemoveFile}
-                        onPreviewFile={onPreviewFile}
-                      />
-                    );
-                  })}
-              </Box>
-            </FolderGroup>
-          );
-        })}
-    </Box>
+    !hide && (
+      <Box sx={{ overflowY: "auto", px: 2 }}>
+        {Object.keys(groupedFiles)
+          .sort()
+          .map((folder) => {
+            const filesInFolder = groupedFiles[folder];
+            const count = filesInFolder.length;
+            const folderSize = filesInFolder.reduce(
+              (sum, f) => sum + f.size,
+              0
+            );
+            const percentage = totalSize
+              ? ((folderSize / totalSize) * 100).toFixed(1)
+              : "0";
+            const projectRoot = filesInFolder[0].projectRoot
+              ?.split("/")
+              .filter(Boolean)
+              .pop();
+            return (
+              <FolderGroup
+                key={folder}
+                folder={folder}
+                count={count}
+                folderSize={folderSize}
+                percentage={percentage}
+                onRemoveFolder={onRemoveFolder}
+                totalFolders={Object.keys(groupedFiles).length}
+                projectRoot={projectRoot}
+              >
+                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                  {filesInFolder
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((file) => {
+                      const pct = totalSize
+                        ? ((file.size / totalSize) * 100).toFixed(1)
+                        : "0";
+                      return (
+                        <FileCard
+                          mode={mode}
+                          plan={plan}
+                          key={file.id}
+                          file={file}
+                          percentage={pct}
+                          onRemoveFile={onRemoveFile}
+                          onPreviewFile={onPreviewFile}
+                        />
+                      );
+                    })}
+                </Box>
+              </FolderGroup>
+            );
+          })}
+      </Box>
+    )
   );
 }

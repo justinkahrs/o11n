@@ -2,7 +2,7 @@ use crate::change_types::{Action, Change, FileChange};
 use anyhow::{anyhow, Result};
 use std::path::PathBuf;
 
-pub fn parse_change_protocol(md_input: &str) -> Result<Vec<FileChange>> {
+pub fn parse_change_protocol(xml_protocol: &str) -> Result<Vec<FileChange>> {
     let mut file_changes: Vec<FileChange> = Vec::new();
     let mut current_file_path: Option<String> = None;
     let mut current_action: Option<Action> = None;
@@ -18,8 +18,9 @@ pub fn parse_change_protocol(md_input: &str) -> Result<Vec<FileChange>> {
     let mut code_lines: Vec<String> = Vec::new();
 
     // Remove surrounding <pre> tags if present
-    let stripped = md_input.replace("<pre>", "").replace("</pre>", "");
+    let stripped = xml_protocol.replace("<pre>", "").replace("</pre>", "");
     let lines: Vec<&str> = stripped.lines().collect();
+    log::debug!("Stripped {}", stripped);
 
     for line in lines {
         let line = line.trim_end();

@@ -6,6 +6,8 @@ import type { FileNode } from "./SelectedFiles";
 import { formatFileSize } from "../utils/formatFileSize";
 
 interface FileCardProps {
+  mode: "talk" | "plan" | "do";
+  plan: string;
   file: FileNode;
   percentage: string;
   onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
@@ -13,11 +15,27 @@ interface FileCardProps {
 }
 
 export function FileCard({
+  mode,
+  plan,
   file,
   percentage,
   onPreviewFile,
   onRemoveFile,
 }: FileCardProps) {
+  const doMode = mode === "do";
+  let changeDescription = "";
+  if (doMode && plan) {
+    const escapeRegex = (str: string) =>
+      str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+    const filePathRegex = escapeRegex(file.path);
+    const pattern = new RegExp(
+      `### File\\s+.*${filePathRegex}[\\s\\S]*?\\*\\*Description\\*\\*:\\s*(.*)`
+    );
+    const match = plan.match(pattern);
+    if (match) {
+      changeDescription = match[1].trim();
+    }
+  }
   return (
     <Box
       sx={{
@@ -26,7 +44,7 @@ export function FileCard({
         border: "1px solid lightgrey",
         padding: 2,
         margin: 0,
-        minWidth: "20%",
+        minWidth: doMode ? "100%" : "20%",
         maxWidth: "50%",
         boxSizing: "border-box",
         overflow: "hidden",
@@ -64,6 +82,9 @@ export function FileCard({
         <Typography variant="subtitle2">{file.name}</Typography>
         <Typography variant="caption">
           {formatFileSize(file.size)} ({percentage}%)
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          {changeDescription}
         </Typography>
       </Box>
     </Box>

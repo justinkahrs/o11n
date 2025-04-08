@@ -25,6 +25,7 @@ import "./App.css";
 // Import our shared types
 import type { FileNode, TreeItemData } from "./types";
 import { Create } from "@mui/icons-material";
+import { PlanPreview } from "./components/PlanPreview";
 
 interface CustomTemplate {
   id: string;
@@ -171,9 +172,6 @@ function App() {
                 }}
                 sx={{ m: 2 }}
               >
-                <ToggleButton size="small" value="talk">
-                  Let's talk
-                </ToggleButton>
                 <ToggleButton size="small" value="plan">
                   Let's plan
                 </ToggleButton>
@@ -181,13 +179,11 @@ function App() {
                   Let's do it
                 </ToggleButton>
               </ToggleButtonGroup>
-              {mode === "do" ? (
-                <PlanInput plan={plan} onChange={setPlan} />
-              ) : (
+              {mode !== "do" && (
                 <InstructionsInput mode={mode} onChange={setInstructions} />
               )}
-
               <TemplateSelection
+                mode={mode}
                 templates={customTemplates}
                 onAddTemplate={(template) =>
                   setCustomTemplates((prev) => [...prev, template])
@@ -203,7 +199,11 @@ function App() {
                   )
                 }
               />
+              <PlanInput mode={mode} plan={plan} onChange={setPlan} />
+              <PlanPreview mode={mode} plan={plan} />
               <SelectedFiles
+                mode={mode}
+                plan={plan}
                 files={selectedFiles}
                 onRemoveFile={handleRemoveFile}
                 onRemoveFolder={handleRemoveFolder}

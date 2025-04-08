@@ -8,6 +8,7 @@ pub fn apply_changes(xml_protocol: &str, reverse: bool) -> Result<()> {
     let parsed = parse_change_protocol(xml_protocol)
         .context("Failed to parse the change management protocol XML")?;
 
+    log::debug!("Parsed {} FileChange entries: {:#?}", parsed.len(), parsed);
     for fc in parsed {
         apply_file_change(&fc, reverse)
             .context(format!("Failed applying changes to file: {:?}", fc.path))?;

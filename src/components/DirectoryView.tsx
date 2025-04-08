@@ -8,7 +8,6 @@ import {
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
 import FileItemWithHover from "./FileItemWithHover";
-
 export interface TreeItemData {
   id: string;
   name: string;
@@ -17,7 +16,6 @@ export interface TreeItemData {
   children: TreeItemData[];
   loadedChildren: boolean;
 }
-
 export interface DirectoryViewProps {
   node: TreeItemData;
   onFilePreviewClick: (
@@ -121,7 +119,6 @@ export default function DirectoryView({
         expanded={expanded}
         onNodeToggle={handleToggle}
         onNodeSelect={handleNodeSelect}
-        // onNodeFocus={onFilePreviewClick}
         sx={{ marginLeft: 1 }}
       >
         {node.loadedChildren ? (
