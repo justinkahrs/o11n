@@ -2,13 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
-import {
-  Box,
-  Button,
-  IconButton,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import SearchFiles from "./SearchFiles";
 import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
@@ -17,7 +11,7 @@ import type { FileExplorerProps, TreeItemData } from "../types";
 import { motion, Reorder } from "framer-motion";
 
 export default function FileExplorer({
-  onFileHover,
+  onFilePreviewClick,
   onFileSelect,
   onThemeChange,
   projects,
@@ -152,7 +146,7 @@ export default function FileExplorer({
         >
           {buttonLabel}
         </Button>
-<SearchFiles
+        <SearchFiles
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
         />
@@ -201,7 +195,7 @@ export default function FileExplorer({
                           [root.path]: prev[root.path] === false,
                         }))
                       }
-                      sx={{ cursor: "pointer" }}
+                      sx={{ cursor: "pointer", width: "100%" }}
                     >
                       {root.name}
                     </Typography>
@@ -248,7 +242,7 @@ export default function FileExplorer({
                     >
                       <DirectoryView
                         node={root}
-                        onFileHover={onFileHover}
+                        onFilePreviewClick={onFilePreviewClick}
                         onFileSelect={(file) =>
                           onFileSelect({ ...file, projectRoot: root.path })
                         }

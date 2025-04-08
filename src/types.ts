@@ -17,7 +17,7 @@ export interface TreeItemData {
 
 export interface FileExplorerProps {
   onThemeChange: (primary: string, secondary: string, mode: string) => void;
-  onFileHover: (
+  onFilePreviewClick: (
     file: { id: string; name: string; path: string } | null,
     event?: React.SyntheticEvent<HTMLElement>
   ) => void;

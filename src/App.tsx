@@ -46,8 +46,8 @@ function App() {
     name: string;
     path: string;
   } | null>(null);
-  const handleFileHover = (
-    event: React.MouseEvent<HTMLElement>,
+  const handleFilePreviewClick = (
+    _event: React.SyntheticEvent<HTMLElement>,
     file: { id: string; name: string; path: string } | null
   ) => {
     // If the same file is clicked again, toggle off the preview.
@@ -126,7 +126,7 @@ function App() {
       >
         <FileExplorer
           onFileSelect={handleFileSelect}
-          onFileHover={handleFileHover}
+          onFilePreviewClick={handleFilePreviewClick}
           projects={projects}
           setProjects={setProjects}
           onThemeChange={(primary, secondary, themeMode) => {

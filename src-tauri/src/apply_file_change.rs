@@ -1,5 +1,6 @@
 use crate::change_types::{Action, FileChange};
 use anyhow::{anyhow, Context, Result};
+use regex::Regex;
 use std::fs;
 pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> {
     let resolved_path = if file_change.path.is_relative() {
@@ -66,16 +67,30 @@ pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> 
                     log::info!("Found search text. Replacing with: '{}'", replace_text);
                     original_contents.replace_range(start_pos..end_pos, &replace_text);
                 } else {
-                    log::error!(
-                        "Search block not found in file {}:\n{}",
-                        resolved_path.display(),
-                        find_text
-                    );
-                    return Err(anyhow!(
-                        "Search block not found in file {}:\n{}",
-                        resolved_path.display(),
-                        find_text
-                    ));
+                    // Fallback: use regex to ignore whitespace differences.
+                    let tokens: Vec<&str> = find_text.split_whitespace().collect();
+                    let pattern = tokens.join(r"\s+");
+                    let re = Regex::new(&pattern).context("Invalid regex pattern")?;
+                    if let Some(mat) = re.find(&original_contents) {
+                        let start_pos = mat.start();
+                        let end_pos = mat.end();
+                        log::info!(
+                            "Found search text via regex. Replacing with: '{}'",
+                            replace_text
+                        );
+                        original_contents.replace_range(start_pos..end_pos, &replace_text);
+                    } else {
+                        log::error!(
+                            "Search block not found in file {} even with regex:\n{}",
+                            resolved_path.display(),
+                            find_text
+                        );
+                        return Err(anyhow!(
+                            "Search block not found in file {} even with regex:\n{}",
+                            resolved_path.display(),
+                            find_text
+                        ));
+                    }
                 }
             }
             log::debug!(

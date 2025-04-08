@@ -7,21 +7,21 @@ interface FileItemWithHoverProps {
     name: string;
     path: string;
   };
-  onFileHover?: (
+  onFilePreviewClick?: (
     file: { id: string; name: string; path: string } | null,
-    event?: React.MouseEvent<HTMLElement>
+    event?: React.SyntheticEvent<HTMLElement>
   ) => void;
   nodeId: string;
 }
 export default function FileItemWithHover({
   file,
-  onFileHover,
+  onFilePreviewClick,
   nodeId,
 }: FileItemWithHoverProps) {
-  const handleMouseEnter = (event) => {
+  const handleClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
-    if (onFileHover) {
-      onFileHover(event, file);
+    if (onFilePreviewClick) {
+      onFilePreviewClick(event, file);
     }
   };
   // Removed handleMouseLeave to avoid flicker and allow selection.
@@ -30,7 +30,7 @@ export default function FileItemWithHover({
       nodeId={nodeId}
       label={
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <FileIcon onClick={handleMouseEnter} fontSize="small" />
+          <FileIcon color="secondary" onClick={handleClick} fontSize="small" />
           <span>{file.name}</span>
         </Box>
       }

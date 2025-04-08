@@ -74,7 +74,7 @@ export default function FilePreview({ file }: FilePreviewProps) {
           backgroundColor: "background.paper",
           zIndex: 1,
         }}
-      />{" "}
+      />
       <CardContent>
         {loading ? (
           <CircularProgress />

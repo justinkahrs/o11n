@@ -27,7 +27,7 @@ export default function SettingsMenu({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
 
-  const handleSettingsOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleSettingsOpen = (event: React.SyntheticEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
 

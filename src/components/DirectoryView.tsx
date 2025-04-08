@@ -20,9 +20,9 @@ export interface TreeItemData {
 
 export interface DirectoryViewProps {
   node: TreeItemData;
-  onFileHover: (
+  onFilePreviewClick: (
     file: { id: string; name: string; path: string } | null,
-    event?: React.MouseEvent<HTMLElement>
+    event?: React.SyntheticEvent<HTMLElement>
   ) => void;
   onFileSelect: (file: {
     id: string;
@@ -37,7 +37,7 @@ export interface DirectoryViewProps {
 
 export default function DirectoryView({
   node,
-  onFileHover,
+  onFilePreviewClick,
   onFileSelect,
   showDotfiles,
   loadChildren,
@@ -121,7 +121,7 @@ export default function DirectoryView({
         expanded={expanded}
         onNodeToggle={handleToggle}
         onNodeSelect={handleNodeSelect}
-        // onNodeFocus={onFileHover}
+        // onNodeFocus={onFilePreviewClick}
         sx={{ marginLeft: 1 }}
       >
         {node.loadedChildren ? (
@@ -138,7 +138,7 @@ export default function DirectoryView({
                 }
               >
                 <DirectoryView
-                  onFileHover={onFileHover}
+                  onFilePreviewClick={onFilePreviewClick}
                   node={child}
                   onFileSelect={onFileSelect}
                   showDotfiles={showDotfiles}
@@ -151,7 +151,7 @@ export default function DirectoryView({
                 key={child.id}
                 file={{ id: child.id, name: child.name, path: child.path }}
                 nodeId={child.id}
-                onFileHover={onFileHover}
+                onFilePreviewClick={onFilePreviewClick}
               />
             )
           )

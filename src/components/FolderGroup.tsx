@@ -60,17 +60,32 @@ export function FolderGroup({
         expandIcon={<ExpandMoreIcon />}
         aria-controls={`panel-${displayedFolder}-content`}
         id={`panel-${displayedFolder}-header`}
+        sx={{
+          borderLeft: "1px solid #ccc",
+          borderRight: "1px solid #ccc",
+          borderTop: "1px solid #ccc",
+          ...(!expanded && { borderBottom: "1px solid #ccc" }),
+        }}
       >
-        <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="subtitle1" style={{ display: "flex" }}>
-            <Folder color="primary" style={{ marginRight: ".5rem" }} />
-            {`${displayedFolder} - ${count} file${count === 1 ? "" : "s"}`}
-          </Typography>
+        <Box
+          sx={{
+            display: "flex",
+            alignContent: "center",
+            flexGrow: 1,
+          }}
+        >
           <Typography
-            variant="caption"
-            sx={{ display: "block", color: "text.secondary" }}
+            variant="subtitle1"
+            style={{ display: "flex", alignItems: "center" }}
           >
-            {`${formatFileSize(folderSize)} (${percentage}%)`}
+            <Folder style={{ marginRight: ".5rem" }} />
+            {`${displayedFolder} - ${count} file${count === 1 ? "" : "s"}`}
+            <Typography
+              variant="caption"
+              sx={{ color: "text.secondary", ml: 1 }}
+            >
+              {` - ${formatFileSize(folderSize)} (${percentage}%)`}
+            </Typography>
           </Typography>
         </Box>
         <IconButton
@@ -83,7 +98,16 @@ export function FolderGroup({
           <DeleteIcon />
         </IconButton>
       </AccordionSummary>
-      <AccordionDetails>{children}</AccordionDetails>
+      <AccordionDetails
+        sx={{
+          borderLeft: "1px solid #ccc",
+          borderRight: "1px solid #ccc",
+          borderBottom: "1px solid #ccc",
+          ...(!expanded && { borderTop: "1px solid #ccc" }),
+        }}
+      >
+        {children}
+      </AccordionDetails>
     </Accordion>
   );
 }
