@@ -8,10 +8,16 @@ import { formatFileSize } from "../utils/formatFileSize";
 interface FileCardProps {
   file: FileNode;
   percentage: string;
+  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
   onRemoveFile: (fileId: string) => void;
 }
 
-export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
+export function FileCard({
+  file,
+  percentage,
+  onPreviewFile,
+  onRemoveFile,
+}: FileCardProps) {
   return (
     <Box
       sx={{
@@ -44,8 +50,16 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
           paddingRight: "40px",
         }}
       >
-        <Typography variant="subtitle2">
-          <InsertDriveFile color="primary" />
+        <Typography
+          variant="subtitle2"
+          onClick={(e) => onPreviewFile?.(e, file)}
+          sx={{
+            cursor: "pointer",
+
+            "&:hover .file-icon": { color: "primary.main" },
+          }}
+        >
+          <InsertDriveFile className="file-icon" color="secondary" />
         </Typography>
         <Typography variant="subtitle2">{file.name}</Typography>
         <Typography variant="caption">

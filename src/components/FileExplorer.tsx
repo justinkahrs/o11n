@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
+import { BaseDirectory, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
@@ -38,6 +38,7 @@ export default function FileExplorer({
       isDirectory: true,
       children: [],
       loadedChildren: false,
+      ignorePatterns: [],
     };
   }
 
@@ -58,9 +59,24 @@ export default function FileExplorer({
         isDirectory: !!entry.isDirectory,
         children: [],
         loadedChildren: false,
+        ignorePatterns: node.ignorePatterns,
       }));
       if (!showDotfiles) {
         entries = entries.filter((entry) => !entry.name.startsWith("."));
+      }
+      // Filter out files that match .gitignore patterns if present
+      if (node.ignorePatterns && node.ignorePatterns.length > 0) {
+        function matchesPattern(fileName: string, pattern: string): boolean {
+          const escaped = pattern.replace(/[-\/\\^$+?.()|[\]{}]/g, "\\$&");
+          const regexPattern = `^${escaped.replace(/\*/g, ".*")}$`;
+          const regex = new RegExp(regexPattern);
+          return regex.test(fileName);
+        }
+        entries = entries.filter((entry) => {
+          return !node.ignorePatterns.some((pattern) =>
+            matchesPattern(entry.name, pattern)
+          );
+        });
       }
       entries.sort((a, b) => {
         if (a.isDirectory && !b.isDirectory) return -1;
@@ -83,6 +99,17 @@ export default function FileExplorer({
     if (selected && typeof selected === "string") {
       // Create the new root node and add it
       const newRoot = createRootNode(selected);
+      try {
+        const gitignoreContent = await readTextFile(`${selected}/.gitignore`);
+        console.log({ gitignoreContent });
+        const patterns = gitignoreContent
+          .split("\n")
+          .map((line) => line.trim())
+          .filter((line) => line && !line.startsWith("#"));
+        newRoot.ignorePatterns = patterns;
+      } catch (error) {
+        // .gitignore may not exist; ignore errors
+      }
       setProjects((prev) => [...prev, newRoot]);
       // default expanded state is true
       setExpanded((prev) => ({ ...prev, [newRoot.path]: true }));
@@ -153,9 +180,8 @@ export default function FileExplorer({
       </Box>
       <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 1 }}>
         {projects.length === 0 ? (
-          <Typography variant="body1">
-            Load a project and choose which files will add context to your
-            prompt.
+          <Typography color="primary" variant="body1">
+            Load a project and select files to add context to your prompt.
           </Typography>
         ) : (
           <Reorder.Group

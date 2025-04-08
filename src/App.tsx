@@ -41,7 +41,7 @@ function App() {
   const [plan, setPlan] = useState("");
   const [currentTheme, setCurrentTheme] = useState(defaultTheme);
   const [mode, setMode] = useState<"talk" | "plan" | "do">("plan");
-  const [hoveredFile, setHoveredFile] = useState<{
+  const [selectedFile, setSelectedFile] = useState<{
     id: string;
     name: string;
     path: string;
@@ -51,10 +51,10 @@ function App() {
     file: { id: string; name: string; path: string } | null
   ) => {
     // If the same file is clicked again, toggle off the preview.
-    if (hoveredFile && file && hoveredFile.id === file.id) {
-      setHoveredFile(null);
+    if (selectedFile && file && selectedFile.id === file.id) {
+      setSelectedFile(null);
     } else {
-      setHoveredFile(file);
+      setSelectedFile(file);
     }
   };
   const projectsRef = useRef(projects);
@@ -207,6 +207,7 @@ function App() {
                 files={selectedFiles}
                 onRemoveFile={handleRemoveFile}
                 onRemoveFolder={handleRemoveFolder}
+                onPreviewFile={handleFilePreviewClick}
               />
             </>
           </Stack>
@@ -254,7 +255,7 @@ function App() {
           </Stack>
         </Grid>
       </Stack>
-      <Modal open={Boolean(hoveredFile)} onClose={() => setHoveredFile(null)}>
+      <Modal open={Boolean(selectedFile)} onClose={() => setSelectedFile(null)}>
         <Box
           sx={{
             position: "absolute",
@@ -264,7 +265,7 @@ function App() {
             minWidth: "80%",
           }}
         >
-          {hoveredFile && <FilePreview file={hoveredFile} />}
+          {selectedFile && <FilePreview file={selectedFile} />}
         </Box>
       </Modal>
     </ThemeProvider>

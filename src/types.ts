@@ -7,6 +7,7 @@ export interface FileNode {
 }
 
 export interface TreeItemData {
+  ignorePatterns: RegExp[];
   id: string;
   name: string;
   path: string; // This may be '.' or a full path

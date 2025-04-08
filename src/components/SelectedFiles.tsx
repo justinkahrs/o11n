@@ -14,10 +14,12 @@ interface SelectedFilesProps {
   files: FileNode[];
   onRemoveFile: (fileId: string) => void;
   onRemoveFolder: (folderPath: string) => void;
+  onPreviewFile: (file: FileNode) => void;
 }
 
 export function SelectedFiles({
   files,
+  onPreviewFile,
   onRemoveFile,
   onRemoveFolder,
 }: SelectedFilesProps) {
@@ -75,6 +77,7 @@ export function SelectedFiles({
                         file={file}
                         percentage={pct}
                         onRemoveFile={onRemoveFile}
+                        onPreviewFile={onPreviewFile}
                       />
                     );
                   })}

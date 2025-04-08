@@ -123,11 +123,12 @@ export default function Copy({
 
   return (
     <Button
+      disableElevation
       fullWidth
       variant="contained"
       onClick={handleCopy}
       startIcon={<ContentCopy />}
-      sx={{ width: "40%" }}
+      sx={{ width: "40%", "&:hover": { backgroundColor: "primary.dark" } }}
     >
       Copy Prompt
     </Button>
