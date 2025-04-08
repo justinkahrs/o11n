@@ -9,8 +9,8 @@ interface FileItemWithHoverProps {
     path: string;
   };
   onFilePreviewClick?: (
-    file: { id: string; name: string; path: string } | null,
-    event?: React.SyntheticEvent<HTMLElement>
+    event: React.SyntheticEvent<Element>,
+    file: { id: string; name: string; path: string } | null
   ) => void;
   nodeId: string;
 }

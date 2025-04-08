@@ -5,7 +5,11 @@ use std::fs;
 pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> {
     let resolved_path = if file_change.path.is_relative() {
         let cwd = std::env::current_dir().context("Failed to get current working directory")?;
-        cwd.join(&file_change.path)
+        if let Some(project_root) = cwd.parent() {
+            project_root.join(&file_change.path)
+        } else {
+            file_change.path.clone()
+        }
     } else {
         file_change.path.clone()
     };
