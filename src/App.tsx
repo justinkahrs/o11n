@@ -106,7 +106,8 @@ function App() {
     } catch (error) {
       console.error("Failed to apply changes:", error);
     }
-    setCommitting(false);
+setCommitting(false);
+    setProjects((prev) => prev.map((proj) => ({ ...proj, loadedChildren: false })));
   };
 
   const handleRevert = async () => {
@@ -204,7 +205,7 @@ function App() {
                 }
               />
               <PlanInput mode={mode} plan={plan} onChange={setPlan} />
-<PlanPreview mode={mode} plan={plan} onFinalPlanChange={setPlan} />
+              <PlanPreview mode={mode} plan={plan} />
               <SelectedFiles
                 mode={mode}
                 plan={plan}
