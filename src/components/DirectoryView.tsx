@@ -131,8 +131,15 @@ export default function DirectoryView({
                 key={child.id}
                 nodeId={child.id}
                 label={
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                    <FolderIcon fontSize="small" />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      "&:hover .file-icon": { color: "primary.main" },
+                    }}
+                  >
+                    <FolderIcon className="file-icon" fontSize="small" />
                     <span>{child.name}/</span>
                   </Box>
                 }

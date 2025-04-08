@@ -29,8 +29,20 @@ export default function FileItemWithHover({
     <TreeItem
       nodeId={nodeId}
       label={
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <FileIcon color="secondary" onClick={handleClick} fontSize="small" />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            "&:hover .file-icon": { color: "primary.main" },
+          }}
+        >
+          <FileIcon
+            className="file-icon"
+            sx={{ color: "secondary.main" }}
+            onClick={handleClick}
+            fontSize="small"
+          />
           <span>{file.name}</span>
         </Box>
       }

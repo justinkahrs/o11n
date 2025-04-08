@@ -261,7 +261,7 @@ function App() {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            minWidth: "90%",
+            minWidth: "80%",
           }}
         >
           {hoveredFile && <FilePreview file={hoveredFile} />}
