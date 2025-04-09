@@ -195,17 +195,16 @@ function App() {
             }}
           />
         </div>
-        {/* Divider: Draggable vertical separator */}
-        <div
-          onMouseDown={() => setIsDragging(true)}
-          style={{
-            width: "5px",
-            cursor: "col-resize",
-            backgroundColor: "rgba(0,0,0,0.1)",
-            margin: "0 8px",
-          }}
-        />
-        {/* Right Panel: Grid that grows to fill the remaining space */}
+        {/* Divider: Draggable vertical separator */}<div
+  onMouseDown={() => setIsDragging(true)}
+  style={{
+    width: "5px",
+    flexShrink: 0,
+    cursor: "col-resize",
+    backgroundColor: "rgba(0,0,0,0.1)",
+    margin: "0 8px",
+  }}
+/>{/* Right Panel: Grid that grows to fill the remaining space */}
         <div style={{ flexGrow: 1 }}>
           <Grid
             sx={{
