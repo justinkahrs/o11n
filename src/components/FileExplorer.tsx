@@ -9,7 +9,7 @@ import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
 import { FolderSpecial, Delete, DragIndicator } from "@mui/icons-material";
 import type { FileExplorerProps, TreeItemData } from "../types";
-import { motion, Reorder } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function FileExplorer({
   onFilePreviewClick,
@@ -185,115 +185,103 @@ export default function FileExplorer({
             Load a project and select files to add context to your prompt.
           </Typography>
         ) : (
-          <Reorder.Group
-            as="div"
-            axis="y"
-            values={projects}
-            onReorder={setProjects}
-          >
-            {projects.map((root) => (
-              <Reorder.Item key={root.path} value={root}>
-                <Box
+          projects.map((root) => (
+            <Box
+              key={root.path}
+              sx={{
+                mb: 3,
+                border: "1px solid #ccc",
+                borderRadius: 1,
+                overflow: "hidden",
+              }}
+            >
+              {/* Header with project name on left and drag icon + delete on right */}
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  backgroundColor: theme.palette.secondary.main,
+                  px: 1,
+                  py: 0.5,
+                  justifyContent: "space-between",
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 1,
+                }}
+              >
+                <Typography
+                  onClick={() =>
+                    setExpanded((prev) => ({
+                      ...prev,
+                      [root.path]: prev[root.path] === false,
+                    }))
+                  }
                   sx={{
-                    mb: 3,
-                    border: "1px solid #ccc",
-                    borderRadius: 1,
-                    overflow: "hidden",
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                    width: "100%",
                   }}
                 >
-                  {/* Header with project name on left and drag icon + delete on right */}
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      backgroundColor: theme.palette.secondary.main,
-                      px: 1,
-                      py: 0.5,
-                      justifyContent: "space-between",
-                      position: "sticky",
-                      top: 0,
-                      zIndex: 1,
-                    }}
-                  >
-                    <Typography
-                      onClick={() =>
-                        setExpanded((prev) => ({
-                          ...prev,
-                          [root.path]: prev[root.path] === false,
-                        }))
-                      }
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        cursor: "pointer",
-                        width: "100%",
-                      }}
-                    >
-                      <FolderIcon
-                        className="file-icon"
-                        fontSize="small"
-                        sx={{ mr: 1 }}
-                      />
+                  <FolderIcon
+                    className="file-icon"
+                    fontSize="small"
+                    sx={{ mr: 1 }}
+                  />
 
-                      {root.name}
-                    </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                      {/* Drag icon */}
-                      <Box
-                        onMouseDown={(e) => {
-                          // Prevent toggling accordion while dragging
-                          e.stopPropagation();
-                        }}
-                        sx={{ cursor: "grab" }}
-                      >
-                        <DragIndicator fontSize="inherit" />
-                      </Box>
-                      <IconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeProject(root.path);
-                        }}
-                        size="small"
-                      >
-                        <Delete fontSize="inherit" />
-                      </IconButton>
-                    </Box>
-                  </Box>
-                  {/* Animated Directory tree */}
-                  <motion.div
-                    initial={
-                      expanded[root.path] !== false ? "open" : "collapsed"
-                    }
-                    animate={
-                      expanded[root.path] !== false ? "open" : "collapsed"
-                    }
-                    variants={accordionVariants}
-                    style={{ overflow: "hidden" }}
+                  {root.name}
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                  {/* Drag icon */}
+                  <Box
+                    onMouseDown={(e) => {
+                      // Prevent toggling accordion while dragging
+                      e.stopPropagation();
+                    }}
+                    sx={{ cursor: "grab" }}
                   >
-                    <Box
-                      sx={{
-                        p: 1,
-                        maxHeight: 300,
-                        overflowY: "auto",
-                        overscrollBehavior: "contain",
-                      }}
-                    >
-                      <DirectoryView
-                        node={root}
-                        onFilePreviewClick={onFilePreviewClick}
-                        onFileSelect={(file) =>
-                          onFileSelect({ ...file, projectRoot: root.path })
-                        }
-                        showDotfiles={showDotfiles}
-                        loadChildren={loadChildren}
-                        searchQuery={searchQuery}
-                      />
-                    </Box>
-                  </motion.div>
+                    <DragIndicator fontSize="inherit" />
+                  </Box>
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeProject(root.path);
+                    }}
+                    size="small"
+                  >
+                    <Delete fontSize="inherit" />
+                  </IconButton>
                 </Box>
-              </Reorder.Item>
-            ))}
-          </Reorder.Group>
+              </Box>
+              {/* Animated Directory tree */}
+              <motion.div
+                initial={expanded[root.path] !== false ? "open" : "collapsed"}
+                animate={expanded[root.path] !== false ? "open" : "collapsed"}
+                variants={accordionVariants}
+                style={{ overflow: "hidden" }}
+              >
+                <Box
+                  sx={{
+                    p: 1,
+                    maxHeight: 300,
+                    overflowY: "auto",
+                    overscrollBehavior: "contain",
+                  }}
+                >
+                  <DirectoryView
+                    node={root}
+                    onFilePreviewClick={onFilePreviewClick}
+                    onFileSelect={(file) =>
+                      onFileSelect({ ...file, projectRoot: root.path })
+                    }
+                    showDotfiles={showDotfiles}
+                    loadChildren={loadChildren}
+                    searchQuery={searchQuery}
+                  />
+                </Box>
+              </motion.div>
+            </Box>
+          ))
         )}
       </Box>
 
