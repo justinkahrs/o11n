@@ -132,6 +132,7 @@ A short explanation of this specific change.
    - A script or automation can parse these blocks in a straightforward manner.
    - Wrap all markdown inside HTML <pre> tags. DO NOT FORGET THE CLOSING </pre> TAG, and do not surround with display formatting or backticks.
    - Do not wrap any code inside <![CDATA[ ... ]]> tags
+   - Do NOT write things like "... rest of the code" or any filler that wasn't in the original code. Always return the full code block.
 
 ---
 

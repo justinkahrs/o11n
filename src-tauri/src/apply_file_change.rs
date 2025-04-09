@@ -1,197 +1,150 @@
-use crate::change_types::{Action, FileChange};
+use crate::change_types::{Action, Change, FileChange};
 use anyhow::{anyhow, Context, Result};
+use log::debug;
+use regex::escape as regex_escape;
 use regex::Regex;
 use std::fs;
-pub fn apply_file_change(file_change: &FileChange, reverse: bool) -> Result<()> {
-    let resolved_path = if file_change.path.is_relative() {
+use std::path::PathBuf;
+
+fn resolve_file_path(path: &PathBuf) -> Result<PathBuf> {
+    if path.is_relative() {
         let cwd = std::env::current_dir().context("Failed to get current working directory")?;
         if let Some(project_root) = cwd.parent() {
-            project_root.join(&file_change.path)
+            Ok(project_root.join(path))
         } else {
-            file_change.path.clone()
+            Ok(path.clone())
         }
     } else {
-        file_change.path.clone()
-    };
-    log::info!("Resolved file path: {}", resolved_path.display());
+        Ok(path.clone())
+    }
+}
+
+fn apply_change_to_content(content: &str, find_text: &str, replacement: &str) -> Result<String> {
+    debug!("apply_change_to_content - Start");
+    debug!("apply_change_to_content - find_text:\n{}\n", find_text);
+    debug!("apply_change_to_content - replacement:\n{}\n", replacement);
+
+    if let Some(start) = content.find(find_text) {
+        debug!(
+            "apply_change_to_content - Found exact substring at index: {}",
+            start
+        );
+        let end = start + find_text.len();
+        let mut new_content = content.to_string();
+        new_content.replace_range(start..end, replacement);
+        debug!("apply_change_to_content - Exact substring replacement succeeded");
+        return Ok(new_content);
+    } else {
+        debug!("apply_change_to_content - Exact substring not found, attempting fallback");
+    }
+
+    let tokens: Vec<String> = find_text
+        .split_whitespace()
+        .map(|t| regex_escape(t))
+        .collect();
+
+    let pattern = format!("(?s)\\s*{}\\s*", tokens.join(r"\s+"));
+    debug!(
+        "apply_change_to_content - Fallback regex pattern: {}",
+        pattern
+    );
+
+    let re = Regex::new(&pattern)?;
+    if let Some(mat) = re.find(content) {
+        debug!(
+            "apply_change_to_content - Fallback regex match found at {}..{}",
+            mat.start(),
+            mat.end()
+        );
+        let start = mat.start();
+        let end = mat.end();
+        let mut new_content = content.to_string();
+        new_content.replace_range(start..end, replacement);
+        debug!("apply_change_to_content - Fallback regex replacement succeeded");
+        return Ok(new_content);
+    }
+
+    debug!("apply_change_to_content - Search block not found via fallback regex");
+    Err(anyhow!("Search block not found"))
+}
+
+fn apply_modification_changes(original: &str, changes: &[Change]) -> Result<String> {
+    let mut content = original.to_owned();
+    for (i, chg) in changes.iter().enumerate() {
+        debug!("apply_modification_changes - Applying change #{}", i + 1);
+        let search_str = match &chg.search {
+            Some(s) => s,
+            None => return Err(anyhow!("Missing <search> block in modify action")),
+        };
+        content = apply_change_to_content(&content, search_str, &chg.content)?;
+    }
+    Ok(content)
+}
+
+fn aggregate_changes(changes: &[Change]) -> String {
+    changes.iter().map(|chg| chg.content.clone()).collect()
+}
+
+pub fn apply_file_change(file_change: &FileChange) -> Result<()> {
+    debug!("apply_file_change - Action: {:?}", file_change.action);
+    debug!("apply_file_change - Path: {:?}", file_change.path);
+
+    let resolved_path = resolve_file_path(&file_change.path)?;
+    debug!(
+        "apply_file_change - Resolved path: {}",
+        resolved_path.display()
+    );
+
     match file_change.action {
         Action::Modify => {
-            log::debug!("Attempting to read file: {}", resolved_path.display());
-            let mut original_contents = match fs::read_to_string(&resolved_path) {
-                Ok(contents) => {
-                    log::debug!(
-                        "Successfully read file: {} ({} bytes)",
-                        resolved_path.display(),
-                        contents.len()
-                    );
-                    contents
-                }
-                Err(e) => {
-                    log::error!(
-                        "Could not read file: {}. Error: {}",
-                        resolved_path.display(),
-                        e
-                    );
-                    return Err(e)
-                        .context(format!("Could not read file: {}", resolved_path.display()));
-                }
-            };
-            log::debug!(
-                "Current contents of {}: \n{}",
-                resolved_path.display(),
-                original_contents
-            );
-            for chg in &file_change.changes {
-                let (find_text, replace_text) = if reverse {
-                    match &chg.search {
-                        Some(s) => (chg.content.clone(), s.clone()),
-                        None => {
-                            return Err(anyhow!(
-                                "Missing <search> block in modify action for reversal"
-                            ))
-                        }
-                    }
-                } else {
-                    match &chg.search {
-                        Some(s) => (s.clone(), chg.content.clone()),
-                        None => return Err(anyhow!("Missing <search> block in modify action")),
-                    }
-                };
-                log::info!(
-                    "Applying change: {}. Searching for: '{}'",
-                    chg.description,
-                    find_text
-                );
-                // New partial substring approach:
-                if let Some(start_pos) = original_contents.find(&find_text) {
-                    let end_pos = start_pos + find_text.len();
-                    log::info!("Found search text. Replacing with: '{}'", replace_text);
-                    original_contents.replace_range(start_pos..end_pos, &replace_text);
-                } else {
-                    // Fallback: use regex to ignore whitespace differences.
-                    let tokens: Vec<&str> = find_text.split_whitespace().collect();
-                    let pattern = tokens.join(r"\s+");
-                    let re = Regex::new(&pattern).context("Invalid regex pattern")?;
-                    if let Some(mat) = re.find(&original_contents) {
-                        let start_pos = mat.start();
-                        let end_pos = mat.end();
-                        log::info!(
-                            "Found search text via regex. Replacing with: '{}'",
-                            replace_text
-                        );
-                        original_contents.replace_range(start_pos..end_pos, &replace_text);
-                    } else {
-                        log::error!(
-                            "Search block not found in file {} even with regex:\n{}",
-                            resolved_path.display(),
-                            find_text
-                        );
-                        return Err(anyhow!(
-                            "Search block not found in file {} even with regex:\n{}",
-                            resolved_path.display(),
-                            find_text
-                        ));
-                    }
-                }
-            }
-            log::debug!(
-                "Attempting to write file: {} (new content length: {})",
-                resolved_path.display(),
+            let original_contents = fs::read_to_string(&resolved_path)
+                .context(format!("Could not read file: {}", resolved_path.display()))?;
+            debug!(
+                "apply_file_change - Original file contents length: {}",
                 original_contents.len()
             );
-            fs::write(&resolved_path, original_contents)
+            let modified_contents =
+                apply_modification_changes(&original_contents, &file_change.changes)?;
+            fs::write(&resolved_path, modified_contents)
                 .context(format!("Could not write file: {}", resolved_path.display()))?;
-            log::info!(
-                "Successfully wrote changes to file: {}",
-                resolved_path.display()
-            );
         }
         Action::Rewrite => {
-            let mut final_contents = String::new();
-            for chg in &file_change.changes {
-                let part = if reverse {
-                    match &chg.search {
-                        Some(s) if !s.is_empty() => s.clone(),
-                        _ => chg.content.clone(),
-                    }
-                } else {
-                    chg.content.clone()
-                };
-                final_contents.push_str(&part);
-            }
-            log::debug!(
-                "Attempting to rewrite file: {} (new content length: {})",
-                resolved_path.display(),
-                final_contents.len()
-            );
+            let final_contents = aggregate_changes(&file_change.changes);
             fs::write(&resolved_path, final_contents).context(format!(
                 "Could not rewrite file: {}",
                 resolved_path.display()
             ))?;
-            log::info!("Successfully rewrote file: {}", resolved_path.display());
         }
         Action::Create => {
-            if reverse {
-                if resolved_path.exists() {
-                    fs::remove_file(&resolved_path).context(format!(
-                        "Could not delete file: {}",
-                        resolved_path.display()
-                    ))?;
-                    log::info!(
-                        "Successfully reverted creation by deleting file: {}",
-                        resolved_path.display()
-                    );
-                }
-            } else {
-                if resolved_path.exists() {
-                    return Err(anyhow!("File already exists: {}", resolved_path.display()));
-                }
-                let mut new_contents = String::new();
-                for chg in &file_change.changes {
-                    new_contents.push_str(&chg.content);
-                }
-                log::debug!(
-                    "Attempting to create file: {} (content length: {})",
-                    resolved_path.display(),
-                    new_contents.len()
-                );
-                fs::write(&resolved_path, new_contents).context(format!(
-                    "Could not create file: {}",
+            if resolved_path.exists() {
+                return Err(anyhow!("File already exists: {}", resolved_path.display()));
+            }
+            if let Some(parent) = resolved_path.parent() {
+                fs::create_dir_all(parent).context(format!(
+                    "Could not create directories for: {}",
                     resolved_path.display()
                 ))?;
-                log::info!("Successfully created file: {}", resolved_path.display());
             }
+            let new_contents = aggregate_changes(&file_change.changes);
+            fs::write(&resolved_path, new_contents).context(format!(
+                "Could not create file: {}",
+                resolved_path.display()
+            ))?;
         }
         Action::Delete => {
-            if reverse {
-                let mut new_contents = String::new();
-                for chg in &file_change.changes {
-                    new_contents.push_str(&chg.content);
-                }
-                fs::write(&resolved_path, new_contents).context(format!(
-                    "Could not recreate file: {}",
+            if resolved_path.exists() {
+                fs::remove_file(&resolved_path).context(format!(
+                    "Could not delete file: {}",
                     resolved_path.display()
                 ))?;
-                log::info!(
-                    "Successfully reverted deletion by recreating file: {}",
-                    resolved_path.display()
-                );
             } else {
-                if resolved_path.exists() {
-                    log::debug!("Attempting to delete file: {}", resolved_path.display());
-                    fs::remove_file(&resolved_path).context(format!(
-                        "Could not delete file: {}",
-                        resolved_path.display()
-                    ))?;
-                    log::info!("Successfully deleted file: {}", resolved_path.display());
-                } else {
-                    return Err(anyhow!(
-                        "Cannot delete, file does not exist: {}",
-                        resolved_path.display()
-                    ));
-                }
+                return Err(anyhow!(
+                    "Cannot delete, file does not exist: {}",
+                    resolved_path.display()
+                ));
             }
         }
     }
+    debug!("apply_file_change - Completed successfully");
     Ok(())
 }

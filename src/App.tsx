@@ -124,7 +124,6 @@ function App() {
     try {
       const result = await invoke("apply_protocol", {
         xmlInput: plan,
-        reverse: false,
       });
       console.log("Success:", result);
     } catch (error) {
@@ -167,17 +166,7 @@ function App() {
     setMode("plan");
     setPlan("");
   };
-  const handleRevert = async () => {
-    try {
-      const result = await invoke("apply_protocol", {
-        xmlInput: plan,
-        reverse: true,
-      });
-      console.log("Success:", result);
-    } catch (error) {
-      console.error("Failed to revert changes:", error);
-    }
-  };
+
   return (
     <ThemeProvider theme={currentTheme}>
       <CssBaseline />
@@ -186,7 +175,7 @@ function App() {
         style={{ display: "flex", height: "100vh", padding: "16px" }}
       >
         {/* Left Panel: FileExplorer wrapped in a fixed-width container */}
-        <div style={{ width: explorerWidth, overflow: "auto" }}>
+        <div style={{ width: explorerWidth, overflow: "auto", flexShrink: 0 }}>
           <FileExplorer
             onFileSelect={handleFileSelect}
             onFilePreviewClick={handleFilePreviewClick}
@@ -263,7 +252,9 @@ function App() {
                     setCustomTemplates((prev) => [...prev, template])
                   }
                   onRemoveTemplate={(id) =>
-                    setCustomTemplates((prev) => prev.filter((t) => t.id !== id))
+                    setCustomTemplates((prev) =>
+                      prev.filter((t) => t.id !== id)
+                    )
                   }
                   onToggleTemplate={(id) =>
                     setCustomTemplates((prev) =>
@@ -302,7 +293,7 @@ function App() {
                       mt: 2,
                       width: "30%",
                     }} /* hiding for now */
-                    onClick={handleRevert}
+                    // onClick={handleRevert}
                   >
                     Revert Changes
                   </Button>
