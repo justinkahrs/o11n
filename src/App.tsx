@@ -241,11 +241,9 @@ function App() {
                   <ToggleButton size="small" value="do">
                     Let's do it
                   </ToggleButton>
-                </ToggleButtonGroup>
-                {mode !== "do" && (
-                  <InstructionsInput mode={mode} onChange={setInstructions} />
-                )}
-                <TemplateSelection
+                </ToggleButtonGroup>{mode !== "do" && (
+  <InstructionsInput mode={mode} value={instructions} onChange={setInstructions} />
+)}<TemplateSelection
                   mode={mode}
                   templates={customTemplates}
                   onAddTemplate={(template) =>

@@ -1,32 +1,20 @@
 import { Box, TextField, Chip, Stack } from "@mui/material";
-import { useState } from "react";
-
 interface InstructionsInputProps {
   onChange: (value: string) => void;
   mode: string;
+  value: string;
 }
-
-export function InstructionsInput({ mode, onChange }: InstructionsInputProps) {
-  const [inputValue, setInputValue] = useState("");
+export function InstructionsInput({ mode, onChange, value }: InstructionsInputProps) {
   const userPrompts: string[] = [];
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-    onChange(e.target.value);
-  };
-  const label =
-    mode === "talk"
-      ? "Chat about your files"
-      : "Describe how the files should change";
-
+  const label = mode === "talk" ? "Chat about your files" : "Describe how the files should change";
   return (
     <Box sx={{ px: 2, pt: 2 }}>
       <TextField
         variant="outlined"
         fullWidth
         label={label}
-        value={inputValue}
-        onChange={handleInputChange}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         multiline
         minRows={4}
         maxRows={8}
@@ -38,10 +26,7 @@ export function InstructionsInput({ mode, onChange }: InstructionsInputProps) {
           <Chip
             key={prompt}
             label={prompt}
-            onClick={() => {
-              setInputValue(prompt);
-              onChange(prompt);
-            }}
+            onClick={() => onChange(prompt)}
           />
         ))}
       </Stack>
