@@ -27,14 +27,12 @@ import "./App.css";
 import type { FileNode, TreeItemData } from "./types";
 import { Create } from "@mui/icons-material";
 import { PlanPreview } from "./components/PlanPreview";
-
 interface CustomTemplate {
   id: string;
   name: string;
   path: string;
   active: boolean;
 }
-
 function App() {
   const [instructions, setInstructions] = useState("");
   const [customTemplates, setCustomTemplates] = useState<CustomTemplate[]>([]);
@@ -49,6 +47,45 @@ function App() {
     path: string;
   } | null>(null);
   const [committing, setCommitting] = useState(false);
+  // New state for adjustable FileExplorer width and dragging status.
+  const [explorerWidth, setExplorerWidth] = useState(300);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const projectsRef = useRef(projects);
+  const selectedFilesRef = useRef(selectedFiles);
+  useEffect(() => {
+    projectsRef.current = projects;
+  }, [projects]);
+  useEffect(() => {
+    selectedFilesRef.current = selectedFiles;
+  }, [selectedFiles]);
+  // Handle mouse move events to update explorerWidth when dragging.
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging || !containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      let newWidth = e.clientX - containerRect.left;
+      // Set minimum width of 100px and a maximum width based on container size.
+      const maxWidth = containerRect.width - 100;
+      if (newWidth < 100) newWidth = 100;
+      else if (newWidth > maxWidth) newWidth = maxWidth;
+      setExplorerWidth(newWidth);
+    };
+    const handleMouseUp = () => {
+      if (isDragging) setIsDragging(false);
+    };
+    if (isDragging) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    } else {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    }
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging]);
   const handleFilePreviewClick = (
     _event: React.SyntheticEvent<HTMLElement>,
     file: { id: string; name: string; path: string } | null
@@ -61,17 +98,6 @@ function App() {
     }
     setMode("plan");
   };
-  const projectsRef = useRef(projects);
-  const selectedFilesRef = useRef(selectedFiles);
-
-  useEffect(() => {
-    projectsRef.current = projects;
-  }, [projects]);
-
-  useEffect(() => {
-    selectedFilesRef.current = selectedFiles;
-  }, [selectedFiles]);
-
   function handleFileSelect(file: FileNode) {
     setSelectedFiles((prev) => {
       if (prev.some((f) => f.path === file.path)) {
@@ -80,11 +106,9 @@ function App() {
       return [...prev, file];
     });
   }
-
   function handleRemoveFile(fileId: string) {
     setSelectedFiles((prev) => prev.filter((file) => file.id !== fileId));
   }
-
   function handleRemoveFolder(folderPath: string) {
     setSelectedFiles((prev) =>
       prev.filter((file) => {
@@ -95,7 +119,6 @@ function App() {
       })
     );
   }
-
   const handleCommit = async () => {
     setCommitting(true);
     try {
@@ -144,7 +167,6 @@ function App() {
     setMode("plan");
     setPlan("");
   };
-
   const handleRevert = async () => {
     try {
       const result = await invoke("apply_protocol", {
@@ -156,152 +178,165 @@ function App() {
       console.error("Failed to revert changes:", error);
     }
   };
-
   return (
     <ThemeProvider theme={currentTheme}>
       <CssBaseline />
-      <Stack
-        sx={{ height: "100vh", p: 2 }}
-        direction="row"
-        justifyContent="space-around"
+      <div
+        ref={containerRef}
+        style={{ display: "flex", height: "100vh", padding: "16px" }}
       >
-        <FileExplorer
-          onFileSelect={handleFileSelect}
-          onFilePreviewClick={handleFilePreviewClick}
-          projects={projects}
-          setProjects={setProjects}
-          onThemeChange={(primary, secondary, themeMode) => {
-            setCurrentTheme(
-              createTheme({
-                typography: defaultTheme.typography,
-                palette: {
-                  mode: themeMode as PaletteMode,
-                  primary: { main: primary },
-                  secondary: { main: secondary },
-                },
-              })
-            );
+        {/* Left Panel: FileExplorer wrapped in a fixed-width container */}
+        <div style={{ width: explorerWidth, overflow: "auto" }}>
+          <FileExplorer
+            onFileSelect={handleFileSelect}
+            onFilePreviewClick={handleFilePreviewClick}
+            projects={projects}
+            setProjects={setProjects}
+            onThemeChange={(primary, secondary, themeMode) => {
+              setCurrentTheme(
+                createTheme({
+                  typography: defaultTheme.typography,
+                  palette: {
+                    mode: themeMode as PaletteMode,
+                    primary: { main: primary },
+                    secondary: { main: secondary },
+                  },
+                })
+              );
+            }}
+          />
+        </div>
+        {/* Divider: Draggable vertical separator */}
+        <div
+          onMouseDown={() => setIsDragging(true)}
+          style={{
+            width: "5px",
+            cursor: "col-resize",
+            backgroundColor: "rgba(0,0,0,0.1)",
+            margin: "0 8px",
           }}
         />
-        <Grid
-          sx={{
-            width: "100%",
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-          }}
-          justifyContent="space-between"
-        >
-          <Stack
+        {/* Right Panel: Grid that grows to fill the remaining space */}
+        <div style={{ flexGrow: 1 }}>
+          <Grid
             sx={{
-              width: "100%",
-              flex: 1,
-              overflowY: "auto",
               display: "flex",
               flexDirection: "column",
+              height: "100%",
             }}
-            alignContent="space-between"
+            justifyContent="space-between"
           >
-            <>
-              <ToggleButtonGroup
-                color="primary"
-                value={mode}
-                exclusive
-                onChange={(_e, newMode) => {
-                  if (newMode !== null) setMode(newMode);
-                }}
-                sx={{ m: 2 }}
-              >
-                <ToggleButton size="small" value="plan">
-                  Let's plan
-                </ToggleButton>
-                <ToggleButton size="small" value="do">
-                  Let's do it
-                </ToggleButton>
-              </ToggleButtonGroup>
-              {mode !== "do" && (
-                <InstructionsInput mode={mode} onChange={setInstructions} />
-              )}
-              <TemplateSelection
-                mode={mode}
-                templates={customTemplates}
-                onAddTemplate={(template) =>
-                  setCustomTemplates((prev) => [...prev, template])
-                }
-                onRemoveTemplate={(id) =>
-                  setCustomTemplates((prev) => prev.filter((t) => t.id !== id))
-                }
-                onToggleTemplate={(id) =>
-                  setCustomTemplates((prev) =>
-                    prev.map((t) =>
-                      t.id === id ? { ...t, active: !t.active } : t
-                    )
-                  )
-                }
-              />
-              <PlanInput mode={mode} plan={plan} onChange={setPlan} />
-              <PlanPreview mode={mode} plan={plan} />
-              <SelectedFiles
-                mode={mode}
-                plan={plan}
-                files={selectedFiles}
-                onRemoveFile={handleRemoveFile}
-                onRemoveFolder={handleRemoveFolder}
-                onPreviewFile={handleFilePreviewClick}
-              />
-            </>
-          </Stack>
-          <Stack
-            direction="row"
-            spacing={2}
-            sx={{ mt: 2 }}
-            justifyContent={mode === "do" ? "flex-end" : "space-between"}
-          >
-            {mode === "do" ? (
+            <Stack
+              sx={{
+                width: "100%",
+                flex: 1,
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+              }}
+              alignContent="space-between"
+            >
               <>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={<Create />}
-                  sx={{
-                    display: "none",
-                    mt: 2,
-                    width: "30%",
-                  }} /* hiding for now */
-                  onClick={handleRevert}
+                <ToggleButtonGroup
+                  color="primary"
+                  value={mode}
+                  exclusive
+                  onChange={(_e, newMode) => {
+                    if (newMode !== null) setMode(newMode);
+                  }}
+                  sx={{ m: 2 }}
                 >
-                  Revert Changes
-                </Button>
-                <Button
-                  fullWidth
-                  variant="contained"
-                  startIcon={
-                    committing ? (
-                      <CircularProgress size={20} color="inherit" />
-                    ) : (
-                      <Create />
+                  <ToggleButton size="small" value="plan">
+                    Let's plan
+                  </ToggleButton>
+                  <ToggleButton size="small" value="do">
+                    Let's do it
+                  </ToggleButton>
+                </ToggleButtonGroup>
+                {mode !== "do" && (
+                  <InstructionsInput mode={mode} onChange={setInstructions} />
+                )}
+                <TemplateSelection
+                  mode={mode}
+                  templates={customTemplates}
+                  onAddTemplate={(template) =>
+                    setCustomTemplates((prev) => [...prev, template])
+                  }
+                  onRemoveTemplate={(id) =>
+                    setCustomTemplates((prev) => prev.filter((t) => t.id !== id))
+                  }
+                  onToggleTemplate={(id) =>
+                    setCustomTemplates((prev) =>
+                      prev.map((t) =>
+                        t.id === id ? { ...t, active: !t.active } : t
+                      )
                     )
                   }
-                  sx={{ mt: 2, width: "30%" }}
-                  onClick={handleCommit}
-                  disabled={committing}
-                >
-                  {committing ? "Processing..." : "Commit Changes"}
-                </Button>
-              </>
-            ) : (
-              <>
-                <Copy
+                />
+                <PlanInput mode={mode} plan={plan} onChange={setPlan} />
+                <PlanPreview mode={mode} plan={plan} />
+                <SelectedFiles
+                  mode={mode}
+                  plan={plan}
                   files={selectedFiles}
-                  userInstructions={instructions}
-                  customTemplates={customTemplates}
-                  isTalkMode={mode === "talk"}
+                  onRemoveFile={handleRemoveFile}
+                  onRemoveFolder={handleRemoveFolder}
+                  onPreviewFile={handleFilePreviewClick}
                 />
               </>
-            )}
-          </Stack>
-        </Grid>
-      </Stack>
+            </Stack>
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{ mt: 2 }}
+              justifyContent={mode === "do" ? "flex-end" : "space-between"}
+            >
+              {mode === "do" ? (
+                <>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={<Create />}
+                    sx={{
+                      display: "none",
+                      mt: 2,
+                      width: "30%",
+                    }} /* hiding for now */
+                    onClick={handleRevert}
+                  >
+                    Revert Changes
+                  </Button>
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    startIcon={
+                      committing ? (
+                        <CircularProgress size={20} color="inherit" />
+                      ) : (
+                        <Create />
+                      )
+                    }
+                    sx={{ mt: 2, width: "30%" }}
+                    onClick={handleCommit}
+                    disabled={committing}
+                  >
+                    {committing ? "Processing..." : "Commit Changes"}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Copy
+                    files={selectedFiles}
+                    userInstructions={instructions}
+                    customTemplates={customTemplates}
+                    isTalkMode={mode === "talk"}
+                  />
+                </>
+              )}
+            </Stack>
+          </Grid>
+        </div>
+      </div>
       <Modal open={Boolean(selectedFile)} onClose={() => setSelectedFile(null)}>
         <Box
           sx={{
@@ -318,5 +353,4 @@ function App() {
     </ThemeProvider>
   );
 }
-
 export default App;
