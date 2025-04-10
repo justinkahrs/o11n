@@ -2,27 +2,21 @@ import { TreeItem } from "@mui/lab";
 import { Box } from "@mui/material";
 import { motion } from "framer-motion";
 import { InsertDriveFile as FileIcon } from "@mui/icons-material";
+import type { FileNode } from "../types";
 interface FileItemWithHoverProps {
-  file: {
-    id: string;
-    name: string;
-    path: string;
-  };
-  onFilePreviewClick?: (
-    event: React.SyntheticEvent<Element>,
-    file: { id: string; name: string; path: string } | null
-  ) => void;
+  file: FileNode;
+  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
   nodeId: string;
 }
 export default function FileItemWithHover({
   file,
-  onFilePreviewClick,
+  onPreviewFile,
   nodeId,
 }: FileItemWithHoverProps) {
   const handleClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
-    if (onFilePreviewClick) {
-      onFilePreviewClick(event, file);
+    if (onPreviewFile) {
+      onPreviewFile(event, file);
     }
   };
   // Removed handleMouseLeave to avoid flicker and allow selection.

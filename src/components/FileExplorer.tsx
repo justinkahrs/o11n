@@ -3,16 +3,16 @@ import { BaseDirectory, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
-import { Folder as FolderIcon } from "@mui/icons-material";
+import FolderIcon from "@mui/icons-material/Folder";
 import SearchFiles from "./SearchFiles";
 import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
-import { FolderSpecial, Delete, DragIndicator } from "@mui/icons-material";
+import { FolderSpecial, Delete } from "@mui/icons-material";
 import type { FileExplorerProps, TreeItemData } from "../types";
-import { motion } from "framer-motion";
+import { AccordionItem } from "./AccordionItem";
 
 export default function FileExplorer({
-  onFilePreviewClick,
+  onPreviewFile,
   onFileSelect,
   onThemeChange,
   projects,
@@ -22,11 +22,6 @@ export default function FileExplorer({
   const [showDotfiles, setShowDotfiles] = useState(false);
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState("");
-
-  const accordionVariants = {
-    open: { height: "auto", opacity: 1, transition: { duration: 0.3 } },
-    collapsed: { height: 0, opacity: 0, transition: { duration: 0.3 } },
-  };
 
   // Helper to create a new project node
   function createRootNode(dirPath: string): TreeItemData {
@@ -75,7 +70,7 @@ export default function FileExplorer({
         }
         entries = entries.filter((entry) => {
           return !node.ignorePatterns.some((pattern) =>
-            matchesPattern(entry.name, pattern)
+            matchesPattern(entry.name, `${pattern}`)
           );
         });
       }
@@ -232,16 +227,6 @@ export default function FileExplorer({
                   {root.name}
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  {/* Drag icon */}
-                  <Box
-                    onMouseDown={(e) => {
-                      // Prevent toggling accordion while dragging
-                      e.stopPropagation();
-                    }}
-                    sx={{ cursor: "grab" }}
-                  >
-                    <DragIndicator fontSize="inherit" />
-                  </Box>
                   <IconButton
                     onClick={(e) => {
                       e.stopPropagation();
@@ -254,12 +239,7 @@ export default function FileExplorer({
                 </Box>
               </Box>
               {/* Animated Directory tree */}
-              <motion.div
-                initial={expanded[root.path] !== false ? "open" : "collapsed"}
-                animate={expanded[root.path] !== false ? "open" : "collapsed"}
-                variants={accordionVariants}
-                style={{ overflow: "hidden" }}
-              >
+              <AccordionItem isOpen={expanded[root.path] !== false}>
                 <Box
                   sx={{
                     p: 1,
@@ -270,7 +250,7 @@ export default function FileExplorer({
                 >
                   <DirectoryView
                     node={root}
-                    onFilePreviewClick={onFilePreviewClick}
+                    onPreviewFile={onPreviewFile}
                     onFileSelect={(file) =>
                       onFileSelect({ ...file, projectRoot: root.path })
                     }
@@ -279,7 +259,7 @@ export default function FileExplorer({
                     searchQuery={searchQuery}
                   />
                 </Box>
-              </motion.div>
+              </AccordionItem>
             </Box>
           ))
         )}

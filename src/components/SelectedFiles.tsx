@@ -16,7 +16,7 @@ interface SelectedFilesProps {
   files: FileNode[];
   onRemoveFile: (fileId: string) => void;
   onRemoveFolder: (folderPath: string) => void;
-  onPreviewFile: (file: FileNode) => void;
+  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
 }
 
 export function SelectedFiles({

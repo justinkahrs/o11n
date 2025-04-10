@@ -87,8 +87,8 @@ function App() {
     };
   }, [isDragging]);
   const handleFilePreviewClick = (
-    _event: React.SyntheticEvent<HTMLElement>,
-    file: { id: string; name: string; path: string } | null
+    _event: React.SyntheticEvent,
+    file: FileNode
   ) => {
     // If the same file is clicked again, toggle off the preview.
     if (selectedFile && file && selectedFile.id === file.id) {
@@ -138,8 +138,10 @@ function App() {
         const regex =
           /### File\s+([^\n]+)[\s\S]+?### Action create[\s\S]+?\*\*Content\*\*:\s*\n\s*```(?:\w+)?\n([\s\S]*?)```/gi;
         const newFiles: FileNode[] = [];
-        let match;
-        while ((match = regex.exec(plan)) !== null) {
+        let match: RegExpExecArray | null;
+        while (true) {
+          match = regex.exec(plan);
+          if (match === null) break;
           const filePath = match[1].trim();
           // Check for duplicate files based on file path
           if (selectedFiles.some((f) => f.path === filePath)) {
@@ -178,7 +180,7 @@ function App() {
         <div style={{ width: explorerWidth, overflow: "auto", flexShrink: 0 }}>
           <FileExplorer
             onFileSelect={handleFileSelect}
-            onFilePreviewClick={handleFilePreviewClick}
+            onPreviewFile={handleFilePreviewClick}
             projects={projects}
             setProjects={setProjects}
             onThemeChange={(primary, secondary, themeMode) => {
@@ -195,16 +197,18 @@ function App() {
             }}
           />
         </div>
-        {/* Divider: Draggable vertical separator */}<div
-  onMouseDown={() => setIsDragging(true)}
-  style={{
-    width: "5px",
-    flexShrink: 0,
-    cursor: "col-resize",
-    backgroundColor: "rgba(0,0,0,0.1)",
-    margin: "0 8px",
-  }}
-/>{/* Right Panel: Grid that grows to fill the remaining space */}
+        {/* Divider: Draggable vertical separator */}
+        <div
+          onMouseDown={() => setIsDragging(true)}
+          style={{
+            width: "5px",
+            flexShrink: 0,
+            cursor: "col-resize",
+            backgroundColor: "rgba(0,0,0,0.1)",
+            margin: "0 8px",
+          }}
+        />
+        {/* Right Panel: Grid that grows to fill the remaining space */}
         <div style={{ flexGrow: 1 }}>
           <Grid
             sx={{
@@ -240,9 +244,15 @@ function App() {
                   <ToggleButton size="small" value="do">
                     Let's do it
                   </ToggleButton>
-                </ToggleButtonGroup>{mode !== "do" && (
-  <InstructionsInput mode={mode} value={instructions} onChange={setInstructions} />
-)}<TemplateSelection
+                </ToggleButtonGroup>
+                {mode !== "do" && (
+                  <InstructionsInput
+                    mode={mode}
+                    value={instructions}
+                    onChange={setInstructions}
+                  />
+                )}
+                <TemplateSelection
                   mode={mode}
                   templates={customTemplates}
                   onAddTemplate={(template) =>

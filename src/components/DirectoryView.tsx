@@ -8,20 +8,11 @@ import {
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
 import FileItemWithHover from "./FileItemWithHover";
-export interface TreeItemData {
-  id: string;
-  name: string;
-  path: string;
-  isDirectory: boolean;
-  children: TreeItemData[];
-  loadedChildren: boolean;
-}
+import type { FileNode, TreeItemData } from "../types";
+
 export interface DirectoryViewProps {
   node: TreeItemData;
-  onFilePreviewClick: (
-    file: { id: string; name: string; path: string } | null,
-    event?: React.SyntheticEvent<HTMLElement>
-  ) => void;
+  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
   onFileSelect: (file: {
     id: string;
     name: string;
@@ -33,21 +24,63 @@ export interface DirectoryViewProps {
   searchQuery: string;
 }
 
+/**
+ * This component takes care of asynchronously loading the metadata for a file
+ * and renders the FileItemWithHover component once the file size is loaded.
+ */
+function FileItemWithStat({
+  child,
+  onPreviewFile,
+}: {
+  child: TreeItemData;
+  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
+}) {
+  const [size, setSize] = useState<number | null>(null);
+
+  useEffect(() => {
+    async function loadMetadata() {
+      const metadata = await stat(child.path, { baseDir: BaseDirectory.Home });
+      setSize(metadata.size / (1024 * 1024));
+    }
+    loadMetadata();
+  }, [child.path]);
+
+  if (size === null) {
+    // You can render a loading indicator or nothing at all while the size is being calculated.
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <FileItemWithHover
+      file={{
+        id: child.id,
+        name: child.name,
+        path: child.path,
+        size,
+      }}
+      nodeId={child.id}
+      onPreviewFile={onPreviewFile}
+    />
+  );
+}
+
 export default function DirectoryView({
   node,
-  onFilePreviewClick,
+  onPreviewFile,
   onFileSelect,
   showDotfiles,
   loadChildren,
   searchQuery,
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
+
   // Automatically refresh node children if the node is expanded but not loaded.
   useEffect(() => {
     if (expanded.includes(node.id) && !node.loadedChildren) {
       loadChildren(node);
     }
   }, [expanded, node, loadChildren]);
+
   const filterChildren = (nodes: TreeItemData[]): TreeItemData[] => {
     if (!searchQuery) return nodes;
     return nodes.reduce((acc: TreeItemData[], node) => {
@@ -73,11 +106,11 @@ export default function DirectoryView({
     nodeIds: string[]
   ) => {
     const newlyExpanded = nodeIds.filter((id) => !expanded.includes(id));
-    // If the current node is expanded and its children haven't been loaded yet, load them.
+    // Load children for the root node if it is newly expanded.
     if (newlyExpanded.includes(node.id) && !node.loadedChildren) {
       await loadChildren(node);
     }
-    // For each expanded child directory that hasn't been loaded, load its children.
+    // For each newly expanded child directory without loaded children, load its children.
     for (const id of newlyExpanded) {
       if (id !== node.id) {
         const child = node.children.find(
@@ -117,19 +150,19 @@ export default function DirectoryView({
   };
 
   return (
-    <>
-      <TreeView
-        aria-label="directory tree"
-        defaultCollapseIcon={<ExpandMore />}
-        defaultExpandIcon={<ChevronRight />}
-        expanded={expanded}
-        onNodeToggle={handleToggle}
-        onNodeSelect={handleNodeSelect}
-        sx={{ marginLeft: 1 }}
-      >
-        {node.loadedChildren ? (
-          filterChildren(node.children).map((child) =>
-            child.isDirectory ? (
+    <TreeView
+      aria-label="directory tree"
+      defaultCollapseIcon={<ExpandMore />}
+      defaultExpandIcon={<ChevronRight />}
+      expanded={expanded}
+      onNodeToggle={handleToggle}
+      onNodeSelect={handleNodeSelect}
+      sx={{ marginLeft: 1 }}
+    >
+      {node.loadedChildren ? (
+        filterChildren(node.children).map((child) => {
+          if (child.isDirectory) {
+            return (
               <TreeItem
                 key={child.id}
                 nodeId={child.id}
@@ -148,7 +181,7 @@ export default function DirectoryView({
                 }
               >
                 <DirectoryView
-                  onFilePreviewClick={onFilePreviewClick}
+                  onPreviewFile={onPreviewFile}
                   node={child}
                   onFileSelect={onFileSelect}
                   showDotfiles={showDotfiles}
@@ -156,24 +189,24 @@ export default function DirectoryView({
                   searchQuery={searchQuery}
                 />
               </TreeItem>
-            ) : (
-              <FileItemWithHover
-                key={child.id}
-                file={{ id: child.id, name: child.name, path: child.path }}
-                nodeId={child.id}
-                onFilePreviewClick={onFilePreviewClick}
-              />
-            )
-          )
-        ) : (
-          // Render a hidden dummy child to force the expand icon to show if necessary
-          <TreeItem
-            nodeId={`${node.id}-dummy`}
-            label=" "
-            sx={{ display: "none" }}
-          />
-        )}
-      </TreeView>
-    </>
+            );
+          }
+          return (
+            <FileItemWithStat
+              key={child.id}
+              child={child}
+              onPreviewFile={onPreviewFile}
+            />
+          );
+        })
+      ) : (
+        // Render a hidden dummy child to force the expand icon to show if necessary.
+        <TreeItem
+          nodeId={`${node.id}-dummy`}
+          label=" "
+          sx={{ display: "none" }}
+        />
+      )}
+    </TreeView>
   );
 }

@@ -1,18 +1,10 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
-import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  IconButton,
-  Box,
-} from "@mui/material";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Box, Typography, IconButton, useTheme } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Folder from "@mui/icons-material/Folder";
 import { formatFileSize } from "../utils/formatFileSize";
-
+import { AccordionItem } from "./AccordionItem";
 interface FolderGroupProps {
   folder: string;
   count: number;
@@ -23,7 +15,6 @@ interface FolderGroupProps {
   totalFolders: number;
   projectRoot?: string;
 }
-
 export function FolderGroup({
   folder,
   count,
@@ -34,13 +25,12 @@ export function FolderGroup({
   totalFolders,
   projectRoot,
 }: FolderGroupProps) {
+  const theme = useTheme();
   const [expanded, setExpanded] = useState(totalFolders < 3);
   const prevTotalRef = useRef(totalFolders);
-
   useEffect(() => {
     prevTotalRef.current = totalFolders;
   }, [totalFolders]);
-
   let displayedFolder = folder;
   if (projectRoot) {
     const segments = folder.split("/").filter(Boolean);
@@ -49,25 +39,26 @@ export function FolderGroup({
       displayedFolder = segments.slice(projIndex).join("/");
     }
   }
-
   return (
-    <Accordion
-      square={false}
-      expanded={expanded}
-      onChange={(_, isExpanded) => setExpanded(isExpanded)}
-      sx={{ borderRadius: "10px" }}
+    <div
+      style={{
+        border: "1px solid #ccc",
+        borderRadius: "4px",
+        overflow: "hidden",
+        marginBottom: "8px",
+      }}
     >
-      <AccordionSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls={`panel-${displayedFolder}-content`}
-        id={`panel-${displayedFolder}-header`}
-        sx={{
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          padding: "0px 8px",
+          cursor: "pointer",
           borderRadius: "4px 4px 0 0",
-          borderLeft: "1px solid #ccc",
-          borderRight: "1px solid #ccc",
-          borderTop: "1px solid #ccc",
-          ...(!expanded && { borderBottom: "1px solid #ccc" }),
+          backgroundColor: theme.palette.secondary.main,
         }}
+        onClick={() => setExpanded(!expanded)}
+        onKeyDown={() => setExpanded(!expanded)}
       >
         <Box
           sx={{
@@ -97,20 +88,19 @@ export function FolderGroup({
           }}
           aria-label="delete folder"
         >
-          <DeleteIcon />
+          <DeleteIcon sx={{ fontSize: "18px" }} />
         </IconButton>
-      </AccordionSummary>
-      <AccordionDetails
-        sx={{
-          borderRadius: " 0 0 4px 4px",
-          borderLeft: "1px solid #ccc",
-          borderRight: "1px solid #ccc",
-          borderBottom: "1px solid #ccc",
-          ...(!expanded && { borderTop: "1px solid #ccc" }),
-        }}
-      >
-        {children}
-      </AccordionDetails>
-    </Accordion>
+      </div>
+      <AccordionItem isOpen={expanded}>
+        <div
+          style={{
+            padding: "8px",
+            borderTop: "1px solid #ccc",
+          }}
+        >
+          {children}
+        </div>
+      </AccordionItem>
+    </div>
   );
 }

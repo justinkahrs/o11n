@@ -70,7 +70,7 @@ export function FileCard({
       >
         <Typography
           variant="subtitle2"
-          onClick={(e) => onPreviewFile?.(e, file)}
+          onClick={(e) => onPreviewFile(e, file)}
           sx={{
             cursor: "pointer",
 

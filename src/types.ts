@@ -7,7 +7,7 @@ export interface FileNode {
 }
 
 export interface TreeItemData {
-  ignorePatterns: RegExp[];
+  ignorePatterns: string[];
   id: string;
   name: string;
   path: string; // This may be '.' or a full path
@@ -18,10 +18,7 @@ export interface TreeItemData {
 
 export interface FileExplorerProps {
   onThemeChange: (primary: string, secondary: string, mode: string) => void;
-  onFilePreviewClick: (
-    file: { id: string; name: string; path: string } | null,
-    event?: React.SyntheticEvent<HTMLElement>
-  ) => void;
+  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
   onFileSelect: (file: {
     id: string;
     name: string;
