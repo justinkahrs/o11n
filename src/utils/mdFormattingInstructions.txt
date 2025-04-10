@@ -133,6 +133,7 @@ A short explanation of this specific change.
    - Wrap all markdown inside HTML <pre> tags. DO NOT FORGET THE CLOSING </pre> TAG, and do not surround with display formatting or backticks.
    - Do not wrap any code inside <![CDATA[ ... ]]> tags
    - Do NOT write things like "... rest of the code" or any filler that wasn't in the original code. Always return the full code block.
+   - Do NOT end code content blocks with xml tags, only use the backticks as instructed.
 
 ---
 
