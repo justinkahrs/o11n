@@ -98,7 +98,7 @@ A short explanation of this specific change.
 
 ---
 
-## 5. Guidelines & Tips
+## Guidelines & Tips
 
 1. **Exact Matching**
 
@@ -137,9 +137,9 @@ A short explanation of this specific change.
 
 ---
 
-## 6. Code Examples
+## Code Examples
 
-### 6.1 Example: Search and Replace (Add an `email` Property)
+### Example 1: Search and Replace (Add an `email` Property)
 
 ```markdown
 # Plan
@@ -185,7 +185,7 @@ struct User {
 
 ---
 
-### 6.2 Example: Negative Example – Mismatched Search Block
+### Example 2: Negative Example – Mismatched Search Block
 
 If your search block doesn’t match the file’s existing code **exactly**, the change fails. For instance:
 ```markdown
@@ -224,7 +224,7 @@ If the actual code in `service.swift` is indented differently or has different b
 
 ---
 
-### 6.3 Example: Negative Example – Mismatched Brace Balance
+### Example 3: Negative Example – Mismatched Brace Balance
 
 ```markdown
 # Plan
@@ -267,7 +267,7 @@ Here, the new content has one **extra closing brace** (`}`) at the end, which br
 
 ---
 
-### 6.4 Example: Full File Rewrite
+### Example 4: Full File Rewrite
 
 ```markdown
 # Plan
@@ -306,7 +306,7 @@ Since this is a **rewrite** action, we replace the entire file with the lines in
 
 ---
 
-### 6.5 Example: Create a New File
+### Example 5: Create a New File
 
 ```text
 # Plan
@@ -338,7 +338,7 @@ class RoundedButton: UIButton {
 ````
 ---
 
-### 6.6 Example: Delete a File
+### Example 6: Delete a File
 
 ```markdown
 # Plan
@@ -360,7 +360,7 @@ Here, for **delete**, we do not need a **Search** or **Content** block.
 
 ---
 
-## 7. Putting It All Together
+## Putting It All Together
 
 Below is an example of changing the version from `0.2.0` to `0.3.0` in a `package.json` using **modify**:
 
