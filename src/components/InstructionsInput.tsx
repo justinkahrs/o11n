@@ -4,9 +4,16 @@ interface InstructionsInputProps {
   mode: string;
   value: string;
 }
-export function InstructionsInput({ mode, onChange, value }: InstructionsInputProps) {
+export function InstructionsInput({
+  mode,
+  onChange,
+  value,
+}: InstructionsInputProps) {
   const userPrompts: string[] = [];
-  const label = mode === "talk" ? "Chat about your files" : "Describe how the files should change";
+  const label =
+    mode === "talk"
+      ? "Chat about your files"
+      : "Describe a feature to fix or a bug to create... wait";
   return (
     <Box sx={{ px: 2, pt: 2 }}>
       <TextField
@@ -23,11 +30,7 @@ export function InstructionsInput({ mode, onChange, value }: InstructionsInputPr
       />
       <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
         {userPrompts.map((prompt: string) => (
-          <Chip
-            key={prompt}
-            label={prompt}
-            onClick={() => onChange(prompt)}
-          />
+          <Chip key={prompt} label={prompt} onClick={() => onChange(prompt)} />
         ))}
       </Stack>
     </Box>

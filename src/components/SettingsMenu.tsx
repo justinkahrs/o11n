@@ -8,24 +8,12 @@ import {
 } from "@mui/material";
 import { Settings } from "@mui/icons-material";
 import ThemeModal from "./ThemeModal";
+import { useUserContext } from "../context/UserContext";
 
-type SettingsMenuProps = {
-  showDotfiles: boolean;
-  setShowDotfiles: (value: boolean) => void;
-  onThemeChange: (
-    primary: string,
-    secondary: string,
-    mode: "light" | "dark"
-  ) => void;
-};
-
-export default function SettingsMenu({
-  onThemeChange,
-  showDotfiles,
-  setShowDotfiles,
-}: SettingsMenuProps) {
+export default function SettingsMenu() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
+  const { showDotfiles, setShowDotfiles, onThemeChange } = useUserContext();
 
   const handleSettingsOpen = (event: React.SyntheticEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);

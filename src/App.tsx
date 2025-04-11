@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  ThemeProvider,
-  CssBaseline,
   Stack,
   Grid,
   Button,
@@ -27,6 +25,8 @@ import "./App.css";
 import type { FileNode, TreeItemData } from "./types";
 import { Create } from "@mui/icons-material";
 import { PlanPreview } from "./components/PlanPreview";
+import { Providers } from "./components/Providers";
+import SettingsMenu from "./components/SettingsMenu";
 interface CustomTemplate {
   id: string;
   name: string;
@@ -39,7 +39,6 @@ function App() {
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
   const [projects, setProjects] = useState<TreeItemData[]>([]);
   const [plan, setPlan] = useState("");
-  const [currentTheme, setCurrentTheme] = useState(defaultTheme);
   const [mode, setMode] = useState<"talk" | "plan" | "do">("plan");
   const [selectedFile, setSelectedFile] = useState<{
     id: string;
@@ -170,8 +169,7 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={currentTheme}>
-      <CssBaseline />
+    <Providers>
       <div
         ref={containerRef}
         style={{ display: "flex", height: "100vh", padding: "16px" }}
@@ -183,19 +181,8 @@ function App() {
             onPreviewFile={handleFilePreviewClick}
             projects={projects}
             setProjects={setProjects}
-            onThemeChange={(primary, secondary, themeMode) => {
-              setCurrentTheme(
-                createTheme({
-                  typography: defaultTheme.typography,
-                  palette: {
-                    mode: themeMode as PaletteMode,
-                    primary: { main: primary },
-                    secondary: { main: secondary },
-                  },
-                })
-              );
-            }}
           />
+          <SettingsMenu />
         </div>
         {/* Divider: Draggable vertical separator */}
         <div
@@ -348,7 +335,7 @@ function App() {
           {selectedFile && <FilePreview file={selectedFile} />}
         </Box>
       </Modal>
-    </ThemeProvider>
+    </Providers>
   );
 }
 export default App;

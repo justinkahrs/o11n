@@ -10,19 +10,18 @@ import DirectoryView from "./DirectoryView";
 import { FolderSpecial, Delete } from "@mui/icons-material";
 import type { FileExplorerProps, TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
+import { useUserContext } from "../context/UserContext";
 
 export default function FileExplorer({
   onPreviewFile,
   onFileSelect,
-  onThemeChange,
   projects,
   setProjects,
 }: FileExplorerProps) {
   const theme = useTheme();
-  const [showDotfiles, setShowDotfiles] = useState(false);
+  const { showDotfiles, setShowDotfiles } = useUserContext();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState("");
-
   // Helper to create a new project node
   function createRootNode(dirPath: string): TreeItemData {
     const parts = dirPath.split(/[\\/]/);
@@ -152,7 +151,7 @@ export default function FileExplorer({
     <Box
       sx={{
         minWidth: "30%",
-        height: "100%",
+        height: "96%",
         display: "flex",
         flexDirection: "column",
       }}
@@ -263,14 +262,6 @@ export default function FileExplorer({
             </Box>
           ))
         )}
-      </Box>
-
-      <Box sx={{ p: 1, display: "flex", justifyContent: "flex-start" }}>
-        <SettingsMenu
-          showDotfiles={showDotfiles}
-          setShowDotfiles={setShowDotfiles}
-          onThemeChange={onThemeChange}
-        />
       </Box>
     </Box>
   );
