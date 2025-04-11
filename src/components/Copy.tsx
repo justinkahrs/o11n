@@ -7,14 +7,12 @@ import { generateFileMap } from "../utils/generateFileMap";
 import formattingInstructions from "../utils/mdFormattingInstructions.txt?raw";
 import markdownLanguages from "../utils/markdownLanguages";
 import { ContentCopy } from "@mui/icons-material";
-
 interface CustomTemplate {
   id: string;
   name: string;
   path: string;
   active: boolean;
 }
-
 interface CopyProps {
   files: FileNode[];
   userInstructions: string;
@@ -22,11 +20,9 @@ interface CopyProps {
   variant?: string;
   isTalkMode?: boolean;
 }
-
 // Function to map extension to a markdown language identifier
 const getMarkdownLanguage = (ext: string) =>
   markdownLanguages[ext.toLowerCase()] || "plaintext";
-
 export default function Copy({
   customTemplates,
   files,
@@ -34,6 +30,7 @@ export default function Copy({
   isTalkMode,
 }: CopyProps) {
   const [copying, setCopying] = useState(false);
+  const [promptCopied, setPromptCopied] = useState(false);
   /* COPY PROMPT SECTION */
   async function handleCopy() {
     setCopying(true);
@@ -44,20 +41,16 @@ export default function Copy({
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
       return filename?.includes(".") ? filename.split(".").pop()! : "";
     };
-
     const lines: string[] = [];
-
     // Generate the file map for the prompt
     const filePaths = files.map((file) => file.path);
     const fileMap = generateFileMap(filePaths);
-
     // 1. File Map (Markdown)
     lines.push("## File Map");
     lines.push("```");
     lines.push(fileMap);
     lines.push("```");
     lines.push("");
-
     // 2. File Contents (Markdown)
     lines.push("## File Contents");
     for (const file of files) {
@@ -70,7 +63,6 @@ export default function Copy({
         // If reading fails, store an error message
         content = `/* Error reading file: ${err} */`;
       }
-
       const markdownExtension = getMarkdownLanguage(getExtension(file.path));
       lines.push(`**File:** ${file.path}`);
       lines.push(`\`\`\`${markdownExtension}`);
@@ -78,7 +70,6 @@ export default function Copy({
       lines.push("```");
       lines.push("");
     }
-
     // 3. Custom Templates (Markdown)
     if (customTemplates?.length) {
       const activeTemplates = customTemplates.filter((t) => t.active);
@@ -96,7 +87,6 @@ export default function Copy({
           const markdownExtension = getMarkdownLanguage(
             getExtension(template.path)
           );
-
           lines.push(`**File:** ${template.path}`);
           lines.push(`\`\`\`${markdownExtension}`);
           lines.push(content);
@@ -105,7 +95,6 @@ export default function Copy({
         }
       }
     }
-
     // 4. Formatting instructions (only if not Talk Mode)
     if (!isTalkMode) {
       lines.push("## Additional Formatting Instructions");
@@ -113,18 +102,19 @@ export default function Copy({
       lines.push(formattingInstructions);
       lines.push("```");
     }
-
     // 5. User Instructions
     lines.push("## User Instructions");
     lines.push("```");
     lines.push(userInstructions);
     lines.push("```");
-
     // Write the final joined text to clipboard
     await writeText(lines.join("\n"));
     setCopying(false);
+    setPromptCopied(true);
+    setTimeout(() => {
+      setPromptCopied(false);
+    }, 3000);
   }
-
   return (
     <Button
       fullWidth
@@ -140,7 +130,7 @@ export default function Copy({
       sx={{ width: "40%" }}
       disabled={copying}
     >
-      {copying ? "Processing..." : "Copy Prompt"}
+      {copying ? "Processing..." : promptCopied ? "Prompt Copied!" : "Copy Prompt"}
     </Button>
   );
 }
