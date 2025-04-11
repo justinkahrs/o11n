@@ -4,13 +4,13 @@ import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
 
 import type { FileNode } from "./SelectedFiles";
 import { formatFileSize } from "../utils/formatFileSize";
+import { useAppContext } from "../context/AppContext";
 
 interface FileCardProps {
   mode: "talk" | "plan" | "do";
   plan: string;
   file: FileNode;
   percentage: string;
-  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
   onRemoveFile: (fileId: string) => void;
 }
 
@@ -19,9 +19,9 @@ export function FileCard({
   plan,
   file,
   percentage,
-  onPreviewFile,
   onRemoveFile,
 }: FileCardProps) {
+  const { handleFilePreviewClick } = useAppContext();
   const doMode = mode === "do";
   let changeDescription = "";
   if (doMode && plan) {
@@ -70,7 +70,7 @@ export function FileCard({
       >
         <Typography
           variant="subtitle2"
-          onClick={(e) => onPreviewFile(e, file)}
+          onClick={(e) => handleFilePreviewClick(e, file)}
           sx={{
             cursor: "pointer",
 

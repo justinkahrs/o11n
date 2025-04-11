@@ -6,6 +6,12 @@ export interface FileNode {
   projectRoot?: string;
 }
 
+export interface CustomTemplate {
+  id: string;
+  name: string;
+  path: string;
+  active: boolean;
+}
 export interface TreeItemData {
   ignorePatterns: string[];
   id: string;

@@ -5,21 +5,18 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
 import SearchFiles from "./SearchFiles";
-import SettingsMenu from "./SettingsMenu";
 import DirectoryView from "./DirectoryView";
 import { FolderSpecial, Delete } from "@mui/icons-material";
-import type { FileExplorerProps, TreeItemData } from "../types";
+import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
 import { useUserContext } from "../context/UserContext";
+import { useAppContext } from "../context/AppContext";
 
-export default function FileExplorer({
-  onPreviewFile,
-  onFileSelect,
-  projects,
-  setProjects,
-}: FileExplorerProps) {
+export default function FileExplorer() {
   const theme = useTheme();
-  const { showDotfiles, setShowDotfiles } = useUserContext();
+  const { showDotfiles } = useUserContext();
+  const { handleFileSelect, handleFilePreviewClick, projects, setProjects } =
+    useAppContext();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState("");
   // Helper to create a new project node
@@ -249,9 +246,9 @@ export default function FileExplorer({
                 >
                   <DirectoryView
                     node={root}
-                    onPreviewFile={onPreviewFile}
+                    onPreviewFile={handleFilePreviewClick}
                     onFileSelect={(file) =>
-                      onFileSelect({ ...file, projectRoot: root.path })
+                      handleFileSelect({ ...file, projectRoot: root.path })
                     }
                     showDotfiles={showDotfiles}
                     loadChildren={loadChildren}

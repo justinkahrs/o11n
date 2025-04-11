@@ -1,6 +1,8 @@
 import { Box } from "@mui/material";
 import { FolderGroup } from "./FolderGroup";
 import { FileCard } from "./FileCard";
+import { useUserContext } from "../context/UserContext";
+import { useAppContext } from "../context/AppContext";
 
 export interface FileNode {
   id: string;
@@ -16,17 +18,16 @@ interface SelectedFilesProps {
   files: FileNode[];
   onRemoveFile: (fileId: string) => void;
   onRemoveFolder: (folderPath: string) => void;
-  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
 }
 
 export function SelectedFiles({
   mode,
   plan,
   files,
-  onPreviewFile,
   onRemoveFile,
   onRemoveFolder,
 }: SelectedFilesProps) {
+  const { handleFilePreviewClick } = useAppContext();
   const doMode = mode === "do";
   const hide = doMode;
   const totalSize = files.reduce((sum, f) => sum + f.size, 0);
@@ -89,7 +90,7 @@ export function SelectedFiles({
                           file={file}
                           percentage={pct}
                           onRemoveFile={onRemoveFile}
-                          onPreviewFile={onPreviewFile}
+                          onPreviewFile={handleFilePreviewClick}
                         />
                       );
                     })}
