@@ -66,7 +66,7 @@ export default function SettingsMenu() {
                 onChange={(e) => setCountTokens(e.target.checked)}
               />
             }
-            label="Count Tokens"
+            label="Show token counts"
           />
         </MenuItem>
         <MenuItem

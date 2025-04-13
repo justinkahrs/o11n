@@ -8,15 +8,15 @@ interface UserContextType {
     mode: "light" | "dark"
   ) => void;
   showDotfiles: boolean;
-setShowDotfiles: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowDotfiles: React.Dispatch<React.SetStateAction<boolean>>;
   countTokens: boolean;
   setCountTokens: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [showDotfiles, setShowDotfiles] = useState(false);
-const [currentTheme, setCurrentTheme] = useState(theme);
-  const [countTokens, setCountTokens] = useState(true);
+  const [currentTheme, setCurrentTheme] = useState(theme);
+  const [countTokens, setCountTokens] = useState(false);
   const onThemeChange = (
     primary: string,
     secondary: string,
@@ -33,9 +33,17 @@ const [currentTheme, setCurrentTheme] = useState(theme);
       })
     );
   };
-  return (<UserContext.Provider
-      value={{ showDotfiles, setShowDotfiles, onThemeChange, countTokens, setCountTokens }}
-><ThemeProvider theme={currentTheme}>{children}</ThemeProvider>
+  return (
+    <UserContext.Provider
+      value={{
+        showDotfiles,
+        setShowDotfiles,
+        onThemeChange,
+        countTokens,
+        setCountTokens,
+      }}
+    >
+      <ThemeProvider theme={currentTheme}>{children}</ThemeProvider>
     </UserContext.Provider>
   );
 };

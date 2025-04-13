@@ -7,14 +7,18 @@ import formattingInstructions from "../utils/mdFormattingInstructions.txt?raw";
 import { getMarkdownLanguage } from "../utils/markdownLanguages";
 import { ContentCopy } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
+import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
 export default function Copy() {
   const { instructions, mode, selectedFiles, customTemplates } =
     useAppContext();
+  const { countTokens } = useUserContext();
+
   const [copying, setCopying] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
   const [promptTokenCount, setPromptTokenCount] = useState<number | null>(null);
   const isTalkMode = mode === "talk";
+
   const getExtension = useCallback((path: string): string => {
     const parts = path.split("/");
     const filename = parts.pop() ?? "";
@@ -24,7 +28,8 @@ export default function Copy() {
     }
     return "";
   }, []);
-  async function buildPromptText(): Promise<string> {
+
+  const buildPromptText = useCallback(async (): Promise<string> => {
     const lines: string[] = [];
     // 1. File Map (Markdown)
     const filePaths = selectedFiles.map((file) => file.path);
@@ -93,10 +98,15 @@ export default function Copy() {
     lines.push(instructions);
     lines.push("```");
     return lines.join("\n");
-  }
+  }, [selectedFiles, customTemplates, instructions, isTalkMode, getExtension]);
+
   useEffect(() => {
     async function computePrompt() {
       const promptText = await buildPromptText();
+      if (!countTokens) {
+        setPromptTokenCount(null);
+        return;
+      }
       try {
         const tokens = await invoke("count_tokens", { content: promptText });
         setPromptTokenCount(tokens as number);
@@ -105,7 +115,8 @@ export default function Copy() {
       }
     }
     computePrompt();
-  }, [getExtension, selectedFiles, instructions, customTemplates, isTalkMode]);
+  }, [buildPromptText, countTokens]);
+
   async function handleCopy() {
     setCopying(true);
     const promptText = await buildPromptText();
@@ -123,7 +134,6 @@ export default function Copy() {
         : promptTokenCount.toString()
       : "";
 
-  console.log({ promptTokenCount });
   return (
     <Button
       fullWidth
