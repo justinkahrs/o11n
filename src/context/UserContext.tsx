@@ -13,7 +13,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [showDotfiles, setShowDotfiles] = useState(false);
-  const [_currentTheme, setCurrentTheme] = useState(theme);
+  const [currentTheme, setCurrentTheme] = useState(theme);
   const onThemeChange = (
     primary: string,
     secondary: string,
@@ -34,7 +34,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     <UserContext.Provider
       value={{ showDotfiles, setShowDotfiles, onThemeChange }}
     >
-      <ThemeProvider theme={_currentTheme}>{children}</ThemeProvider>
+      <ThemeProvider theme={currentTheme}>{children}</ThemeProvider>
     </UserContext.Provider>
   );
 };

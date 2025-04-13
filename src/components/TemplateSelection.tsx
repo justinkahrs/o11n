@@ -21,6 +21,7 @@ import {
 } from "@mui/icons-material";
 import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
+import { useAppContext } from "../context/AppContext";
 
 interface CustomTemplate {
   id: string;
@@ -37,17 +38,24 @@ interface TemplateSelectionProps {
   onToggleTemplate: (id: string) => void;
 }
 
-const TemplateSelection: React.FC<TemplateSelectionProps> = ({
-  mode,
-  templates,
-  onAddTemplate,
-  onRemoveTemplate,
-  onToggleTemplate,
-}) => {
+const TemplateSelection = () => {
+  const { mode, customTemplates, setCustomTemplates } = useAppContext();
+
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateInstructions, setTemplateInstructions] = useState("");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+  const onAddTemplate = (template: CustomTemplate) => {
+    setCustomTemplates((prev) => [...prev, template]);
+  };
+  const onRemoveTemplate = (id: string) => {
+    setCustomTemplates((prev) => prev.filter((t) => t.id !== id));
+  };
+  const onToggleTemplate = (id: string) =>
+    setCustomTemplates((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, active: !t.active } : t))
+    );
 
   const handleCreateClick = () => {
     setCreateDialogOpen(true);
@@ -146,7 +154,7 @@ const TemplateSelection: React.FC<TemplateSelectionProps> = ({
           />
         </Stack>
         <Stack direction="row" spacing={1}>
-          {templates.map((template) => (
+          {customTemplates.map((template) => (
             <Box
               key={template.id}
               sx={{ position: "relative", display: "inline-block" }}

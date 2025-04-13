@@ -2,35 +2,19 @@ import { Button, CircularProgress } from "@mui/material";
 import { useState } from "react";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
-import type { FileNode } from "./SelectedFiles";
 import { generateFileMap } from "../utils/generateFileMap";
 import formattingInstructions from "../utils/mdFormattingInstructions.txt?raw";
-import markdownLanguages from "../utils/markdownLanguages";
+import { getMarkdownLanguage } from "../utils/markdownLanguages";
 import { ContentCopy } from "@mui/icons-material";
-interface CustomTemplate {
-  id: string;
-  name: string;
-  path: string;
-  active: boolean;
-}
-interface CopyProps {
-  files: FileNode[];
-  userInstructions: string;
-  customTemplates?: CustomTemplate[];
-  variant?: string;
-  isTalkMode?: boolean;
-}
-// Function to map extension to a markdown language identifier
-const getMarkdownLanguage = (ext: string) =>
-  markdownLanguages[ext.toLowerCase()] || "plaintext";
-export default function Copy({
-  customTemplates,
-  files,
-  userInstructions,
-  isTalkMode,
-}: CopyProps) {
+import { useAppContext } from "../context/AppContext";
+
+export default function Copy() {
+  const { instructions, mode, selectedFiles, customTemplates } =
+    useAppContext();
+
   const [copying, setCopying] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
+  const isTalkMode = mode === "talk";
   /* COPY PROMPT SECTION */
   async function handleCopy() {
     setCopying(true);
@@ -43,7 +27,7 @@ export default function Copy({
     };
     const lines: string[] = [];
     // Generate the file map for the prompt
-    const filePaths = files.map((file) => file.path);
+    const filePaths = selectedFiles.map((file) => file.path);
     const fileMap = generateFileMap(filePaths);
     // 1. File Map (Markdown)
     lines.push("## File Map");
@@ -53,7 +37,7 @@ export default function Copy({
     lines.push("");
     // 2. File Contents (Markdown)
     lines.push("## File Contents");
-    for (const file of files) {
+    for (const file of selectedFiles) {
       let content: Uint8Array | string;
       try {
         content = await readTextFile(file.path, {
@@ -105,7 +89,7 @@ export default function Copy({
     // 5. User Instructions
     lines.push("## User Instructions");
     lines.push("```");
-    lines.push(userInstructions);
+    lines.push(instructions);
     lines.push("```");
     // Write the final joined text to clipboard
     await writeText(lines.join("\n"));
@@ -130,7 +114,11 @@ export default function Copy({
       sx={{ width: "40%" }}
       disabled={copying}
     >
-      {copying ? "Processing..." : promptCopied ? "Prompt Copied!" : "Copy Prompt"}
+      {copying
+        ? "Processing..."
+        : promptCopied
+        ? "Prompt Copied!"
+        : "Copy Prompt"}
     </Button>
   );
 }

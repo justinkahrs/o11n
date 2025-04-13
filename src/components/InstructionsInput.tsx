@@ -1,38 +1,28 @@
-import { Box, TextField, Chip, Stack } from "@mui/material";
-interface InstructionsInputProps {
-  onChange: (value: string) => void;
-  mode: string;
-  value: string;
-}
-export function InstructionsInput({
-  mode,
-  onChange,
-  value,
-}: InstructionsInputProps) {
-  const userPrompts: string[] = [];
+import { Box, TextField } from "@mui/material";
+import { useAppContext } from "../context/AppContext";
+
+export function InstructionsInput() {
+  const { instructions, mode, setInstructions } = useAppContext();
   const label =
     mode === "talk"
       ? "Chat about your files"
       : "Describe a feature to fix or a bug to create... wait";
   return (
-    <Box sx={{ px: 2, pt: 2 }}>
-      <TextField
-        variant="outlined"
-        fullWidth
-        label={label}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        multiline
-        minRows={4}
-        maxRows={8}
-        inputProps={{ style: { resize: "none" } }}
-        InputLabelProps={{ shrink: true }}
-      />
-      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
-        {userPrompts.map((prompt: string) => (
-          <Chip key={prompt} label={prompt} onClick={() => onChange(prompt)} />
-        ))}
-      </Stack>
-    </Box>
+    mode !== "do" && (
+      <Box sx={{ px: 2, py: 2 }}>
+        <TextField
+          variant="outlined"
+          fullWidth
+          label={label}
+          value={instructions}
+          onChange={(e) => setInstructions(e.target.value)}
+          multiline
+          minRows={4}
+          maxRows={8}
+          inputProps={{ style: { resize: "none" } }}
+          InputLabelProps={{ shrink: true }}
+        />
+      </Box>
+    )
   );
 }

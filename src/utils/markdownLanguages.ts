@@ -29,5 +29,7 @@ const markdownLanguages: Record<string, string> = {
   graphql: "graphql",
   xml: "xml",
 };
-
+// Function to map extension to a markdown language identifier
+export const getMarkdownLanguage = (ext: string) =>
+  markdownLanguages[ext.toLowerCase()] || "plaintext";
 export default markdownLanguages;
