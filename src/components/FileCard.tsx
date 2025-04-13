@@ -7,21 +7,13 @@ import { formatFileSize } from "../utils/formatFileSize";
 import { useAppContext } from "../context/AppContext";
 
 interface FileCardProps {
-  mode: "talk" | "plan" | "do";
-  plan: string;
   file: FileNode;
   percentage: string;
   onRemoveFile: (fileId: string) => void;
 }
 
-export function FileCard({
-  mode,
-  plan,
-  file,
-  percentage,
-  onRemoveFile,
-}: FileCardProps) {
-  const { handleFilePreviewClick } = useAppContext();
+export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
+  const { mode, plan, handleFilePreviewClick } = useAppContext();
   const doMode = mode === "do";
   let changeDescription = "";
   if (doMode && plan) {
@@ -73,7 +65,6 @@ export function FileCard({
           onClick={(e) => handleFilePreviewClick(e, file)}
           sx={{
             cursor: "pointer",
-
             "&:hover .file-icon": { color: "primary.main" },
           }}
         >

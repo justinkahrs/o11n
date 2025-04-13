@@ -1,13 +1,12 @@
 import React from "react";
 import { Box, Typography, List, ListItem } from "@mui/material";
-interface PlanPreviewProps {
-  mode: "talk" | "plan" | "do";
-  plan: string;
-}
-export function PlanPreview({ mode, plan }: PlanPreviewProps) {
+import { useAppContext } from "../context/AppContext";
+
+export function PlanPreview() {
+  const { mode, plan } = useAppContext();
+
   const doMode = mode === "do";
-  // Local state for the plan, initialized with the prop plan.
-  // const [plan, setLocalPlan] = React.useState(plan);
+
   const { planDescription, changeDescriptions } = React.useMemo(() => {
     const planDescriptionMatch = plan.match(/# Plan\s*([\s\S]*?)\n## Files/);
     const planDescription = planDescriptionMatch

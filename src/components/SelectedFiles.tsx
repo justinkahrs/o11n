@@ -1,7 +1,6 @@
 import { Box } from "@mui/material";
 import { FolderGroup } from "./FolderGroup";
 import { FileCard } from "./FileCard";
-import { useUserContext } from "../context/UserContext";
 import { useAppContext } from "../context/AppContext";
 
 export interface FileNode {
@@ -12,26 +11,11 @@ export interface FileNode {
   projectRoot?: string;
 }
 
-interface SelectedFilesProps {
-  mode: "talk" | "plan" | "do";
-  plan: string;
-  files: FileNode[];
-  onRemoveFile: (fileId: string) => void;
-  onRemoveFolder: (folderPath: string) => void;
-}
-
-export function SelectedFiles({
-  mode,
-  plan,
-  files,
-  onRemoveFile,
-  onRemoveFolder,
-}: SelectedFilesProps) {
-  const { handleFilePreviewClick } = useAppContext();
+export function SelectedFiles() {
+  const { mode, selectedFiles, setSelectedFiles } = useAppContext();
   const doMode = mode === "do";
-  const hide = doMode;
-  const totalSize = files.reduce((sum, f) => sum + f.size, 0);
-  const groupedFiles = files.reduce(
+  const totalSize = selectedFiles.reduce((sum, f) => sum + f.size, 0);
+  const groupedFiles = selectedFiles.reduce(
     (acc: { [folder: string]: FileNode[] }, file) => {
       const lastSlash = file.path.lastIndexOf("/");
       const folder =
@@ -45,8 +29,22 @@ export function SelectedFiles({
     {} as { [folder: string]: FileNode[] }
   );
 
+  function handleRemoveFile(fileId: string) {
+    setSelectedFiles((prev) => prev.filter((file) => file.id !== fileId));
+  }
+  function handleRemoveFolder(folderPath: string) {
+    setSelectedFiles((prev) =>
+      prev.filter((file) => {
+        const lastSlash = file.path.lastIndexOf("/");
+        const fileFolder =
+          lastSlash !== -1 ? file.path.substring(0, lastSlash) : "Root";
+        return fileFolder !== folderPath;
+      })
+    );
+  }
+
   return (
-    !hide && (
+    !doMode && (
       <Box sx={{ overflowY: "auto", px: 2 }}>
         {Object.keys(groupedFiles)
           .sort()
@@ -71,7 +69,7 @@ export function SelectedFiles({
                 count={count}
                 folderSize={folderSize}
                 percentage={percentage}
-                onRemoveFolder={onRemoveFolder}
+                onRemoveFolder={handleRemoveFolder}
                 totalFolders={Object.keys(groupedFiles).length}
                 projectRoot={projectRoot}
               >
@@ -84,13 +82,10 @@ export function SelectedFiles({
                         : "0";
                       return (
                         <FileCard
-                          mode={mode}
-                          plan={plan}
                           key={file.id}
                           file={file}
                           percentage={pct}
-                          onRemoveFile={onRemoveFile}
-                          onPreviewFile={handleFilePreviewClick}
+                          onRemoveFile={handleRemoveFile}
                         />
                       );
                     })}

@@ -1,23 +1,20 @@
 import { Box, TextField, IconButton, InputAdornment } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect } from "react";
+import { useAppContext } from "../context/AppContext";
 
-interface PlanInputProps {
-  mode: "do" | "plan" | "talk";
-  plan: string;
-  onChange: (value: string) => void;
-}
-
-export function PlanInput({ mode, plan, onChange }: PlanInputProps) {
+export function PlanInput() {
+  const { mode, plan, setPlan } = useAppContext();
   const [inputValue, setInputValue] = useState(plan);
   const doMode = mode === "do";
+
   useEffect(() => {
     setInputValue(plan);
   }, [plan]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
-    onChange(e.target.value);
+    setPlan(e.target.value);
   };
 
   return (
@@ -42,7 +39,7 @@ export function PlanInput({ mode, plan, onChange }: PlanInputProps) {
                   size="small"
                   onClick={() => {
                     setInputValue("");
-                    onChange("");
+                    setPlan("");
                   }}
                 >
                   <CloseIcon />
