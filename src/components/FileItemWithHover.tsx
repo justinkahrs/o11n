@@ -15,11 +15,8 @@ export default function FileItemWithHover({
 }: FileItemWithHoverProps) {
   const handleClick = (event: React.SyntheticEvent) => {
     event.stopPropagation();
-    if (onPreviewFile) {
-      onPreviewFile(event, file);
-    }
+    onPreviewFile(event, file);
   };
-  // Removed handleMouseLeave to avoid flicker and allow selection.
   return (
     <TreeItem
       nodeId={nodeId}
