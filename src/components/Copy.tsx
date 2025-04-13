@@ -111,8 +111,8 @@ export default function Copy() {
           <ContentCopy />
         )
       }
-      sx={{ width: "40%" }}
-      disabled={copying}
+disabled={copying || instructions.trim() === ""}
+      size="large"
     >
       {copying
         ? "Processing..."

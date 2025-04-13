@@ -1,12 +1,13 @@
-import { Button, CircularProgress } from "@mui/material";
 import { useState } from "react";
-import { useAppContext } from "../context/AppContext";
-import { invoke } from "@tauri-apps/api/core";
+import { Button, CircularProgress, Grid, Typography } from "@mui/material";
 import { Create } from "@mui/icons-material";
+import { invoke } from "@tauri-apps/api/core";
+import { useAppContext } from "../context/AppContext";
 import type { FileNode } from "../types";
-
 const Commit = () => {
   const [committing, setCommitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [commitFailed, setCommitFailed] = useState(false);
   const {
     plan,
     setMode,
@@ -15,9 +16,19 @@ const Commit = () => {
     setSelectedFiles,
     setProjects,
   } = useAppContext();
+  const isPlanValid = () => {
+    return (
+      plan.trim() !== "" &&
+      plan.includes("# Plan") &&
+      plan.includes("### File") &&
+      plan.includes("### Action")
+    );
+  };
 
   const handleCommit = async () => {
+    setErrorMessage("");
     setCommitting(true);
+    let commitError = false;
     try {
       const result = await invoke("apply_protocol", {
         xmlInput: plan,
@@ -25,6 +36,10 @@ const Commit = () => {
       console.log("Success:", result);
     } catch (error) {
       console.error("Failed to apply changes:", error);
+      commitError = true;
+      setErrorMessage(
+        error instanceof Error ? error.message : "Failed to apply changes"
+      );
     }
     setCommitting(false);
     setProjects((prev) =>
@@ -62,23 +77,51 @@ const Commit = () => {
         );
       }
     }
-    setMode("plan");
-    setPlan("");
+    if (!commitError) {
+      setMode("plan");
+      setPlan("");
+    } else {
+      setCommitFailed(true);
+      setTimeout(() => setCommitFailed(false), 3000);
+    }
   };
+
   return (
-    <Button
-      fullWidth
-      variant="contained"
-      startIcon={
-        committing ? <CircularProgress size={20} color="inherit" /> : <Create />
-      }
-      sx={{ mt: 2, width: "30%" }}
-      onClick={handleCommit}
-      disabled={committing}
-    >
-      {committing ? "Processing..." : "Commit Changes"}
-    </Button>
+    <Grid container spacing={1} direction="column">
+      <Button
+        variant="contained"
+        startIcon={
+          committing ? (
+            <CircularProgress size={20} color="inherit" />
+          ) : (
+            <Create />
+          )
+        }
+        size="large"
+        onClick={handleCommit}
+        disabled={committing || !isPlanValid()}
+      >
+        {committing
+          ? "Processing..."
+          : commitFailed
+          ? "Commit Failed!"
+          : "Commit Changes"}
+      </Button>
+      {errorMessage && (
+        <Typography color="secondary" sx={{ mt: 1 }}>
+          Check your plan formatting. If this keeps happening, please file an
+          issue with your instructions + plan{" "}
+          <a
+            href="https://github.com/justinkahrs/o11n/issues"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            here
+          </a>
+          .
+        </Typography>
+      )}
+    </Grid>
   );
 };
-
 export default Commit;

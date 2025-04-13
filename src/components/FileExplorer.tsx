@@ -162,6 +162,7 @@ export default function FileExplorer() {
           variant="contained"
           onClick={openProject}
           fullWidth
+          size="small"
         >
           {buttonLabel}
         </Button>

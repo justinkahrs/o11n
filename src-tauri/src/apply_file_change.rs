@@ -110,6 +110,11 @@ pub fn apply_file_change(file_change: &FileChange) -> Result<()> {
         }
         Action::Rewrite => {
             let final_contents = aggregate_changes(&file_change.changes);
+            if final_contents.trim().is_empty() {
+                return Err(anyhow!(
+                    "Malformed plan protocol: rewritten file is empty. Change reverted."
+                ));
+            }
             fs::write(&resolved_path, final_contents).context(format!(
                 "Could not rewrite file: {}",
                 resolved_path.display()
