@@ -2,7 +2,8 @@ export interface FileNode {
   id: string;
   name: string;
   path: string;
-  size: number;
+  size?: number;
+  tokenSize?: number;
   projectRoot?: string;
 }
 

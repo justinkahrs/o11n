@@ -28,6 +28,10 @@ const markdownLanguages: Record<string, string> = {
   dockerfile: "dockerfile",
   graphql: "graphql",
   xml: "xml",
+  png: "image",
+  jpg: "image",
+  jpeg: "image",
+  svg: "image",
 };
 // Function to map extension to a markdown language identifier
 export const getMarkdownLanguage = (ext: string) =>

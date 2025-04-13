@@ -13,7 +13,13 @@ import { useUserContext } from "../context/UserContext";
 export default function SettingsMenu() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
-  const { showDotfiles, setShowDotfiles, onThemeChange } = useUserContext();
+  const {
+    showDotfiles,
+    setShowDotfiles,
+    onThemeChange,
+    countTokens,
+    setCountTokens,
+  } = useUserContext();
 
   const handleSettingsOpen = (event: React.SyntheticEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -50,6 +56,17 @@ export default function SettingsMenu() {
               />
             }
             label="Show .dotfiles"
+          />
+        </MenuItem>
+        <MenuItem>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={countTokens}
+                onChange={(e) => setCountTokens(e.target.checked)}
+              />
+            }
+            label="Count Tokens"
           />
         </MenuItem>
         <MenuItem

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BaseDirectory, stat } from "@tauri-apps/plugin-fs";
+import { invoke } from "@tauri-apps/api/core";
 import { TreeView, TreeItem } from "@mui/lab";
 import {
   ExpandMore,
@@ -7,63 +8,17 @@ import {
   Folder as FolderIcon,
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
-import FileItemWithHover from "./FileItemWithHover";
 import type { FileNode, TreeItemData } from "../types";
 
 export interface DirectoryViewProps {
   node: TreeItemData;
   onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
-  onFileSelect: (file: {
-    id: string;
-    name: string;
-    path: string;
-    size: number;
-  }) => void;
+  onFileSelect: (file: FileNode) => void;
   showDotfiles: boolean;
   loadChildren: (node: TreeItemData) => Promise<void>;
   searchQuery: string;
 }
-
-/**
- * This component takes care of asynchronously loading the metadata for a file
- * and renders the FileItemWithHover component once the file size is loaded.
- */
-function FileItemWithStat({
-  child,
-  onPreviewFile,
-}: {
-  child: TreeItemData;
-  onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
-}) {
-  const [size, setSize] = useState<number | null>(null);
-
-  useEffect(() => {
-    async function loadMetadata() {
-      const metadata = await stat(child.path, { baseDir: BaseDirectory.Home });
-      setSize(metadata.size / (1024 * 1024));
-    }
-    loadMetadata();
-  }, [child.path]);
-
-  if (size === null) {
-    // You can render a loading indicator or nothing at all while the size is being calculated.
-    return <div>Loading...</div>;
-  }
-
-  return (
-    <FileItemWithHover
-      file={{
-        id: child.id,
-        name: child.name,
-        path: child.path,
-        size,
-      }}
-      nodeId={child.id}
-      onPreviewFile={onPreviewFile}
-    />
-  );
-}
-
+import FileItemWithHover from "./FileItemWithHover";
 export default function DirectoryView({
   node,
   onPreviewFile,
@@ -139,11 +94,15 @@ export default function DirectoryView({
       await loadChildren(child);
     } else if (!child.isDirectory) {
       const metadata = await stat(child.path, { baseDir: BaseDirectory.Home });
+      const tokenCount = await invoke("count_tokens_path", {
+        path: child.path,
+      });
       const selectedFile = {
         id: child.id,
         name: child.name,
         path: child.path,
         size: metadata.size / (1024 * 1024),
+        tokenSize: Number(tokenCount),
       };
       onFileSelect(selectedFile);
     }
@@ -192,9 +151,16 @@ export default function DirectoryView({
             );
           }
           return (
-            <FileItemWithStat
+            <FileItemWithHover
               key={child.id}
-              child={child}
+              file={{
+                id: child.id,
+                name: child.name,
+                path: child.path,
+                size: 0,
+                // tokenSize,
+              }}
+              nodeId={child.id}
               onPreviewFile={onPreviewFile}
             />
           );

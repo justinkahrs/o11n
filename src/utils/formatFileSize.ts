@@ -1,4 +1,4 @@
-export function formatFileSize(size: number): string {
+export function formatFileSize(size?: number): string {
   if (!size) return "";
   // The size parameter is provided in MB
   if (size < 1 / 1024) {

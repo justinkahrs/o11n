@@ -109,8 +109,8 @@ const Commit = () => {
       </Button>
       {errorMessage && (
         <Typography color="secondary" sx={{ mt: 1 }}>
-          Check your plan formatting. If this keeps happening, please file an
-          issue with your instructions + plan{" "}
+          Check your plan formatting. o3-mini recommended. If this keeps
+          happening, please file an issue with your instructions + plan{" "}
           <a
             href="https://github.com/justinkahrs/o11n/issues"
             target="_blank"

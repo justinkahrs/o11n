@@ -1,5 +1,5 @@
 import { Button, CircularProgress } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { generateFileMap } from "../utils/generateFileMap";
@@ -7,29 +7,28 @@ import formattingInstructions from "../utils/mdFormattingInstructions.txt?raw";
 import { getMarkdownLanguage } from "../utils/markdownLanguages";
 import { ContentCopy } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
-
+import { invoke } from "@tauri-apps/api/core";
 export default function Copy() {
   const { instructions, mode, selectedFiles, customTemplates } =
     useAppContext();
-
   const [copying, setCopying] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
+  const [promptTokenCount, setPromptTokenCount] = useState<number | null>(null);
   const isTalkMode = mode === "talk";
-  /* COPY PROMPT SECTION */
-  async function handleCopy() {
-    setCopying(true);
-    // Function to get the file extension
-    const getExtension = (path: string) => {
-      const parts = path.split("/");
-      const filename = parts.pop(); // Get the last part after the last '/'
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      return filename?.includes(".") ? filename.split(".").pop()! : "";
-    };
+  const getExtension = useCallback((path: string): string => {
+    const parts = path.split("/");
+    const filename = parts.pop() ?? "";
+    if (filename.includes(".")) {
+      const extension = filename.split(".").pop() ?? "";
+      return extension;
+    }
+    return "";
+  }, []);
+  async function buildPromptText(): Promise<string> {
     const lines: string[] = [];
-    // Generate the file map for the prompt
+    // 1. File Map (Markdown)
     const filePaths = selectedFiles.map((file) => file.path);
     const fileMap = generateFileMap(filePaths);
-    // 1. File Map (Markdown)
     lines.push("## File Map");
     lines.push("```");
     lines.push(fileMap);
@@ -38,21 +37,23 @@ export default function Copy() {
     // 2. File Contents (Markdown)
     lines.push("## File Contents");
     for (const file of selectedFiles) {
-      let content: Uint8Array | string;
+      let content: string;
       try {
         content = await readTextFile(file.path, {
           baseDir: BaseDirectory.Home,
         });
       } catch (err) {
-        // If reading fails, store an error message
         content = `/* Error reading file: ${err} */`;
       }
       const markdownExtension = getMarkdownLanguage(getExtension(file.path));
-      lines.push(`**File:** ${file.path}`);
-      lines.push(`\`\`\`${markdownExtension}`);
-      lines.push(content as string);
-      lines.push("```");
-      lines.push("");
+      // Only include non-image files (as in original computePrompt)
+      if (markdownExtension !== "image") {
+        lines.push(`**File:** ${file.path}`);
+        lines.push(`\`\`\`${markdownExtension}`);
+        lines.push(content);
+        lines.push("```");
+        lines.push("");
+      }
     }
     // 3. Custom Templates (Markdown)
     if (customTemplates?.length) {
@@ -91,14 +92,38 @@ export default function Copy() {
     lines.push("```");
     lines.push(instructions);
     lines.push("```");
-    // Write the final joined text to clipboard
-    await writeText(lines.join("\n"));
+    return lines.join("\n");
+  }
+  useEffect(() => {
+    async function computePrompt() {
+      const promptText = await buildPromptText();
+      try {
+        const tokens = await invoke("count_tokens", { content: promptText });
+        setPromptTokenCount(tokens as number);
+      } catch (e) {
+        console.log({ e });
+      }
+    }
+    computePrompt();
+  }, [getExtension, selectedFiles, instructions, customTemplates, isTalkMode]);
+  async function handleCopy() {
+    setCopying(true);
+    const promptText = await buildPromptText();
+    await writeText(promptText);
     setCopying(false);
     setPromptCopied(true);
     setTimeout(() => {
       setPromptCopied(false);
     }, 3000);
   }
+  const formattedTokenCount =
+    promptTokenCount !== null
+      ? promptTokenCount >= 1000
+        ? `${Math.round(promptTokenCount / 1000)}k`
+        : promptTokenCount.toString()
+      : "";
+
+  console.log({ promptTokenCount });
   return (
     <Button
       fullWidth
@@ -111,13 +136,15 @@ export default function Copy() {
           <ContentCopy />
         )
       }
-disabled={copying || instructions.trim() === ""}
+      disabled={copying || instructions.trim() === ""}
       size="large"
     >
       {copying
         ? "Processing..."
         : promptCopied
         ? "Prompt Copied!"
+        : formattedTokenCount
+        ? `Copy Prompt (~${formattedTokenCount} tokens)`
         : "Copy Prompt"}
     </Button>
   );
