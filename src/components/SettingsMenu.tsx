@@ -6,7 +6,7 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
-import { Settings } from "@mui/icons-material";
+import { Palette, Settings } from "@mui/icons-material";
 import ThemeModal from "./ThemeModal";
 import { useUserContext } from "../context/UserContext";
 
@@ -21,6 +21,8 @@ export default function SettingsMenu() {
     setFormatOutput,
     setShowDotfiles,
     showDotfiles,
+    includeFileTree,
+    setIncludeFileTree,
   } = useUserContext();
 
   const handleSettingsOpen = (event: React.SyntheticEvent<HTMLElement>) => {
@@ -57,7 +59,18 @@ export default function SettingsMenu() {
                 onChange={(e) => setFormatOutput(e.target.checked)}
               />
             }
-            label="Autopilot"
+            label="Vibe mode"
+          />
+        </MenuItem>
+        <MenuItem>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={includeFileTree}
+                onChange={(e) => setIncludeFileTree(e.target.checked)}
+              />
+            }
+            label="Include file tree"
           />
         </MenuItem>
         <MenuItem>
@@ -88,6 +101,7 @@ export default function SettingsMenu() {
             handleSettingsClose();
           }}
         >
+          <Palette sx={{ mr: 1 }} />
           Configure theme
         </MenuItem>
       </Menu>

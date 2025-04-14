@@ -11,7 +11,7 @@ import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
 export default function Copy() {
   const { instructions, selectedFiles, customTemplates } = useAppContext();
-  const { countTokens, formatOutput } = useUserContext();
+  const { countTokens, formatOutput, includeFileTree } = useUserContext();
 
   const [copying, setCopying] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
@@ -40,30 +40,34 @@ export default function Copy() {
     // 1. File Map (Markdown)
     const filePaths = selectedFiles.map((file) => file.path);
     const fileMap = generateFileMap(filePaths);
-    lines.push("## File Map");
-    lines.push("```");
-    lines.push(fileMap);
-    lines.push("```");
-    lines.push("");
+    if (includeFileTree) {
+      lines.push("## File Map");
+      lines.push("```");
+      lines.push(fileMap);
+      lines.push("```");
+      lines.push("");
+    }
     // 2. File Contents (Markdown)
-    lines.push("## File Contents");
-    for (const file of selectedFiles) {
-      let content: string;
-      try {
-        content = await readTextFile(file.path, {
-          baseDir: BaseDirectory.Home,
-        });
-      } catch (err) {
-        content = `/* Error reading file: ${err} */`;
-      }
-      const markdownExtension = getMarkdownLanguage(getExtension(file.path));
-      // Only include non-image files (as in original computePrompt)
-      if (markdownExtension !== "image") {
-        lines.push(`**File:** ${file.path}`);
-        lines.push(`\`\`\`${markdownExtension}`);
-        lines.push(content);
-        lines.push("```");
-        lines.push("");
+    if (selectedFiles.length > 0) {
+      lines.push("## File Contents");
+      for (const file of selectedFiles) {
+        let content: string;
+        try {
+          content = await readTextFile(file.path, {
+            baseDir: BaseDirectory.Home,
+          });
+        } catch (err) {
+          content = `/* Error reading file: ${err} */`;
+        }
+        const markdownExtension = getMarkdownLanguage(getExtension(file.path));
+        // Only include non-image files (as in original computePrompt)
+        if (markdownExtension !== "image") {
+          lines.push(`**File:** ${file.path}`);
+          lines.push(`\`\`\`${markdownExtension}`);
+          lines.push(content);
+          lines.push("```");
+          lines.push("");
+        }
       }
     }
     // 3. Custom Templates (Markdown)
@@ -109,12 +113,13 @@ export default function Copy() {
   }, [
     selectedFiles,
     customTemplates,
+    includeFileTree,
     instructions,
     formatOutput,
     getExtension,
   ]);
 
-useEffect(() => {
+  useEffect(() => {
     if (!countTokens) {
       setPromptTokenCount(null);
       return;

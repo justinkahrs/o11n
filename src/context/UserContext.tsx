@@ -12,10 +12,12 @@ interface UserContextType {
     mode: "light" | "dark"
   ) => void;
   showDotfiles: boolean;
+  includeFileTree: boolean;
   setCountTokens: React.Dispatch<React.SetStateAction<boolean>>;
   setFormatOutput: React.Dispatch<React.SetStateAction<boolean>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setShowDotfiles: React.Dispatch<React.SetStateAction<boolean>>;
+  setIncludeFileTree: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -23,6 +25,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [countTokens, setCountTokens] = useState(true);
   const [formatOutput, setFormatOutput] = useState(true);
+  const [includeFileTree, setIncludeFileTree] = useState(true);
   const [loading, setLoading] = useState(false);
   const onThemeChange = (
     primary: string,
@@ -46,6 +49,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       value={{
         showDotfiles,
         setShowDotfiles,
+        includeFileTree,
+        setIncludeFileTree,
         onThemeChange,
         countTokens,
         setCountTokens,
