@@ -14,11 +14,13 @@ export default function SettingsMenu() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const {
-    showDotfiles,
-    setShowDotfiles,
-    onThemeChange,
     countTokens,
+    formatOutput,
+    onThemeChange,
     setCountTokens,
+    setFormatOutput,
+    setShowDotfiles,
+    showDotfiles,
   } = useUserContext();
 
   const handleSettingsOpen = (event: React.SyntheticEvent<HTMLElement>) => {
@@ -47,6 +49,17 @@ export default function SettingsMenu() {
           horizontal: "left",
         }}
       >
+        <MenuItem>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formatOutput}
+                onChange={(e) => setFormatOutput(e.target.checked)}
+              />
+            }
+            label="Autopilot"
+          />
+        </MenuItem>
         <MenuItem>
           <FormControlLabel
             control={

@@ -148,7 +148,7 @@ export default function FileExplorer() {
     <Box
       sx={{
         minWidth: "30%",
-        height: "96%",
+        height: "95%",
         display: "flex",
         flexDirection: "column",
       }}

@@ -1,7 +1,8 @@
 import { useState, useRef } from "react";
-import { Grid } from "@mui/material";
+import { Grid, CircularProgress, useTheme } from "@mui/material";
 import FileExplorer from "./components/FileExplorer";
 import FilePreviewModal from "./components/FilePreviewModal";
+import { useUserContext } from "./context/UserContext";
 import { Providers } from "./components/Providers";
 import SettingsMenu from "./components/SettingsMenu";
 import VerticalSeparator from "./components/VerticalSeparator";
@@ -17,6 +18,30 @@ import "./App.css";
 function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [explorerWidth, setExplorerWidth] = useState(300);
+  const theme = useTheme();
+
+  function LoaderOverlay() {
+    const { loading } = useUserContext();
+    if (!loading) return null;
+    return (
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: theme.palette.primary.main,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+        }}
+      >
+        <CircularProgress />
+      </div>
+    );
+  }
 
   return (
     <Providers>
@@ -53,6 +78,7 @@ function App() {
         </Grid>
       </Grid>
       <FilePreviewModal />
+      <LoaderOverlay />
     </Providers>
   );
 }

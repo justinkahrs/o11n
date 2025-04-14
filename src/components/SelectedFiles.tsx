@@ -11,9 +11,10 @@ export function SelectedFiles() {
   const { mode, selectedFiles, setSelectedFiles } = useAppContext();
   const { countTokens } = useUserContext();
   const doMode = mode === "do";
-const totalSize = selectedFiles.reduce((sum, f) => sum + (f.size ?? 0), 0);
+  const totalSize = selectedFiles.reduce((sum, f) => sum + (f.size ?? 0), 0);
   useEffect(() => {
     const recalcTokenSizes = async () => {
+      if (selectedFiles.length < 1) return;
       if (countTokens) {
         let hasUpdate = false;
         const updatedFiles = await Promise.all(

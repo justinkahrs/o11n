@@ -1,5 +1,5 @@
 import { Button, CircularProgress } from "@mui/material";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { generateFileMap } from "../utils/generateFileMap";
@@ -10,14 +10,15 @@ import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
 export default function Copy() {
-  const { instructions, mode, selectedFiles, customTemplates } =
-    useAppContext();
-  const { countTokens } = useUserContext();
+  const { instructions, selectedFiles, customTemplates } = useAppContext();
+  const { countTokens, formatOutput } = useUserContext();
 
   const [copying, setCopying] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
   const [promptTokenCount, setPromptTokenCount] = useState<number | null>(null);
-  const isTalkMode = mode === "talk";
+
+  const lastBuildTimeRef = useRef<number>(0);
+  const cachedPromptTextRef = useRef<string | null>(null);
 
   const getExtension = useCallback((path: string): string => {
     const parts = path.split("/");
@@ -30,6 +31,11 @@ export default function Copy() {
   }, []);
 
   const buildPromptText = useCallback(async (): Promise<string> => {
+    const now = Date.now();
+    if (cachedPromptTextRef.current && now - lastBuildTimeRef.current < 2000) {
+      return cachedPromptTextRef.current;
+    }
+    lastBuildTimeRef.current = now;
     const lines: string[] = [];
     // 1. File Map (Markdown)
     const filePaths = selectedFiles.map((file) => file.path);
@@ -86,7 +92,7 @@ export default function Copy() {
       }
     }
     // 4. Formatting instructions (only if not Talk Mode)
-    if (!isTalkMode) {
+    if (formatOutput) {
       lines.push("## Additional Formatting Instructions");
       lines.push("```");
       lines.push(formattingInstructions);
@@ -97,8 +103,16 @@ export default function Copy() {
     lines.push("```");
     lines.push(instructions);
     lines.push("```");
-    return lines.join("\n");
-  }, [selectedFiles, customTemplates, instructions, isTalkMode, getExtension]);
+    const promptText = lines.join("\n");
+    cachedPromptTextRef.current = promptText;
+    return promptText;
+  }, [
+    selectedFiles,
+    customTemplates,
+    instructions,
+    formatOutput,
+    getExtension,
+  ]);
 
   useEffect(() => {
     async function computePrompt() {
@@ -136,7 +150,6 @@ export default function Copy() {
 
   return (
     <Button
-      fullWidth
       variant="contained"
       onClick={handleCopy}
       startIcon={
@@ -148,6 +161,7 @@ export default function Copy() {
       }
       disabled={copying || instructions.trim() === ""}
       size="large"
+      sx={{ width: "350px" }}
     >
       {copying
         ? "Processing..."

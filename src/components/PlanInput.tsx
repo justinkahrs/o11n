@@ -2,15 +2,21 @@ import { Box, TextField, IconButton, InputAdornment } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect } from "react";
 import { useAppContext } from "../context/AppContext";
+import { useUserContext } from "../context/UserContext";
 
 export function PlanInput() {
-  const { mode, plan, setPlan } = useAppContext();
+  const { mode, plan, setMode, setPlan } = useAppContext();
+  const { formatOutput } = useUserContext();
   const [inputValue, setInputValue] = useState(plan);
   const doMode = mode === "do";
 
   useEffect(() => {
     setInputValue(plan);
   }, [plan]);
+
+  useEffect(() => {
+    if (!formatOutput) setMode("plan");
+  }, [formatOutput, setMode]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
