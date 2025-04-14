@@ -28,9 +28,11 @@ export function FolderGroup({
   const theme = useTheme();
   const [expanded, setExpanded] = useState(totalFolders < 3);
   const prevTotalRef = useRef(totalFolders);
+
   useEffect(() => {
     prevTotalRef.current = totalFolders;
   }, [totalFolders]);
+
   let displayedFolder = folder;
   if (projectRoot) {
     const segments = folder.split("/").filter(Boolean);
