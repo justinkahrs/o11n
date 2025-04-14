@@ -10,7 +10,7 @@ export function PlanPreview() {
       ? planDescriptionMatch[1].trim()
       : "";
     return { planDescription };
-}, [plan]);
+  }, [plan]);
   function formatPath(path: string): string {
     const projectsIndex = path.indexOf("/Projects/");
     if (projectsIndex !== -1) {
@@ -18,26 +18,28 @@ export function PlanPreview() {
     }
     const segments = path.split("/").filter(Boolean);
     if (segments.length >= 4) {
-      return "/" + segments.slice(-4).join("/");
+      return `/${segments.slice(-4).join("/")}`;
     }
     return path;
   }
   const fileChanges = React.useMemo(() => {
     const files = [];
     const fileRegex = /### File\s+(.+?)\n([\s\S]*?)(?=### File\s+|$)/g;
-    let match;
-    while ((match = fileRegex.exec(plan)) !== null) {
+    let match: RegExpExecArray | null = fileRegex.exec(plan);
+    while (match !== null) {
       const filePath = match[1].trim();
       const fileBlock = match[2];
-      const descriptions = [];
+      const descriptions: string[] = [];
       const descRegex = /\*\*Description\*\*:\s*(.*)/g;
-      let descMatch;
-      while ((descMatch = descRegex.exec(fileBlock)) !== null) {
+      let descMatch: RegExpExecArray | null = descRegex.exec(fileBlock);
+      while (descMatch !== null) {
         if (descMatch[1]) {
           descriptions.push(descMatch[1].trim());
         }
+        descMatch = descRegex.exec(fileBlock);
       }
       files.push({ file: filePath, descriptions });
+      match = fileRegex.exec(plan);
     }
     return files;
   }, [plan]);
@@ -59,15 +61,15 @@ export function PlanPreview() {
                   Change Descriptions
                 </Typography>
                 <List dense>
-                  {fileChanges.map((fileChange, index) => (
-                    <React.Fragment key={index}>
+                  {fileChanges.map((fileChange) => (
+                    <React.Fragment key={fileChange.file}>
                       <ListItem disableGutters>
                         <Typography variant="body1" color="primary">
                           {formatPath(fileChange.file)}
                         </Typography>
                       </ListItem>
-                      {fileChange.descriptions.map((desc, idx) => (
-                        <ListItem disableGutters key={idx} sx={{ pl: 2 }}>
+                      {fileChange.descriptions.map((desc) => (
+                        <ListItem disableGutters key={desc} sx={{ pl: 2 }}>
                           <Typography
                             color="secondary"
                             sx={{ display: "inline", width: "20px", mr: 1 }}
