@@ -1,4 +1,4 @@
-import { Button, CircularProgress } from "@mui/material";
+import { Button, CircularProgress, Tooltip } from "@mui/material";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
@@ -155,28 +155,62 @@ export default function Copy() {
         : promptTokenCount.toString()
       : "";
 
+  if (!countTokens) {
+    return (
+      <Button
+        variant="contained"
+        onClick={handleCopy}
+        startIcon={
+          copying ? (
+            <CircularProgress size={20} color="inherit" />
+          ) : (
+            <ContentCopy />
+          )
+        }
+        disabled={copying || instructions.trim() === ""}
+        size="large"
+        sx={{ width: "350px" }}
+      >
+        {copying
+          ? "Processing..."
+          : promptCopied
+          ? "Prompt Copied!"
+          : formattedTokenCount
+          ? `Copy Prompt (~${formattedTokenCount} tokens)`
+          : "Copy Prompt"}
+      </Button>
+    );
+  }
   return (
-    <Button
-      variant="contained"
-      onClick={handleCopy}
-      startIcon={
-        copying ? (
-          <CircularProgress size={20} color="inherit" />
-        ) : (
-          <ContentCopy />
-        )
-      }
-      disabled={copying || instructions.trim() === ""}
-      size="large"
-      sx={{ width: "350px" }}
+    <Tooltip
+      enterDelay={1000}
+      title={`${
+        promptTokenCount !== null ? promptTokenCount : "calculating..."
+      } tokens`}
+      placement="right"
     >
-      {copying
-        ? "Processing..."
-        : promptCopied
-        ? "Prompt Copied!"
-        : formattedTokenCount
-        ? `Copy Prompt (~${formattedTokenCount} tokens)`
-        : "Copy Prompt"}
-    </Button>
+      <Button
+        variant="contained"
+        onClick={handleCopy}
+        startIcon={
+          copying ? (
+            <CircularProgress size={20} color="inherit" />
+          ) : (
+            <ContentCopy />
+          )
+        }
+        disabled={copying || instructions.trim() === ""}
+        size="large"
+        sx={{ width: "350px" }}
+      >
+        {copying
+          ? "Processing..."
+          : promptCopied
+          ? "Prompt Copied!"
+          : formattedTokenCount
+          ? `Copy Prompt (~${formattedTokenCount} tokens)`
+          : "Copy Prompt"}
+      </Button>
+    </Tooltip>
   );
 }
