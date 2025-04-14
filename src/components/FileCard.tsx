@@ -5,6 +5,7 @@ import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
 import { formatFileSize } from "../utils/formatFileSize";
 import { useAppContext } from "../context/AppContext";
 import type { FileNode } from "../types";
+import { useUserContext } from "../context/UserContext";
 
 interface FileCardProps {
   file: FileNode;
@@ -13,21 +14,10 @@ interface FileCardProps {
 }
 
 export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
-  const { mode, plan, handleFilePreviewClick } = useAppContext();
+  const { mode, handleFilePreviewClick } = useAppContext();
+  const { countTokens } = useUserContext();
   const doMode = mode === "do";
-  let changeDescription = "";
-  if (doMode && plan) {
-    const escapeRegex = (str: string) =>
-      str.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-    const filePathRegex = escapeRegex(file.path);
-    const pattern = new RegExp(
-      `### File\\s+.*${filePathRegex}[\\s\\S]*?\\*\\*Description\\*\\*:\\s*(.*)`
-    );
-    const match = plan.match(pattern);
-    if (match) {
-      changeDescription = match[1].trim();
-    }
-  }
+
   return (
     <Box
       sx={{
@@ -75,10 +65,9 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
           {formatFileSize(file.size)} ({percentage}%)
         </Typography>
         <br />
-        <Typography variant="caption">Tokens: {file.tokenSize}</Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {changeDescription}
-        </Typography>
+        {countTokens && (
+          <Typography variant="caption">Tokens: {file.tokenSize}</Typography>
+        )}
       </Box>
     </Box>
   );

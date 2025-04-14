@@ -3,11 +3,38 @@ import { FolderGroup } from "./FolderGroup";
 import { FileCard } from "./FileCard";
 import { useAppContext } from "../context/AppContext";
 import type { FileNode } from "../types";
+import { useEffect } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { useUserContext } from "../context/UserContext";
 
 export function SelectedFiles() {
   const { mode, selectedFiles, setSelectedFiles } = useAppContext();
+  const { countTokens } = useUserContext();
   const doMode = mode === "do";
-  const totalSize = selectedFiles.reduce((sum, f) => sum + (f.size ?? 0), 0);
+const totalSize = selectedFiles.reduce((sum, f) => sum + (f.size ?? 0), 0);
+  useEffect(() => {
+    const recalcTokenSizes = async () => {
+      if (countTokens) {
+        let hasUpdate = false;
+        const updatedFiles = await Promise.all(
+          selectedFiles.map(async (file) => {
+            if (typeof file.tokenSize === "undefined") {
+              const tokenCount = await invoke("count_tokens_path", {
+                path: file.path,
+              });
+              hasUpdate = true;
+              return { ...file, tokenSize: Number(tokenCount) };
+            }
+            return file;
+          })
+        );
+        if (hasUpdate) {
+          setSelectedFiles(updatedFiles);
+        }
+      }
+    };
+    recalcTokenSizes();
+  }, [countTokens, selectedFiles, setSelectedFiles]);
   const groupedFiles = selectedFiles.reduce(
     (acc: { [folder: string]: FileNode[] }, file) => {
       const lastSlash = file.path ? file.path.lastIndexOf("/") : -1;

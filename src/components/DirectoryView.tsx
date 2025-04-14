@@ -8,6 +8,7 @@ import {
   Folder as FolderIcon,
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
+import { useUserContext } from "../context/UserContext";
 import type { FileNode, TreeItemData } from "../types";
 
 export interface DirectoryViewProps {
@@ -28,6 +29,7 @@ export default function DirectoryView({
   searchQuery,
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
+  const { countTokens } = useUserContext();
 
   // Automatically refresh node children if the node is expanded but not loaded.
   useEffect(() => {
@@ -94,17 +96,19 @@ export default function DirectoryView({
       await loadChildren(child);
     } else if (!child.isDirectory) {
       const metadata = await stat(child.path, { baseDir: BaseDirectory.Home });
-      const tokenCount = await invoke("count_tokens_path", {
-        path: child.path,
-      });
-      const selectedFile = {
+      const file: FileNode = {
         id: child.id,
         name: child.name,
         path: child.path,
         size: metadata.size / (1024 * 1024),
-        tokenSize: Number(tokenCount),
       };
-      onFileSelect(selectedFile);
+      if (countTokens) {
+        const tokenCount = await invoke("count_tokens_path", {
+          path: child.path,
+        });
+        file.tokenSize = Number(tokenCount);
+      }
+      onFileSelect(file);
     }
   };
 
