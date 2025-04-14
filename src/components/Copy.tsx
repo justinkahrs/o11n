@@ -114,21 +114,23 @@ export default function Copy() {
     getExtension,
   ]);
 
-  useEffect(() => {
-    async function computePrompt() {
-      const promptText = await buildPromptText();
-      if (!countTokens) {
-        setPromptTokenCount(null);
-        return;
-      }
-      try {
-        const tokens = await invoke("count_tokens", { content: promptText });
-        setPromptTokenCount(tokens as number);
-      } catch (e) {
-        console.log({ e });
-      }
+useEffect(() => {
+    if (!countTokens) {
+      setPromptTokenCount(null);
+      return;
     }
-    computePrompt();
+    const handler = setTimeout(() => {
+      (async () => {
+        const promptText = await buildPromptText();
+        try {
+          const tokens = await invoke("count_tokens", { content: promptText });
+          setPromptTokenCount(tokens as number);
+        } catch (e) {
+          console.log({ e });
+        }
+      })();
+    }, 1000); // debounce delay of 1000ms
+    return () => clearTimeout(handler);
   }, [buildPromptText, countTokens]);
 
   async function handleCopy() {

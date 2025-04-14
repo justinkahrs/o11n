@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const VerticalSeparator = ({ containerRef, setExplorerWidth }) => {
   const [isDragging, setIsDragging] = useState(false);

@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Grid, CircularProgress, useTheme } from "@mui/material";
 import FileExplorer from "./components/FileExplorer";
-import FilePreviewModal from "./components/FilePreviewModal";
+import FilePreview from "./components/FilePreview";
 import { useUserContext } from "./context/UserContext";
 import { Providers } from "./components/Providers";
 import SettingsMenu from "./components/SettingsMenu";
@@ -77,7 +77,7 @@ function App() {
           <ActionButtons />
         </Grid>
       </Grid>
-      <FilePreviewModal />
+      <FilePreview />
       <LoaderOverlay />
     </Providers>
   );

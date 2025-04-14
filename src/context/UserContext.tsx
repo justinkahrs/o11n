@@ -1,13 +1,7 @@
 import { createTheme, ThemeProvider } from "@mui/material";
-import {
-  createContext,
-  useState,
-  type ReactNode,
-  useContext,
-  useEffect,
-} from "react";
+import { createContext, useState, type ReactNode, useContext } from "react";
 import { theme } from "../theme";
-import { useAppContext } from "./AppContext";
+
 interface UserContextType {
   countTokens: boolean;
   formatOutput: boolean;

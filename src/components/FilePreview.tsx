@@ -4,13 +4,16 @@ import {
   Card,
   CardContent,
   CardHeader,
+  Button,
   CircularProgress,
+  Modal,
+  Grid,
 } from "@mui/material";
 import hljs from "highlight.js";
 import "highlight.js/styles/github.css";
 import "./FilePreview.css";
 import { readTextFile } from "@tauri-apps/plugin-fs";
-
+import { useAppContext } from "../context/AppContext";
 interface FilePreviewProps {
   file: {
     id: string;
@@ -36,7 +39,11 @@ const getLanguage = (fileName: string): string => {
       return "plaintext";
   }
 };
-export default function FilePreview({ file }: FilePreviewProps) {
+function FilePreview({ file }: FilePreviewProps) {
+  const { handleFileSelect, setSelectedFile, selectedFiles } = useAppContext();
+  const isSelected = selectedFiles.some(
+    (selected) => selected.path === file.path
+  );
   const [content, setContent] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
@@ -68,7 +75,31 @@ export default function FilePreview({ file }: FilePreviewProps) {
       sx={{ maxHeight: "80vh", width: "100%", overflow: "auto" }}
     >
       <CardHeader
-        title={file.name}
+        title={
+          <Grid container justifyContent="space-between">
+            <Grid item>{file.name}</Grid>
+            <Grid item>
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => setSelectedFile(null)}
+                sx={{ mr: 2 }}
+              >
+                Close
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => {
+                  handleFileSelect(file);
+                  setSelectedFile(null);
+                }}
+              >
+                {isSelected ? "Remove file" : "Add file"}
+              </Button>
+            </Grid>
+          </Grid>
+        }
         sx={{
           position: "sticky",
           top: 0,
@@ -76,18 +107,22 @@ export default function FilePreview({ file }: FilePreviewProps) {
           zIndex: 1,
         }}
       />
-      <CardContent sx={{ display: "flex", justifyContent: "center" }}>
+      <CardContent
+        sx={{ display: "flex", justifyContent: "center", mt: 0, pt: 0 }}
+      >
         {loading ? (
           <CircularProgress />
         ) : (
           <Box
             component="pre"
             sx={{
+              mt: 0,
+              pt: 0,
               whiteSpace: "pre-wrap",
               wordBreak: "break-word",
               overflowX: "auto",
             }}
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: needed for syntax highlighting
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: required for syntax highlighting
             dangerouslySetInnerHTML={{ __html: content }}
           />
         )}
@@ -95,3 +130,22 @@ export default function FilePreview({ file }: FilePreviewProps) {
     </Card>
   );
 }
+const FilePreviewModal = () => {
+  const { selectedFile, setSelectedFile } = useAppContext();
+  return (
+    <Modal open={Boolean(selectedFile)} onClose={() => setSelectedFile(null)}>
+      <Box
+        sx={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          minWidth: "80%",
+        }}
+      >
+        {selectedFile && <FilePreview file={selectedFile} />}
+      </Box>
+    </Modal>
+  );
+};
+export default FilePreviewModal;
