@@ -1,4 +1,3 @@
-import type React from "react";
 import { useState } from "react";
 import {
   Chip,
@@ -30,17 +29,8 @@ interface CustomTemplate {
   active: boolean;
 }
 
-interface TemplateSelectionProps {
-  mode: "talk" | "plan" | "do";
-  templates: CustomTemplate[];
-  onAddTemplate: (template: CustomTemplate) => void;
-  onRemoveTemplate: (id: string) => void;
-  onToggleTemplate: (id: string) => void;
-}
-
 const TemplateSelection = () => {
   const { mode, customTemplates, setCustomTemplates } = useAppContext();
-
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateInstructions, setTemplateInstructions] = useState("");

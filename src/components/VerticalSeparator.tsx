@@ -1,6 +1,12 @@
-import { useEffect, useState } from "react";
-
-const VerticalSeparator = ({ containerRef, setExplorerWidth }) => {
+import { useEffect, useState, type RefObject } from "react";
+interface VerticalSeparatorProps {
+  containerRef: RefObject<HTMLDivElement>;
+  setExplorerWidth: React.Dispatch<React.SetStateAction<number>>;
+}
+const VerticalSeparator = ({
+  containerRef,
+  setExplorerWidth,
+}: VerticalSeparatorProps) => {
   const [isDragging, setIsDragging] = useState(false);
   // Handle mouse move events to update explorerWidth when dragging.
   useEffect(() => {
