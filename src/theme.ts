@@ -14,7 +14,7 @@ export const theme = createTheme({
       '"Segoe UI Symbol"',
     ].join(","),
     body1: {
-      fontSize: ".8rem",
+      fontSize: "1rem",
     },
     body2: {
       fontSize: "0.7rem",
@@ -26,7 +26,7 @@ export const theme = createTheme({
       fontSize: "1.3rem",
     },
     h2: {
-      fontSize: "1.3rem",
+      fontSize: "1.1rem",
     },
   },
   palette: {
