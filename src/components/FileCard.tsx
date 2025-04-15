@@ -45,6 +45,8 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
       </IconButton>
       <Box
         sx={{
+          display: "flex",
+          flexDirection: "column",
           wordWrap: "break-word",
           whiteSpace: "normal",
           paddingRight: "40px",
@@ -61,12 +63,13 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
           <InsertDriveFile className="file-icon" color="secondary" />
         </Typography>
         <Typography variant="subtitle2">{file.name}</Typography>
-        <Typography variant="caption">
+        <Typography variant="caption" sx={{ m: 0, p: 0 }}>
           {formatFileSize(file.size)} ({percentage}%)
         </Typography>
-        <br />
         {countTokens && (
-          <Typography variant="caption">Tokens: {file.tokenSize}</Typography>
+          <Typography variant="caption" sx={{ m: 0, p: 0 }}>
+            {file.tokenSize} tokens
+          </Typography>
         )}
       </Box>
     </Box>

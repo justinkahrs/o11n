@@ -1,5 +1,4 @@
 import { createTheme } from "@mui/material/styles";
-
 export const theme = createTheme({
   typography: {
     fontFamily: [
@@ -14,6 +13,9 @@ export const theme = createTheme({
       '"Segoe UI Emoji"',
       '"Segoe UI Symbol"',
     ].join(","),
+    caption: {
+      fontSize: "0.67rem",
+    },
   },
   palette: {
     mode: "dark",

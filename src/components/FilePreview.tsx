@@ -71,6 +71,7 @@ function FilePreview({ file }: FilePreviewProps) {
   }, [file]);
   return (
     <Card
+      className="file-preview-card"
       variant="outlined"
       sx={{ maxHeight: "80vh", width: "100%", overflow: "auto" }}
     >

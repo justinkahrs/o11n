@@ -72,3 +72,7 @@ pre code {
     border: 1px solid #ccc;
     padding: 10px;
 }
+
+.file-preview-card pre {
+    user-select: text !important;
+}

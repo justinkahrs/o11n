@@ -189,28 +189,30 @@ export default function Copy() {
       } tokens`}
       placement="right"
     >
-      <Button
-        variant="contained"
-        onClick={handleCopy}
-        startIcon={
-          copying ? (
-            <CircularProgress size={20} color="inherit" />
-          ) : (
-            <ContentCopy />
-          )
-        }
-        disabled={copying || instructions.trim() === ""}
-        size="large"
-        sx={{ width: "350px" }}
-      >
-        {copying
-          ? "Processing..."
-          : promptCopied
-          ? "Prompt Copied!"
-          : formattedTokenCount
-          ? `Copy Prompt (~${formattedTokenCount} tokens)`
-          : "Copy Prompt"}
-      </Button>
+      <span>
+        <Button
+          variant="contained"
+          onClick={handleCopy}
+          startIcon={
+            copying ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              <ContentCopy />
+            )
+          }
+          disabled={copying || instructions.trim() === ""}
+          size="large"
+          sx={{ width: "350px" }}
+        >
+          {copying
+            ? "Processing..."
+            : promptCopied
+            ? "Prompt Copied!"
+            : formattedTokenCount
+            ? `Copy Prompt (~${formattedTokenCount} tokens)`
+            : "Copy Prompt"}
+        </Button>
+      </span>
     </Tooltip>
   );
 }
