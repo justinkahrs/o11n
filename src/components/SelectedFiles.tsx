@@ -14,6 +14,7 @@ export function SelectedFiles() {
   const doMode = mode === "do";
   const totalSize = selectedFiles.reduce((sum, f) => sum + (f.size ?? 0), 0);
   const [allExpanded, setAllExpanded] = useState<boolean>(true);
+
   useEffect(() => {
     const recalcTokenSizes = async () => {
       if (selectedFiles.length < 1) return;
@@ -38,6 +39,7 @@ export function SelectedFiles() {
     };
     recalcTokenSizes();
   }, [countTokens, selectedFiles, setSelectedFiles]);
+
   const groupedFiles = selectedFiles.reduce(
     (acc: { [folder: string]: FileNode[] }, file) => {
       const lastSlash = file.path ? file.path.lastIndexOf("/") : -1;
@@ -55,6 +57,7 @@ export function SelectedFiles() {
   function handleRemoveFile(fileId: string) {
     setSelectedFiles((prev) => prev.filter((file) => file.id !== fileId));
   }
+
   function handleRemoveFolder(folderPath: string) {
     setSelectedFiles((prev) =>
       prev.filter((file) => {
@@ -77,6 +80,7 @@ export function SelectedFiles() {
               zIndex: 1,
               display: "flex",
               justifyContent: "flex-end",
+              backgroundColor: "background.paper", // Added solid background color
             }}
           >
             <IconButton

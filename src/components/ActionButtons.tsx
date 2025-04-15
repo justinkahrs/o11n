@@ -7,12 +7,7 @@ const ActionButtons = () => {
   const { mode } = useAppContext();
 
   return (
-    <Stack
-      direction="row"
-      spacing={2}
-      sx={{ mt: 2 }}
-      justifyContent={mode === "do" ? "flex-end" : "space-between"}
-    >
+    <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
       {mode === "do" ? <Commit /> : <Copy />}
     </Stack>
   );

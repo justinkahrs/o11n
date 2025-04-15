@@ -45,7 +45,7 @@ export function PlanPreview() {
   }, [plan]);
   return (
     doMode && (
-      <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 2 }}>
+      <Box sx={{ overflowY: "auto", overflowX: "auto", p: 2 }}>
         {doMode && plan && (
           <>
             <Typography color="secondary" variant="h1" gutterBottom>
