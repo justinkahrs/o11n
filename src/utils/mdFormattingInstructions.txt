@@ -63,34 +63,27 @@ A short explanation of this specific change.
 ### Explanation of Each Section
 
 1. **Plan**
-
-   - A free-form section where you describe your reasoning for the changes—why you are making them, the approach you are taking, etc. Do not include code syntax in here.
+   - A free-form section where you describe your reasoning for the changes—why you are making them, the approach you are taking, etc. Do not include code syntax in here. Function and variable names can be wrapped in single backticks.
 
 2. **Files**
-
    - A heading indicating you are listing one or more files to change.
 
 3. **File <path>**
-
    - Each file you modify, create, rewrite, or delete is introduced by `### File`.
 
 4. **Action <action>**
-
    - This line immediately follows the `File <path>` line.
    - `<action>` is one of `modify`, `create`, `rewrite`, or `delete`.
 
 5. **Change**
-
    - A subheading (`#### Change`) that starts the details for this specific file operation.
    - The **Description** line is a short textual explanation of what you are doing.
 
 6. **Search** (only for `modify`)
-
    - A fenced code block (backticks) that shows the exact snippet you want to find in the existing file.
    - **No** additional symbols around it—just standard Markdown fences.
 
 7. **Content**
-
    - A fenced code block (backticks) that shows the replacement snippet (when using `modify`) or the entire file contents (for `create` or `rewrite`).
 
 8. **No Content** (for `delete`)
@@ -101,33 +94,30 @@ A short explanation of this specific change.
 ## Guidelines & Tips
 
 1. **Exact Matching**
-
    - When using `modify`, the text in your **Search** block must match the existing file’s content **exactly**, including indentation, braces, punctuation, etc. Even minor differences (like extra spaces or missing commas) can cause the search to fail.
 
 2. **Sufficient Context**
-
    - Include enough lines in your **Search** block to ensure it is **unambiguous**. If it’s only one line, or if the snippet appears multiple times in the file, the automation might not know which part to replace.
 
 3. **Action Explanations**
-
    - **create**: Provide an entire new file.
    - **rewrite**: Replace an existing file in its entirety (no search block needed).
    - **modify**: Target specific lines to change (requires **Search** and **Content**).
    - **delete**: Remove the file (no content needed).
 
 4. **Multiple Edits in One File**
-
    - If you need to make multiple changes within the same file, you may create multiple `#### Change` sections under the same `File <path> / Action modify`. Each `#### Change` has its own **Search** and **Content**.
 
 5. **Brace Balance & Indentation**
-
    - If you are editing code, ensure that the replacements keep the overall brace structure and indentation correct. Otherwise, you risk breaking the file’s syntax.
 
 6. **No Placeholders**
-
    - Do not use `...` or `// existing code here` placeholders. You must provide the **full lines** of code whenever you modify or create content.
 
-7. **Final Output**
+7.	**Appending at the End of a File**
+	- If you need to add new content at the very end of an existing file, locate (and include in your Search block) the last snippet already present at the file’s end. In your Content block, repeat that snippet verbatim and then add the new lines below it. This ensures the automation knows precisely where to append.
+
+8. **Final Output**
    - The final Markdown should apply cleanly with no leftover syntax errors.
    - A script or automation can parse these blocks in a straightforward manner.
    - Wrap all markdown inside HTML <pre> tags. DO NOT FORGET THE CLOSING </pre> TAG, and do not surround with display formatting or backticks.
