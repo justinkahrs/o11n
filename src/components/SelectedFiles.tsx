@@ -1,9 +1,11 @@
-import { Box } from "@mui/material";
+import { Box, IconButton } from "@mui/material";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { FolderGroup } from "./FolderGroup";
 import { FileCard } from "./FileCard";
 import { useAppContext } from "../context/AppContext";
 import type { FileNode } from "../types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useUserContext } from "../context/UserContext";
 
@@ -12,6 +14,7 @@ export function SelectedFiles() {
   const { countTokens } = useUserContext();
   const doMode = mode === "do";
   const totalSize = selectedFiles.reduce((sum, f) => sum + (f.size ?? 0), 0);
+  const [allExpanded, setAllExpanded] = useState<boolean>(true);
   useEffect(() => {
     const recalcTokenSizes = async () => {
       if (selectedFiles.length < 1) return;
@@ -67,6 +70,29 @@ export function SelectedFiles() {
   return (
     !doMode && (
       <Box sx={{ overflowY: "auto", px: 2 }}>
+        {selectedFiles.length > 0 && (
+          <Box
+            sx={{
+              position: "sticky",
+              top: 0,
+              zIndex: 1,
+              display: "flex",
+              justifyContent: "flex-end",
+            }}
+          >
+            <IconButton
+              onClick={() => setAllExpanded((prev) => !prev)}
+              title={allExpanded ? "Collapse All" : "Expand All"}
+              sx={{
+                transform: allExpanded ? "rotate(0deg)" : "rotate(180deg)",
+                transition: "transform 0.3s",
+                mb: 1,
+              }}
+            >
+              <ExpandMoreIcon />
+            </IconButton>
+          </Box>
+        )}
         {Object.keys(groupedFiles)
           .sort()
           .map((folder) => {
@@ -93,6 +119,7 @@ export function SelectedFiles() {
                 onRemoveFolder={handleRemoveFolder}
                 totalFolders={Object.keys(groupedFiles).length}
                 projectRoot={projectRoot}
+                forceExpanded={allExpanded}
               >
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
                   {filesInFolder

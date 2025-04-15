@@ -14,6 +14,7 @@ interface FolderGroupProps {
   children: React.ReactNode;
   totalFolders: number;
   projectRoot?: string;
+  forceExpanded?: boolean;
 }
 export function FolderGroup({
   folder,
@@ -24,12 +25,13 @@ export function FolderGroup({
   children,
   totalFolders,
   projectRoot,
+  forceExpanded,
 }: FolderGroupProps) {
   const theme = useTheme();
-  const [expanded, setExpanded] = useState(totalFolders < 5);
-  const prevTotalRef = useRef(totalFolders);
-
-  useEffect(() => {
+  const [expanded, setExpanded] = useState(true);
+  const prevTotalRef = useRef(totalFolders);useEffect(() => {
+  setExpanded(forceExpanded !== undefined ? forceExpanded : true);
+}, [forceExpanded]);useEffect(() => {
     prevTotalRef.current = totalFolders;
   }, [totalFolders]);
 

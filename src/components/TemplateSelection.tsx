@@ -106,7 +106,6 @@ const TemplateSelection = () => {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          mb: 2,
           mx: 2,
         }}
       >

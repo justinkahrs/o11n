@@ -169,7 +169,7 @@ export default function Copy() {
         }
         disabled={copying || instructions.trim() === ""}
         size="large"
-        sx={{ width: "350px" }}
+        sx={{ mx: 2, width: "350px" }}
       >
         {copying
           ? "Processing..."
@@ -202,7 +202,7 @@ export default function Copy() {
           }
           disabled={copying || instructions.trim() === ""}
           size="large"
-          sx={{ width: "350px" }}
+          sx={{ mx: 2, width: "350px" }}
         >
           {copying
             ? "Processing..."
