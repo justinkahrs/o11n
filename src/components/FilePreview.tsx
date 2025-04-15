@@ -14,6 +14,8 @@ import "highlight.js/styles/github.css";
 import "./FilePreview.css";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useAppContext } from "../context/AppContext";
+import { getImageMime, isImage } from "../utils/image";
+import { loadImageDataUrl } from "../utils/image";
 interface FilePreviewProps {
   file: {
     id: string;
@@ -39,32 +41,54 @@ const getLanguage = (fileName: string): string => {
       return "plaintext";
   }
 };
+
 function FilePreview({ file }: FilePreviewProps) {
   const { handleFileSelect, setSelectedFile, selectedFiles } = useAppContext();
   const isSelected = selectedFiles.some(
     (selected) => selected.path === file.path
   );
   const [content, setContent] = useState<string>("");
+  const [imgSrc, setImgSrc] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
   useEffect(() => {
     let isMounted = true;
     setLoading(true);
-    readTextFile(file.path)
-      .then((text) => {
-        if (isMounted) {
-          const lang = getLanguage(file.name);
-          const highlighted = hljs.highlight(text, { language: lang }).value;
-          setContent(highlighted);
-          setLoading(false);
-        }
-      })
-      .catch((error) => {
-        console.error("Error reading file", error);
-        if (isMounted) {
-          setContent("Error loading file.");
-          setLoading(false);
-        }
-      });
+
+    if (isImage(file.name)) {
+      // If the file is an image, load it using the loadImageDataUrl util
+      loadImageDataUrl(file.path, getImageMime(file.name))
+        .then((dataUrl) => {
+          if (isMounted) {
+            setImgSrc(dataUrl);
+            setLoading(false);
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading image", error);
+          if (isMounted) {
+            setLoading(false);
+          }
+        });
+    } else {
+      // For non-image files, read the text and apply syntax highlighting
+      readTextFile(file.path)
+        .then((text) => {
+          if (isMounted) {
+            const lang = getLanguage(file.name);
+            const highlighted = hljs.highlight(text, { language: lang }).value;
+            setContent(highlighted);
+            setLoading(false);
+          }
+        })
+        .catch((error) => {
+          console.error("Error reading file", error);
+          if (isMounted) {
+            setContent("Error loading file.");
+            setLoading(false);
+          }
+        });
+    }
+
     return () => {
       isMounted = false;
     };
@@ -113,6 +137,8 @@ function FilePreview({ file }: FilePreviewProps) {
       >
         {loading ? (
           <CircularProgress />
+        ) : isImage(file.name) ? (
+          <img src={imgSrc} alt={file.name} />
         ) : (
           <Box
             component="pre"

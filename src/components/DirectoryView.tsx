@@ -20,6 +20,8 @@ export interface DirectoryViewProps {
   searchQuery: string;
 }
 import FileItemWithHover from "./FileItemWithHover";
+import { isImage } from "../utils/image";
+
 export default function DirectoryView({
   node,
   onPreviewFile,
@@ -102,7 +104,7 @@ export default function DirectoryView({
         path: child.path,
         size: metadata.size / (1024 * 1024),
       };
-      if (countTokens) {
+      if (countTokens && !isImage(child.name)) {
         const tokenCount = await invoke("count_tokens_path", {
           path: child.path,
         });
