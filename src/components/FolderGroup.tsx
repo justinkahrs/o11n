@@ -26,7 +26,7 @@ export function FolderGroup({
   projectRoot,
 }: FolderGroupProps) {
   const theme = useTheme();
-  const [expanded, setExpanded] = useState(totalFolders < 3);
+  const [expanded, setExpanded] = useState(totalFolders < 5);
   const prevTotalRef = useRef(totalFolders);
 
   useEffect(() => {
