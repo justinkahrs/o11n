@@ -18,6 +18,7 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
       onChange={(e) => setSearchQuery(e.target.value)}
       fullWidth
       sx={{ mt: 2 }}
+      inputProps={{ style: { resize: "none" } }}
       InputProps={{
         endAdornment: searchQuery ? (
           <InputAdornment position="end">

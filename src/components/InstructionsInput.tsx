@@ -1,12 +1,13 @@
 import { Box, TextField } from "@mui/material";
 import { useAppContext } from "../context/AppContext";
+import { useUserContext } from "../context/UserContext";
 
 export function InstructionsInput() {
   const { instructions, mode, setInstructions } = useAppContext();
-  const label =
-    mode === "talk"
-      ? "Chat about your files"
-      : "Describe a feature to fix or a bug to create... wait";
+  const { formatOutput } = useUserContext();
+  const label = formatOutput
+    ? "Describe a feature to fix or a bug to create... wait"
+    : "Chat about your files";
   return (
     mode !== "do" && (
       <Box sx={{ px: 2, py: 2 }}>
