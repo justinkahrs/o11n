@@ -5,13 +5,16 @@ import {
   DialogContent,
   DialogActions,
   Button,
-  TextField,
   Switch,
   FormControlLabel,
   useTheme,
+  Menu,
+  Box,
 } from "@mui/material";
-import { Save } from "@mui/icons-material";
+import { theme as defaultTheme } from "../theme";
+import { Close, Replay, Save } from "@mui/icons-material";
 import { useUserContext } from "../context/UserContext";
+import { SliderPicker } from "react-color";
 type ThemeModalProps = {
   open: boolean;
   onClose: () => void;
@@ -34,8 +37,14 @@ export default function ThemeModal({
   const [secondaryColor, setSecondaryColor] = useState(
     theme.palette.secondary.main
   );
-const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
+  const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
   const { showLogo, setShowLogo } = useUserContext();
+  // State for popover anchors for color pickers
+  const [primaryAnchorEl, setPrimaryAnchorEl] = useState<HTMLElement | null>(
+    null
+  );
+  const [secondaryAnchorEl, setSecondaryAnchorEl] =
+    useState<HTMLElement | null>(null);
   // When the modal opens, capture the current theme values if not already captured
   useEffect(() => {
     if (open) {
@@ -63,23 +72,78 @@ const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Configure Theme</DialogTitle>
       <DialogContent>
-        <TextField
-          label="Primary Color"
-          type="color"
-          value={primaryColor}
-          onChange={(e) => setPrimaryColor(e.target.value)}
-          margin="normal"
-          fullWidth
-        />
-        <TextField
-          label="Secondary Color"
-          type="color"
-          value={secondaryColor}
-          onChange={(e) => setSecondaryColor(e.target.value)}
-          margin="normal"
-          fullWidth
-        />
-<FormControlLabel
+        <Box
+          style={{
+            marginBottom: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px",
+          }}
+        >
+          <Box>Primary Color</Box>
+          <Box
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "8px",
+              backgroundColor: primaryColor,
+              cursor: "pointer",
+            }}
+            onClick={(event) => setPrimaryAnchorEl(event.currentTarget)}
+            onKeyDown={(event) => setPrimaryAnchorEl(event.currentTarget)}
+          />
+          <Menu
+            open={Boolean(primaryAnchorEl)}
+            anchorEl={primaryAnchorEl}
+            onClose={() => setPrimaryAnchorEl(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+            PaperProps={{ style: { minWidth: "300px", padding: "8px" } }}
+          >
+            <SliderPicker
+              color={primaryColor}
+              onChange={(color) => setPrimaryColor(color.hex)}
+            />
+          </Menu>
+        </Box>
+        <Box
+          style={{
+            marginBottom: "16px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+
+            gap: "8px",
+          }}
+        >
+          <Box>Secondary Color</Box>
+          <Box
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "8px",
+              backgroundColor: secondaryColor,
+              cursor: "pointer",
+            }}
+            onClick={(event) => setSecondaryAnchorEl(event.currentTarget)}
+            onKeyDown={(event) => setSecondaryAnchorEl(event.currentTarget)}
+          />
+          <Menu
+            open={Boolean(secondaryAnchorEl)}
+            anchorEl={secondaryAnchorEl}
+            onClose={() => setSecondaryAnchorEl(null)}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+            transformOrigin={{ vertical: "top", horizontal: "left" }}
+            PaperProps={{ style: { minWidth: "300px", padding: "8px" } }}
+          >
+            <SliderPicker
+              color={secondaryColor}
+              onChange={(color) => setSecondaryColor(color.hex)}
+            />
+          </Menu>
+        </Box>
+        <FormControlLabel
           control={
             <Switch
               checked={isDarkMode}
@@ -88,6 +152,7 @@ const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
             />
           }
           label="Dark Mode"
+          sx={{ width: "100%" }}
         />
         <FormControlLabel
           control={
@@ -98,10 +163,12 @@ const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
             />
           }
           label="Show Logo"
+          sx={{ width: "100%" }}
         />
       </DialogContent>
-      <DialogActions>
+      <DialogActions sx={{ display: "flex", justifyContent: "space-between" }}>
         <Button
+          startIcon={<Close />}
           variant="outlined"
           onClick={() => {
             if (initialThemeRef.current) {
@@ -117,6 +184,22 @@ const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
           }}
         >
           Cancel
+        </Button>
+        <Button
+          startIcon={<Replay />}
+          variant="text"
+          onClick={() => {
+            setPrimaryColor(defaultTheme.palette.primary.main);
+            setSecondaryColor(defaultTheme.palette.secondary.main);
+            setIsDarkMode(defaultTheme.palette.mode === "dark");
+            onApply(
+              defaultTheme.palette.primary.main,
+              defaultTheme.palette.secondary.main,
+              defaultTheme.palette.mode
+            );
+          }}
+        >
+          Reset
         </Button>
         <Button
           variant="contained"

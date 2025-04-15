@@ -4,6 +4,7 @@ import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
 import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
+import LogoSVG from "./LogoSVG";
 import SearchFiles from "./SearchFiles";
 import DirectoryView from "./DirectoryView";
 import { FolderSpecial, Delete } from "@mui/icons-material";
@@ -154,11 +155,7 @@ export default function FileExplorer() {
       }}
     >
       <Box sx={{ p: 1 }}>
-        <Box sx={{ textAlign: "center", mb: 2 }}>
-          {showLogo && (
-            <img src="/logo.png" alt="Logo" style={{ height: "55px" }} />
-          )}
-        </Box>
+        <Box sx={{ textAlign: "center", mb: 2 }}>{showLogo && <LogoSVG />}</Box>
         <Button
           startIcon={<FolderSpecial />}
           variant="contained"

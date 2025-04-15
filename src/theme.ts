@@ -37,6 +37,7 @@ export const theme = createTheme({
     },
     secondary: {
       main: "#92AE79",
+      dark: "#476B46",
     },
   },
 });

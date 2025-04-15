@@ -124,6 +124,7 @@ A short explanation of this specific change.
    - Do not wrap any code inside <![CDATA[ ... ]]> tags
    - Do NOT write things like "... rest of the code" or any filler that wasn't in the original code. Always return the full code block.
    - Do NOT end code content blocks with xml tags, but don't forget the closing backticks.
+   - When providing code in the Content block, use matching triple backticks (```) at both the start and end with no extra punctuation or angle brackets.
 
 ---
 
