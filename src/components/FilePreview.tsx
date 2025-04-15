@@ -59,7 +59,7 @@ function FilePreview({ file }: FilePreviewProps) {
       loadImageDataUrl(file.path, getImageMime(file.name))
         .then((dataUrl) => {
           if (isMounted) {
-            setImgSrc(dataUrl);
+            setImgSrc(dataUrl as string);
             setLoading(false);
           }
         })

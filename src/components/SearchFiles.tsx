@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import { TextField, IconButton, InputAdornment } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 interface SearchFilesProps {
