@@ -1,6 +1,5 @@
 import { Box, IconButton } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import { FolderGroup } from "./FolderGroup";
 import { FileCard } from "./FileCard";
 import { useAppContext } from "../context/AppContext";
