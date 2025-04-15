@@ -1,27 +1,27 @@
 import { createContext, useState, type ReactNode, useContext } from "react";
 import type { CustomTemplate, FileNode, TreeItemData } from "../types";
 interface AppContextType {
+  customTemplates: CustomTemplate[];
+  instructions: string;
   handleFileSelect: (file: FileNode) => void;
   handleFilePreviewClick: (
     _event: React.SyntheticEvent,
     file: FileNode
   ) => void;
-  plan: string;
-  setPlan: React.Dispatch<React.SetStateAction<string>>;
-  customTemplates: CustomTemplate[];
-  setCustomTemplates: React.Dispatch<React.SetStateAction<CustomTemplate[]>>;
-  instructions: string;
   mode: "talk" | "plan" | "do";
-  setMode: React.Dispatch<React.SetStateAction<"talk" | "plan" | "do">>;
-  setInstructions: React.Dispatch<React.SetStateAction<string>>;
-  selectedFiles: FileNode[];
-  setSelectedFiles: React.Dispatch<React.SetStateAction<FileNode[]>>;
+  plan: string;
+  projects: TreeItemData[];
   selectedFile: FileNode | null | undefined;
+  selectedFiles: FileNode[];
+  setCustomTemplates: React.Dispatch<React.SetStateAction<CustomTemplate[]>>;
+  setInstructions: React.Dispatch<React.SetStateAction<string>>;
+  setMode: React.Dispatch<React.SetStateAction<"talk" | "plan" | "do">>;
+  setPlan: React.Dispatch<React.SetStateAction<string>>;
+  setProjects: React.Dispatch<React.SetStateAction<TreeItemData[]>>;
   setSelectedFile: React.Dispatch<
     React.SetStateAction<FileNode | null | undefined>
   >;
-  projects: TreeItemData[];
-  setProjects: React.Dispatch<React.SetStateAction<TreeItemData[]>>;
+  setSelectedFiles: React.Dispatch<React.SetStateAction<FileNode[]>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
