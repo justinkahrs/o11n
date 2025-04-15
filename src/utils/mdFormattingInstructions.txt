@@ -80,13 +80,13 @@ A short explanation of this specific change.
    - The **Description** line is a short textual explanation of what you are doing.
 
 6. **Search** (use only for `modify` actions, do not include these parenthesis in the final output)
-   - A fenced code block (backticks) that shows the exact snippet you want to find in the existing file.
+   - A fenced code block (backticks) that shows ONLY the exact snippet you want to find in the existing file. If appending new content, include a fenced code block containing the last existing snippet at the end of the file (or the end of a relevant block) to anchor the addition. 
    - **No** additional symbols around it—just standard Markdown fences.
 
 7. **Content**
    - A fenced code block (backticks) that shows the replacement snippet (when using `modify`) or the entire file contents (for `create` or `rewrite`).
 
-8. **No Content** (use only for `delete` actions, do not include these parenthesis in the final output))
+8. **No Content** (use only for `delete` actions, do not include these parenthesis in the final output)
    - If the file is being deleted, you omit the Content block or leave it empty.
 
 ---

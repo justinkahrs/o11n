@@ -14,7 +14,7 @@ import { useAppContext } from "../context/AppContext";
 
 export default function FileExplorer() {
   const theme = useTheme();
-  const { showDotfiles } = useUserContext();
+  const { showDotfiles, showLogo } = useUserContext();
   const { handleFileSelect, handleFilePreviewClick, projects, setProjects } =
     useAppContext();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
@@ -155,7 +155,9 @@ export default function FileExplorer() {
     >
       <Box sx={{ p: 1 }}>
         <Box sx={{ textAlign: "center", mb: 2 }}>
-          <img src="/logo.png" alt="Logo" style={{ height: "55px" }} />
+          {showLogo && (
+            <img src="/logo.png" alt="Logo" style={{ height: "55px" }} />
+          )}
         </Box>
         <Button
           startIcon={<FolderSpecial />}

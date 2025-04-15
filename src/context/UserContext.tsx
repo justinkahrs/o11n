@@ -17,11 +17,14 @@ interface UserContextType {
   setIncludeFileTree: React.Dispatch<React.SetStateAction<boolean>>;
   setFormatOutput: React.Dispatch<React.SetStateAction<boolean>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setShowDotfiles: React.Dispatch<React.SetStateAction<boolean>>;
+setShowDotfiles: React.Dispatch<React.SetStateAction<boolean>>;
+  showLogo: boolean;
+  setShowLogo: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [showDotfiles, setShowDotfiles] = useState(false);
+const [showDotfiles, setShowDotfiles] = useState(false);
+  const [showLogo, setShowLogo] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [countTokens, setCountTokens] = useState(true);
   const [formatOutput, setFormatOutput] = useState(true);
@@ -44,8 +47,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     );
   };
 
-  return (
-    <UserContext.Provider
+  return (<UserContext.Provider
       value={{
         showDotfiles,
         setShowDotfiles,
@@ -58,8 +60,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setFormatOutput,
         loading,
         setLoading,
-      }}
-    >
+        showLogo,
+        setShowLogo,
+      }}>
       <ThemeProvider theme={currentTheme}>{children}</ThemeProvider>
     </UserContext.Provider>
   );

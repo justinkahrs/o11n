@@ -11,6 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { Save } from "@mui/icons-material";
+import { useUserContext } from "../context/UserContext";
 type ThemeModalProps = {
   open: boolean;
   onClose: () => void;
@@ -33,7 +34,8 @@ export default function ThemeModal({
   const [secondaryColor, setSecondaryColor] = useState(
     theme.palette.secondary.main
   );
-  const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
+const [isDarkMode, setIsDarkMode] = useState(theme.palette.mode === "dark");
+  const { showLogo, setShowLogo } = useUserContext();
   // When the modal opens, capture the current theme values if not already captured
   useEffect(() => {
     if (open) {
@@ -77,7 +79,7 @@ export default function ThemeModal({
           margin="normal"
           fullWidth
         />
-        <FormControlLabel
+<FormControlLabel
           control={
             <Switch
               checked={isDarkMode}
@@ -86,6 +88,16 @@ export default function ThemeModal({
             />
           }
           label="Dark Mode"
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={showLogo}
+              onChange={(e) => setShowLogo(e.target.checked)}
+              color="primary"
+            />
+          }
+          label="Show Logo"
         />
       </DialogContent>
       <DialogActions>
