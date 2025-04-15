@@ -14,7 +14,8 @@ import {
 import { theme as defaultTheme } from "../theme";
 import { Close, Replay, Save } from "@mui/icons-material";
 import { useUserContext } from "../context/UserContext";
-import { SliderPicker } from "react-color";
+import { HexColorPicker } from "react-colorful";
+import LogoSVG from "./LogoSVG";
 type ThemeModalProps = {
   open: boolean;
   onClose: () => void;
@@ -63,108 +64,136 @@ export default function ThemeModal({
       // Reset the ref when modal closes so a fresh capture occurs next time
       initialThemeRef.current = null;
     }
-  }, [open, theme]);
+  }, [open]);
   // Instant preview: apply theme changes as the user modifies them
   useEffect(() => {
     onApply(primaryColor, secondaryColor, isDarkMode ? "dark" : "light");
   }, [primaryColor, secondaryColor, isDarkMode, onApply]);
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Configure Theme</DialogTitle>
       <DialogContent>
-        <Box
-          style={{
-            marginBottom: "16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "8px",
-          }}
-        >
-          <Box>Primary Color</Box>
+        <Box sx={{ display: "flex", flexDirection: "row", gap: 2 }}>
           <Box
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "8px",
-              backgroundColor: primaryColor,
-              cursor: "pointer",
+            sx={{
+              flex: 1,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              borderRight: `1px solid ${theme.palette.divider}`,
+              paddingRight: 2,
             }}
-            onClick={(event) => setPrimaryAnchorEl(event.currentTarget)}
-            onKeyDown={(event) => setPrimaryAnchorEl(event.currentTarget)}
-          />
-          <Menu
-            open={Boolean(primaryAnchorEl)}
-            anchorEl={primaryAnchorEl}
-            onClose={() => setPrimaryAnchorEl(null)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-            transformOrigin={{ vertical: "top", horizontal: "left" }}
-            PaperProps={{ style: { minWidth: "300px", padding: "8px" } }}
           >
-            <SliderPicker
-              color={primaryColor}
-              onChange={(color) => setPrimaryColor(color.hex)}
-            />
-          </Menu>
-        </Box>
-        <Box
-          style={{
-            marginBottom: "16px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
+            <LogoSVG />
+          </Box>
+          <Box sx={{ flex: 1, paddingLeft: 2 }}>
+            <Box
+              style={{
+                marginBottom: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "8px",
+              }}
+            >
+              <Box>Primary Color</Box>
+              <Box
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "8px",
+                  backgroundColor: primaryColor,
+                  cursor: "pointer",
+                }}
+                onClick={(event) => setPrimaryAnchorEl(event.currentTarget)}
+                onKeyDown={(event) => setPrimaryAnchorEl(event.currentTarget)}
+              />
+              <Menu
+                open={Boolean(primaryAnchorEl)}
+                anchorEl={primaryAnchorEl}
+                onClose={() => setPrimaryAnchorEl(null)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
+                slotProps={{
+                  paper: {
+                    style: {
+                      padding: "0px 8px",
+                    },
+                  },
+                }}
+              >
+                <HexColorPicker
+                  color={primaryColor}
+                  onChange={setPrimaryColor}
+                />
+              </Menu>
+            </Box>
+            <Box
+              style={{
+                marginBottom: "16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "8px",
+              }}
+            >
+              <Box>Secondary Color</Box>
+              <Box
+                style={{
+                  width: "40px",
+                  height: "40px",
+                  borderRadius: "8px",
+                  backgroundColor: secondaryColor,
+                  cursor: "pointer",
+                }}
+                onClick={(event) => setSecondaryAnchorEl(event.currentTarget)}
+                onKeyDown={(event) => setSecondaryAnchorEl(event.currentTarget)}
+              />
 
-            gap: "8px",
-          }}
-        >
-          <Box>Secondary Color</Box>
-          <Box
-            style={{
-              width: "40px",
-              height: "40px",
-              borderRadius: "8px",
-              backgroundColor: secondaryColor,
-              cursor: "pointer",
-            }}
-            onClick={(event) => setSecondaryAnchorEl(event.currentTarget)}
-            onKeyDown={(event) => setSecondaryAnchorEl(event.currentTarget)}
-          />
-          <Menu
-            open={Boolean(secondaryAnchorEl)}
-            anchorEl={secondaryAnchorEl}
-            onClose={() => setSecondaryAnchorEl(null)}
-            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
-            transformOrigin={{ vertical: "top", horizontal: "left" }}
-            PaperProps={{ style: { minWidth: "300px", padding: "8px" } }}
-          >
-            <SliderPicker
-              color={secondaryColor}
-              onChange={(color) => setSecondaryColor(color.hex)}
+              <Menu
+                open={Boolean(secondaryAnchorEl)}
+                anchorEl={secondaryAnchorEl}
+                onClose={() => setSecondaryAnchorEl(null)}
+                anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+                transformOrigin={{ vertical: "top", horizontal: "left" }}
+                slotProps={{
+                  paper: {
+                    style: {
+                      padding: "0px 8px",
+                    },
+                  },
+                }}
+              >
+                <HexColorPicker
+                  color={secondaryColor}
+                  onChange={setSecondaryColor}
+                />
+              </Menu>
+            </Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isDarkMode}
+                  onChange={(e) => setIsDarkMode(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Dark Mode"
+              sx={{ width: "100%" }}
             />
-          </Menu>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={showLogo}
+                  onChange={(e) => setShowLogo(e.target.checked)}
+                  color="primary"
+                />
+              }
+              label="Show Logo"
+              sx={{ width: "100%" }}
+            />
+          </Box>
         </Box>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isDarkMode}
-              onChange={(e) => setIsDarkMode(e.target.checked)}
-              color="primary"
-            />
-          }
-          label="Dark Mode"
-          sx={{ width: "100%" }}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showLogo}
-              onChange={(e) => setShowLogo(e.target.checked)}
-              color="primary"
-            />
-          }
-          label="Show Logo"
-          sx={{ width: "100%" }}
-        />
       </DialogContent>
       <DialogActions sx={{ display: "flex", justifyContent: "space-between" }}>
         <Button

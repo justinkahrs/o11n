@@ -1,4 +1,4 @@
-import React from "react";
+import type React from "react";
 import { useTheme } from "@mui/material";
 type LogoProps = React.SVGProps<SVGSVGElement> & {
   section1Color?: string;
@@ -12,14 +12,14 @@ const Logo: React.FC<LogoProps> = (props) => {
     section1Color = theme.palette.primary.main,
     section2Color = theme.palette.secondary.main,
     section3Color = theme.palette.secondary.dark,
-    height = "55px",
+    height = "5rem",
     ...svgProps
   } = props;
   return (
     <svg
-      width="673"
       height={height}
-      viewBox="0 0 2800 347"
+      viewBox="0 0 800 400"
+      preserveAspectRatio="xMidYMid meet"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       style={{ margin: 0 }}
