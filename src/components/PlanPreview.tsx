@@ -45,10 +45,10 @@ export function PlanPreview() {
   }, [plan]);
   return (
     doMode && (
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 2 }}>
         {doMode && plan && (
           <>
-            <Typography color="secondary" variant="h5" gutterBottom>
+            <Typography color="secondary" variant="h1" gutterBottom>
               Plan Overview
             </Typography>
             <Typography variant="body1" gutterBottom>
@@ -57,7 +57,7 @@ export function PlanPreview() {
             </Typography>
             {fileChanges.length > 0 && (
               <>
-                <Typography color="secondary" variant="h6">
+                <Typography color="secondary" variant="h2">
                   Change Descriptions
                 </Typography>
                 <List dense>
