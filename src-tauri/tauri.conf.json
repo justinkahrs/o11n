@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "o11n",
-  "version": "0.1.0",
-  "identifier": "com.o11n.app",
+  "version": "1.0.0",
+  "identifier": "com.senna-automation.o11n",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://localhost:1420",
