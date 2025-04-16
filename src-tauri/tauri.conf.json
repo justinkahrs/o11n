@@ -56,7 +56,9 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["o11n"]
+        "schemes": [
+          "o11n"
+        ]
       }
     }
   }
