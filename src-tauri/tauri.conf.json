@@ -24,6 +24,7 @@
   },
   "bundle": {
     "active": true,
+    "category": "public.app-category.developer-tools",
     "macOS": {
       "dmg": {
         "appPosition": {
