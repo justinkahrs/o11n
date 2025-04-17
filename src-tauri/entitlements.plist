@@ -13,5 +13,7 @@
 
   <key>com.apple.security.files.user-selected.read-only</key>
   <true/>
+  <key>com.apple.application-identifier</key>
+  <string>6HX6GZV692.com.senna-automation.o11n</string>
 </dict>
 </plist>
