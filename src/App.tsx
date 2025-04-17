@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Grid, CircularProgress, useTheme } from "@mui/material";
+import { Grid, CircularProgress, useTheme, Box } from "@mui/material";
 import FileExplorer from "./components/FileExplorer";
 import FilePreview from "./components/FilePreview";
 import { useUserContext } from "./context/UserContext";
@@ -49,10 +49,23 @@ function App() {
         ref={containerRef}
         style={{ display: "flex", height: "100vh", padding: "16px" }}
       >
-        {/* Left Panel */}
-        <Grid style={{ width: explorerWidth, overflow: "auto", flexShrink: 0 }}>
-          <FileExplorer />
+        {/* Left Panel: file explorer scrolls, settings fixed at bottom */}
+        <Grid
+          style={{
+            width: explorerWidth,
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+          }}
+        >
+        <div style={{ flexGrow: 1, overflow: "auto" }}>
+            <FileExplorer />
+        </div>
+        {/* Settings button aligned with explorer content */}
+        <Box sx={{ alignSelf: 'flex-start' }}>
           <SettingsMenu />
+        </Box>
         </Grid>
         <VerticalSeparator
           containerRef={containerRef}

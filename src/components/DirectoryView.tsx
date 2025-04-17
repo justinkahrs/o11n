@@ -171,14 +171,8 @@ export default function DirectoryView({
             />
           );
         })
-      ) : (
-        // Render a hidden dummy child to force the expand icon to show if necessary.
-        <TreeItem
-          nodeId={`${node.id}-dummy`}
-          label=" "
-          sx={{ display: "none" }}
-        />
-      )}
+      ) : null
+      }
     </TreeView>
   );
 }

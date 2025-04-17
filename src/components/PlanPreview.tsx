@@ -1,8 +1,8 @@
 import React from "react";
-import { Box, Typography, List, ListItem } from "@mui/material";
+import { Box, Typography, List, ListItem, Checkbox } from "@mui/material";
 import { useAppContext } from "../context/AppContext";
 export function PlanPreview() {
-  const { mode, plan } = useAppContext();
+  const { selectedDescriptions, setSelectedDescriptions, mode, plan } = useAppContext();
   const doMode = mode === "do";
   const { planDescription } = React.useMemo(() => {
     const planDescriptionMatch = plan.match(/# Plan\s*([\s\S]*?)\n## Files/);
@@ -43,6 +43,14 @@ export function PlanPreview() {
     }
     return files;
   }, [plan]);
+  // Initialize each file's description selection (all checked by default)
+  React.useEffect(() => {
+    const initSelections: Record<string, boolean[]> = {};
+    fileChanges.forEach((fc) => {
+      initSelections[fc.file] = fc.descriptions.map(() => true);
+    });
+    setSelectedDescriptions(initSelections);
+  }, [fileChanges, setSelectedDescriptions]);
   return (
     doMode && (
       <Box sx={{ overflowY: "auto", overflowX: "auto", p: 2 }}>
@@ -61,28 +69,67 @@ export function PlanPreview() {
                   Change Descriptions
                 </Typography>
                 <List dense>
-                  {fileChanges.map((fileChange) => (
-                    <React.Fragment key={fileChange.file}>
-                      <ListItem disableGutters>
-                        <Typography variant="body1" color="primary">
-                          {formatPath(fileChange.file)}
-                        </Typography>
-                      </ListItem>
-                      {fileChange.descriptions.map((desc) => (
-                        <ListItem disableGutters key={desc} sx={{ pl: 2 }}>
-                          <Typography
-                            color="secondary"
-                            sx={{ display: "inline", width: "20px", mr: 1 }}
-                          >
-                            {"○ "}
-                          </Typography>
-                          <Typography variant="body2" component="span">
-                            {desc}
+                {fileChanges.map((fileChange) => {
+                    const fileSel = selectedDescriptions[fileChange.file] || [];
+                    const allChecked = fileSel.every(Boolean);
+                    return (
+                      <React.Fragment key={fileChange.file}>
+                        <ListItem
+                          disableGutters
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            '&:hover .fileHeaderCheckbox': { visibility: 'visible' },
+                          }}
+                        >
+                          <Checkbox
+                            className="fileHeaderCheckbox"
+                            checked={allChecked}
+                            onChange={() => {
+                              const newChecks = fileSel.map(() => !allChecked);
+                              setSelectedDescriptions({
+                                ...selectedDescriptions,
+                                [fileChange.file]: newChecks,
+                              });
+                            }}
+                            size="small"
+                            sx={{ visibility: 'hidden', mr: 1, p: 0 }}
+                          />
+                          <Typography variant="body1" color="primary">
+                            {formatPath(fileChange.file)}
                           </Typography>
                         </ListItem>
-                      ))}
-                    </React.Fragment>
-                  ))}
+                        {fileChange.descriptions.map((desc, idx) => {
+                          const checked = selectedDescriptions[fileChange.file]?.[idx] ?? true;
+                          return (
+                            <ListItem disableGutters key={`${fileChange.file}-${idx}`} sx={{ pl: 2 }}>
+                              <Checkbox
+                                checked={checked}
+                                onChange={() => {
+                                  const fileSelInner = selectedDescriptions[fileChange.file] || [];
+                                  const newFileSelInner = [...fileSelInner];
+                                  newFileSelInner[idx] = !newFileSelInner[idx];
+                                  setSelectedDescriptions({
+                                    ...selectedDescriptions,
+                                    [fileChange.file]: newFileSelInner,
+                                  });
+                                }}
+                                size="small"
+                                sx={{ mr: 1, p: 0 }}
+                              />
+                              <Typography
+                                variant="body2"
+                                component="span"
+                                sx={{ textDecoration: checked ? 'none' : 'line-through' }}
+                              >
+                                {desc}
+                              </Typography>
+                            </ListItem>
+                          );
+                        })}
+                      </React.Fragment>
+                    );
+                  })}
                 </List>
               </>
             )}

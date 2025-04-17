@@ -12,7 +12,8 @@ import {
   Box,
 } from "@mui/material";
 import { theme as defaultTheme } from "../theme";
-import { Close, Replay, Save } from "@mui/icons-material";
+import { Close, Replay, Save, Shuffle } from "@mui/icons-material";
+import tinycolor from "tinycolor2";
 import { useUserContext } from "../context/UserContext";
 import { HexColorPicker } from "react-colorful";
 import LogoSVG from "./LogoSVG";
@@ -229,6 +230,23 @@ export default function ThemeModal({
           }}
         >
           Reset
+        </Button>
+        <Button
+          startIcon={<Shuffle />}
+          variant="text"
+          onClick={() => {
+            const newPrimary = tinycolor.random().toHexString();
+            const newSecondary = tinycolor(newPrimary).complement().toHexString();
+            setPrimaryColor(newPrimary);
+            setSecondaryColor(newSecondary);
+            onApply(
+              newPrimary,
+              newSecondary,
+              isDarkMode ? "dark" : "light"
+            );
+          }}
+        >
+          Randomize
         </Button>
         <Button
           variant="contained"

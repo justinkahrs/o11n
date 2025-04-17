@@ -22,6 +22,9 @@ interface AppContextType {
     React.SetStateAction<FileNode | null | undefined>
   >;
   setSelectedFiles: React.Dispatch<React.SetStateAction<FileNode[]>>;
+  // Selection state for change descriptions in a plan (file path -> list of booleans)
+  selectedDescriptions: Record<string, boolean[]>;
+  setSelectedDescriptions: React.Dispatch<React.SetStateAction<Record<string, boolean[]>>>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -33,6 +36,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileNode | null>();
   const [projects, setProjects] = useState<TreeItemData[]>([]);
+  // State for tracking which change descriptions are selected per file
+  const [selectedDescriptions, setSelectedDescriptions] = useState<Record<string, boolean[]>>({});
   const handleFilePreviewClick = (
     _event: React.SyntheticEvent,
     file: FileNode
@@ -54,7 +59,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     });
   }
   return (
-    <AppContext.Provider
+      <AppContext.Provider
       value={{
         handleFilePreviewClick,
         handleFileSelect,
@@ -72,6 +77,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setInstructions,
         customTemplates,
         setCustomTemplates,
+        // selected descriptions for plan change preview
+        selectedDescriptions,
+        setSelectedDescriptions,
       }}
     >
       {children}

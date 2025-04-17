@@ -42,7 +42,7 @@
       },
       "entitlements": "./Entitlements.plist",
       "files": {
-        "embedded.provisionprofile": "~/Dev/o11n_provision.provisionprofile"
+        "embedded.provisionprofile": "/Volumes/External/Users/justin/Dev/o11n_provision.provisionprofile"
       },
       "hardenedRuntime": true,
       "minimumSystemVersion": "10.13"

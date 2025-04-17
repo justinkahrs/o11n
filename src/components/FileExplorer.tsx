@@ -241,7 +241,6 @@ export default function FileExplorer() {
                     p: 1,
                     maxHeight: 300,
                     overflowY: "auto",
-                    overscrollBehavior: "contain",
                   }}
                 >
                   <DirectoryView

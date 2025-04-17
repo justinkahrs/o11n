@@ -13,7 +13,13 @@
 
   <key>com.apple.security.files.user-selected.read-only</key>
   <true/>
+
+  <key>com.apple.security.files.bookmarks.app-scope</key>
+  <true/>
+  
   <key>com.apple.application-identifier</key>
   <string>6HX6GZV692.com.senna-automation.o11n</string>
+  <key>com.apple.developer.team-identifier</key>
+  <string>6HX6GZV692</string>
 </dict>
 </plist>
