@@ -17,6 +17,9 @@ pub fn parse_change_protocol(xml_protocol: &str) -> Result<Vec<FileChange>> {
     let mut code_field: Option<String> = None;
     let mut code_lines: Vec<String> = Vec::new();
 
+    // Skip file blocks with a no-op action ("none")
+    let mut skip_current_file = false;
+
     // Remove surrounding <pre> tags if present
     let stripped = xml_protocol.replace("<pre>", "").replace("</pre>", "");
     let lines: Vec<&str> = stripped.lines().collect();
@@ -26,6 +29,25 @@ pub fn parse_change_protocol(xml_protocol: &str) -> Result<Vec<FileChange>> {
         let line = line.trim_end();
         // Skip empty lines and horizontal rules
         if line.trim().is_empty() || line.trim() == "---" {
+            continue;
+        }
+
+        // Detect action header and support "none"
+        if line.starts_with("### Action ") {
+            let action_str = line.strip_prefix("### Action ").unwrap().trim();
+            if action_str == "none" {
+                skip_current_file = true;
+                current_action = None;
+            } else {
+                skip_current_file = false;
+                current_action = Some(match action_str {
+                    "modify" => Action::Modify,
+                    "rewrite" => Action::Rewrite,
+                    "create" => Action::Create,
+                    "delete" => Action::Delete,
+                    other => return Err(anyhow!("Unknown action: {}", other)),
+                });
+            }
             continue;
         }
 
@@ -46,35 +68,26 @@ pub fn parse_change_protocol(xml_protocol: &str) -> Result<Vec<FileChange>> {
                 current_content.clear();
                 reading_field = None;
             }
-            // Finalize previous file block if exists
+            // Finalize previous file block if exists, only if not skipped
             if let Some(file_path) = current_file_path.take() {
-                if current_action.is_none() {
-                    return Err(anyhow!("Missing action for file: {}", file_path));
+                if !skip_current_file {
+                    if current_action.is_none() {
+                        return Err(anyhow!("Missing action for file: {}", file_path));
+                    }
+                    file_changes.push(FileChange {
+                        path: PathBuf::from(file_path),
+                        action: current_action.clone().unwrap(),
+                        changes: current_changes.clone(),
+                    });
                 }
-                file_changes.push(FileChange {
-                    path: PathBuf::from(file_path),
-                    action: current_action.clone().unwrap(),
-                    changes: current_changes.clone(),
-                });
+                // Reset for next file
                 current_changes.clear();
                 current_action = None;
+                skip_current_file = false;
             }
             // Set new file path
             let file_path = line.strip_prefix("### File ").unwrap().trim().to_string();
             current_file_path = Some(file_path);
-            continue;
-        }
-
-        // Detect action header
-        if line.starts_with("### Action ") {
-            let action_str = line.strip_prefix("### Action ").unwrap().trim();
-            current_action = Some(match action_str {
-                "modify" => Action::Modify,
-                "rewrite" => Action::Rewrite,
-                "create" => Action::Create,
-                "delete" => Action::Delete,
-                other => return Err(anyhow!("Unknown action: {}", other)),
-            });
             continue;
         }
 
@@ -119,7 +132,7 @@ pub fn parse_change_protocol(xml_protocol: &str) -> Result<Vec<FileChange>> {
             if !in_code_block {
                 // Start of a code block
                 in_code_block = true;
-                code_field = reading_field.clone(); // should be "search" or "content"
+                code_field = reading_field.clone();
                 code_lines.clear();
             } else {
                 // End of a code block
@@ -164,16 +177,18 @@ pub fn parse_change_protocol(xml_protocol: &str) -> Result<Vec<FileChange>> {
         });
     }
 
-    // Finalize last file block if exists
+    // Finalize last file block if exists (skip if marked "none")
     if let Some(file_path) = current_file_path.take() {
-        if current_action.is_none() {
-            return Err(anyhow!("Missing action for file: {}", file_path));
+        if !skip_current_file {
+            if current_action.is_none() {
+                return Err(anyhow!("Missing action for file: {}", file_path));
+            }
+            file_changes.push(FileChange {
+                path: PathBuf::from(file_path),
+                action: current_action.clone().unwrap(),
+                changes: current_changes.clone(),
+            });
         }
-        file_changes.push(FileChange {
-            path: PathBuf::from(file_path),
-            action: current_action.clone().unwrap(),
-            changes: current_changes.clone(),
-        });
     }
 
     Ok(file_changes)

@@ -9,6 +9,7 @@ import {
 } from "@mui/icons-material";
 import { Box } from "@mui/material";
 import { useUserContext } from "../context/UserContext";
+import { useAppContext } from "../context/AppContext";
 import type { FileNode, TreeItemData } from "../types";
 
 export interface DirectoryViewProps {
@@ -32,6 +33,7 @@ export default function DirectoryView({
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
   const { countTokens } = useUserContext();
+const { mode, setMode } = useAppContext();
 
   // Automatically refresh node children if the node is expanded but not loaded.
   useEffect(() => {
@@ -110,7 +112,10 @@ export default function DirectoryView({
         });
         file.tokenSize = Number(tokenCount);
       }
-      onFileSelect(file);
+      if (mode === "do") {
+  setMode("plan");
+}
+onFileSelect(file);
     }
   };
 
