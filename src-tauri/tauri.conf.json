@@ -40,8 +40,10 @@
           "width": 600
         }
       },
-      "entitlements": "entitlements.plist",
-      "files": {},
+      "entitlements": "./Entitlements.plist",
+      "files": {
+        "embedded.provisionprofile": "~/Dev/o11n_provision.provisionprofile"
+      },
       "hardenedRuntime": true,
       "minimumSystemVersion": "10.13"
     },
