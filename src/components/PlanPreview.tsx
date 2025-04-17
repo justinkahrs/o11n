@@ -139,11 +139,9 @@ export function PlanPreview() {
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            '&:hover .fileHeaderCheckbox': { visibility: 'visible' },
                           }}
                         >
                           <Checkbox
-                            className="fileHeaderCheckbox"
                             checked={allChecked}
                             onChange={() => {
                               const newChecks = fileSel.map(() => !allChecked);
@@ -153,7 +151,7 @@ export function PlanPreview() {
                               });
                             }}
                             size="small"
-                            sx={{ visibility: 'hidden', mr: 1, p: 0 }}
+                            sx={{  mr: 1, p: 0 }}
                           />
                           <Typography variant="body1" color="primary">
                             {formatPath(fileChange.file)}
@@ -208,13 +206,13 @@ export function PlanPreview() {
         <DialogContent dividers>
           <Box
             component="pre"
-            sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', p: 1, borderRadius: 1, overflowX: 'auto', userSelect: 'text !important' }}
+            sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', p: 1, backgroundColor: 'white', borderRadius: 1, overflowX: 'auto', userSelect: 'text !important' }}
             // biome-ignore lint/security/noDangerouslySetInnerHtml: required for syntax highlighting
             dangerouslySetInnerHTML={{ __html: highlightedDiff }}
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDiff(null)}>Close</Button>
+          <Button variant="contained" onClick={() => setOpenDiff(null)}>Close</Button>
         </DialogActions>
       </Dialog>
       </>
