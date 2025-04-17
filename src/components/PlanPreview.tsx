@@ -1,9 +1,13 @@
 import React from "react";
-import { Box, Typography, List, ListItem, Checkbox } from "@mui/material";
+import hljs from "highlight.js";
+import "highlight.js/styles/github.css";
+import { Box, Typography, List, ListItem, Checkbox, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useAppContext } from "../context/AppContext";
 export function PlanPreview() {
   const { selectedDescriptions, setSelectedDescriptions, mode, plan } = useAppContext();
   const doMode = mode === "do";
+  const [openDiff, setOpenDiff] = React.useState<{ file: string; idx: number } | null>(null);
   const { planDescription } = React.useMemo(() => {
     const planDescriptionMatch = plan.match(/# Plan\s*([\s\S]*?)\n## Files/);
     const planDescription = planDescriptionMatch
@@ -22,6 +26,61 @@ export function PlanPreview() {
     }
     return path;
   }
+  // Extract the raw change block for a given file and change index
+  const getRawChangeBlock = (file: string, idx: number): string => {
+    // Escape regex‐special characters in the file path
+    const escapedFile = file.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+  
+    // Grab that file’s section from the full plan
+    const fileSectionRegex = new RegExp(
+      `### File\\s+${escapedFile}[\\s\\S]*?(?=### File|$)`
+    );
+    const sectionMatch = plan.match(fileSectionRegex);
+    if (!sectionMatch) return '';
+  
+    const fileSection = sectionMatch[0];
+  
+    // Find each “#### Change” block
+    const changeBlocks = fileSection.match(/#### Change[\s\S]*?(?=#### Change|### File|$)/g) || [];
+    const rawBlock = (changeBlocks[idx] || '').trim();
+  
+    // Regexes that ignore any language tag (e.g. "json") after the backticks
+    const searchMatch = rawBlock.match(
+      /\*\*Search\*\*:[\s\S]*?```(?:[^\n]*\n)?([\s\S]*?)```/
+    );
+    const contentMatch = rawBlock.match(
+      /\*\*Content\*\*:[\s\S]*?```(?:[^\n]*\n)?([\s\S]*?)```/
+    );
+  
+    if (searchMatch && contentMatch) {
+      const oldLines = searchMatch[1].trimEnd().split('\n');
+      const newLines = contentMatch[1].trimEnd().split('\n');
+  
+      // Prefix removed lines with "-" and added lines with "+"
+      const diffLines = [
+        ...oldLines.map(line => `- ${line}`),
+        ...newLines.map(line => `+ ${line}`)
+      ];
+  
+      // Return just the lines themselves—no fences, no "diff" or language tag
+      return diffLines.join('\n');
+    }
+  
+    // Fallback to raw markdown if parsing fails
+    return rawBlock;
+  };
+  // Compute syntax-highlighted diff HTML
+  const highlightedDiff = React.useMemo(() => {
+    if (!openDiff) return '';
+    const raw = getRawChangeBlock(openDiff.file, openDiff.idx);
+    try {
+      return hljs.highlight(raw, { language: 'diff' }).value;
+    } catch (error) {
+      console.error('Error highlighting diff', error);
+      return raw.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+  }, [openDiff, plan]);
+
   const fileChanges = React.useMemo(() => {
     const files = [];
     const fileRegex = /### File\s+(.+?)\n([\s\S]*?)(?=### File\s+|$)/g;
@@ -53,6 +112,7 @@ export function PlanPreview() {
   }, [fileChanges, setSelectedDescriptions]);
   return (
     doMode && (
+      <>
       <Box sx={{ overflowY: "auto", overflowX: "auto", p: 2 }}>
         {doMode && plan && (
           <>
@@ -120,10 +180,17 @@ export function PlanPreview() {
                               <Typography
                                 variant="body2"
                                 component="span"
-                                sx={{ textDecoration: checked ? 'none' : 'line-through' }}
+                                sx={{ textDecoration: checked ? 'none' : 'line-through', flex: 1 }}
                               >
                                 {desc}
                               </Typography>
+                              <IconButton
+                                size="small"
+                                onClick={() => setOpenDiff({ file: fileChange.file, idx })}
+                                sx={{ ml: 1 }}
+                              >
+                                <VisibilityIcon fontSize="small" />
+                              </IconButton>
                             </ListItem>
                           );
                         })}
@@ -136,6 +203,21 @@ export function PlanPreview() {
           </>
         )}
       </Box>
+      <Dialog open={Boolean(openDiff)} onClose={() => setOpenDiff(null)} maxWidth="md" fullWidth>
+        <DialogTitle>Change Details</DialogTitle>
+        <DialogContent dividers>
+          <Box
+            component="pre"
+            sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', p: 1, borderRadius: 1, overflowX: 'auto', userSelect: 'text !important' }}
+            // biome-ignore lint/security/noDangerouslySetInnerHtml: required for syntax highlighting
+            dangerouslySetInnerHTML={{ __html: highlightedDiff }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenDiff(null)}>Close</Button>
+        </DialogActions>
+      </Dialog>
+      </>
     )
   );
 }
