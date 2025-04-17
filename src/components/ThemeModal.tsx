@@ -234,15 +234,17 @@ export default function ThemeModal({
         <Button
           startIcon={<Shuffle />}
           variant="text"
-          onClick={() => {
+onClick={() => {
             const newPrimary = tinycolor.random().toHexString();
             const newSecondary = tinycolor(newPrimary).complement().toHexString();
+            const newIsDarkMode = Math.random() < 0.5;
             setPrimaryColor(newPrimary);
             setSecondaryColor(newSecondary);
+            setIsDarkMode(newIsDarkMode);
             onApply(
               newPrimary,
               newSecondary,
-              isDarkMode ? "dark" : "light"
+              newIsDarkMode ? "dark" : "light"
             );
           }}
         >
