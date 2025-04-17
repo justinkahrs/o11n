@@ -7,7 +7,7 @@ import FolderIcon from "@mui/icons-material/Folder";
 import LogoSVG from "./LogoSVG";
 import SearchFiles from "./SearchFiles";
 import DirectoryView from "./DirectoryView";
-import { FolderSpecial, Delete } from "@mui/icons-material";
+import { FolderSpecial, Delete, InsertDriveFile as InsertDriveFileIcon } from "@mui/icons-material";
 import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
 import { useUserContext } from "../context/UserContext";
@@ -83,6 +83,18 @@ export default function FileExplorer() {
     [showDotfiles, setProjects]
   );
 
+// Called when we want to open a single file
+  const openFile = async () => {
+    const selected = await openDialog({
+      multiple: false,
+      directory: false,
+    });
+    if (selected && typeof selected === "string") {
+      const path = selected;
+      const name = path.split("/").pop() || path;
+      handleFileSelect({ id: name, name, path });
+    }
+  };
   // Called when we want to add a new project
   const openProject = async () => {
     const selected = await openDialog({
@@ -142,8 +154,7 @@ export default function FileExplorer() {
     })();
   }, [loadChildren, projects]);
 
-  const buttonLabel =
-    projects.length > 0 ? "Load Another Project" : "Load Project";
+  const buttonLabel = "Load Project";
 
   return (
     <Box
@@ -156,7 +167,7 @@ export default function FileExplorer() {
     >
       <Box sx={{ p: 1 }}>
         <Box sx={{ textAlign: "center", mb: 2 }}>{showLogo && <LogoSVG />}</Box>
-        <Button
+<Button
           startIcon={<FolderSpecial />}
           variant="contained"
           onClick={openProject}
@@ -164,6 +175,16 @@ export default function FileExplorer() {
           size="small"
         >
           {buttonLabel}
+        </Button>
+        <Button
+          startIcon={<InsertDriveFileIcon />}
+          variant="outlined"
+          onClick={openFile}
+          fullWidth
+          size="small"
+          sx={{ mt: 1 }}
+        >
+          Load File
         </Button>
         <SearchFiles
           searchQuery={searchQuery}
