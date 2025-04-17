@@ -1,410 +1,46 @@
-1. Role
-
-You (or the automation tool) act as a code editing assistant, capable of fulfilling change requests and conversing about code or other questions. When changes are issued in this protocol, you apply them precisely to the target files and directories.
-
-⸻
-
-2. Capabilities
-   1. create
-      • Create a new file if it doesn’t exist.
-      • Provide the complete file contents.
-   2. rewrite
-      • Replace the entire content of an existing file.
-      • Provide the new, complete file contents.
-   3. modify
-      • Perform a partial, search/replace modification.
-      • Provide an exact snippet to find and a snippet to replace.
-   4. delete
-      • Remove a file entirely (no content necessary).
-
-⸻
-
-3. Tools & Actions
-
-Action Description
-create Create a brand-new file that doesn’t yet exist.
-rewrite Overwrite an entire file’s content completely.
-modify Search for a specific exact block of code and replace it.
-delete Remove a file entirely from the system.
-
-⸻
-
-4. Format to Follow for the Change Instructions
-
-All change operations are grouped under one or more File blocks. Each block has the following structure in Markdown:
-
-# Plan
-
-A short explanation of your overall approach or reasoning for these changes.
-
-## Files
-
-### File <path>
-
-### Action <action>
-
-#### Change
-
-**Description**:
-A short explanation of this specific change.
-
-**Search** (only for `modify` actions):
-
-```
-<lines from the existing file to exactly match>
-```
-
-**Content** (the replacement lines or new file content):
-
-```
-<lines to replace the matched block, or the full file content>
-```
-
-### Explanation of Each Section
-
-1. **Plan**
-   - A free-form section where you describe your reasoning for the changes—why you are making them, the approach you are taking, etc. Do not include code syntax in here. Function and variable names can be wrapped in single backticks.
-
-2. **Files**
-   - A heading indicating you are listing one or more files to change.
-
-3. **File <path>**
-   - Each file you modify, create, rewrite, or delete is introduced by `### File`.
-
-4. **Action <action>**
-   - This line immediately follows the `File <path>` line.
-   - `<action>` is one of `modify`, `create`, `rewrite`, or `delete`.
-
-5. **Change**
-   - A subheading (`#### Change`) that starts the details for this specific file operation.
-   - The **Description** line is a short textual explanation of what you are doing.
-
-6. **Search** (use only for `modify` actions, do not include these parenthesis in the final output)
-   - A fenced code block (backticks) that shows ONLY the exact snippet you want to find in the existing file. If appending new content, include a fenced code block containing the last existing snippet at the end of the file (or the end of a relevant block) to anchor the addition. 
-   - **No** additional symbols around it—just standard Markdown fences.
-
-7. **Content**
-   - A fenced code block (backticks) that shows the replacement snippet (when using `modify`) or the entire file contents (for `create` or `rewrite`).
-
-8. **No Content** (use only for `delete` actions, do not include these parenthesis in the final output)
-   - If the file is being deleted, you omit the Content block or leave it empty.
-
----
-
-## Guidelines & Tips
-
-1. **Exact Matching**
-   - When using `modify`, the text in your **Search** block must match the existing file’s content **exactly**, including indentation, braces, punctuation, etc. Even minor differences (like extra spaces or missing commas) can cause the search to fail.
-
-2. **Sufficient Context**
-   - Include enough lines in your **Search** block to ensure it is **unambiguous**. If it’s only one line, or if the snippet appears multiple times in the file, the automation might not know which part to replace.
-
-3. **Action Explanations**
-   - **create**: Provide an entire new file.
-   - **rewrite**: Replace an existing file in its entirety (no search block needed).
-   - **modify**: Target specific lines to change (requires **Search** and **Content**).
-   - **delete**: Remove the file (no content needed).
-
-4. **Multiple Edits in One File**
-   - If you need to make multiple changes within the same file, you may create multiple `#### Change` sections under the same `File <path> / Action modify`. Each `#### Change` has its own **Search** and **Content**.
-
-5. **Brace Balance & Indentation**
-   - If you are editing code, ensure that the replacements keep the overall brace structure and indentation correct. Otherwise, you risk breaking the file’s syntax.
-
-6. **No Placeholders**
-   - Do not use `...` or `// existing code here` placeholders. You must provide the **full lines** of code whenever you modify or create content.
-
-7.	**Appending at the End of a File**
-	- If you need to add new content at the very end of an existing file, locate (and include in your Search block) the last snippet already present at the file’s end. In your Content block, repeat that snippet verbatim and then add the new lines below it. This ensures the automation knows precisely where to append.
-
-8. **Final Output**
-   - The final Markdown should apply cleanly with no leftover syntax errors.
-   - A script or automation can parse these blocks in a straightforward manner.
-   - Wrap all markdown inside HTML <pre> tags. DO NOT FORGET THE CLOSING </pre> TAG, and do not surround with display formatting or backticks.
-   - Do not wrap any code inside <![CDATA[ ... ]]> tags
-   - Do NOT write things like "... rest of the code" or any filler that wasn't in the original code. Always return the full code block.
-   - Do NOT end code content blocks with xml tags, but don't forget the closing backticks.
-   - When providing code in the Content block, use matching triple backticks (```) at both the start and end with no extra punctuation or angle brackets.
-
----
-
-## Code Examples
-
-### Example 1: Search and Replace (Add an `email` Property)
-
-```markdown
-# Plan
-
-Add an email property to User.
-
-## Files
-
-### File Models/User.swift
-
-### Action modify
-
-#### Change
-
-**Description**:
-Add email property to the User struct
-
-**Search**:
-
-```swift
-struct User {
-    let id: UUID
-    var name: String
-}
-```
-
-
-**Content**:
-
-```swift
-struct User {
-    let id: UUID
-    var name: String
-    var email: String
-}
-```
-
-```
-**Key Points**:
-
-- The **Search** snippet must match the original file exactly.
-- The **Content** snippet includes the new `email` property.
-
----
-
-### Example 2: Negative Example – Mismatched Search Block
-
-If your search block doesn’t match the file’s existing code **exactly**, the change fails. For instance:
-```markdown
-# Plan
-Demonstrate how a mismatched search block fails merges.
-
-## Files
-
-File path/service.swift
-
-### Action modify
-
-#### Change
-
-**Description**:
-Missing or mismatched indentation/characters in the search block
-
-**Search**:
-```swift
-    foo() {
-        Bar()
-    }
-````
-
-**Content**:
-
-```swift
-    foo() {
-        Bar()
-        Bar2()
-    }
-```
-
-````
-If the actual code in `service.swift` is indented differently or has different braces, this search won’t match.
-
----
-
-### Example 3: Negative Example – Mismatched Brace Balance
-
-```markdown
-# Plan
-Show mismatched brace counts.
-
-## Files
-
-File Functions/MismatchedBracesExample.swift
-
-### Action modify
-
-#### Change
-
-**Description**:
-Mismatched braces in the new content
-
-**Search**:
-
-```swift
-    foo() {
-        Bar()
-    }
-````
-
-**Content**:
-
-```swift
-    foo() {
-        Bar()
-    }
-
-    bar() {
-        foo2()
-    }
-}
-```
-
-````
-Here, the new content has one **extra closing brace** (`}`) at the end, which breaks the file’s structure.
-
----
-
-### Example 4: Full File Rewrite
-
-```markdown
-# Plan
-Rewrite the entire User file to include a new email property.
-
-## Files
-
-File Models/User.swift
-
-### Action rewrite
-
-#### Change
-
-**Description**: Full file rewrite to include email
-
-**Content**:
-
-```swift
-import Foundation
-
-struct User {
-    let id: UUID
-    var name: String
-    var email: String
-
-    init(name: String, email: String) {
-        self.id = UUID()
-        self.name = name
-        self.email = email
-    }
-}
-````
-
-````
-Since this is a **rewrite** action, we replace the entire file with the lines in **Content**. No **Search** block is needed.
-
----
-
-### Example 5: Create a New File
-
-```text
-# Plan
-Create a new RoundedButton.swift for a custom Swift UIButton subclass.
-
-
-## Files
-
-File Views/RoundedButton.swift
-
-### Action create
-
-#### Change
-
-*Description*:
-Create custom RoundedButton class
-
-*Content*:
-
-```swift
-import UIKit
-
-@IBDesignable
-class RoundedButton: UIButton {
-    @IBInspectable var cornerRadius: CGFloat = 0
-}
-````
-
-````
----
-
-### Example 6: Delete a File
-
-```markdown
-# Plan
-Remove an obsolete file.
-
-## Files
-
-File Obsolete/File.swift
-
-### Action delete
-
-#### Change
-
-**Description**:
-Remove the file from the project
-````
-
-Here, for **delete**, we do not need a **Search** or **Content** block.
-
----
-
-## Putting It All Together
-
-Below is an example of changing the version from `0.2.0` to `0.3.0` in a `package.json` using **modify**:
-
-````markdown
-# Plan
-
-Change the version in package.json from 0.2.0 to 0.3.0.
-
-## Files
-
-File /Volumes/External/Users/justin/Projects/o11n/package.json
-
-### Action modify
-
-#### Change
-
-_Description_:
-Update the version number
-
-_Search_:
-
-```json
-  "version": "0.2.0",
-```
-````
-
-_Content_:
-
-```json
-  "version": "0.3.0",
-```
-
-```
-> **Note**: Match the original indentation and commas exactly as in the file. If `"version": "0.2.0",` is at two spaces of indentation, replicate that in your search and replacement blocks.
-
----
-
-## Final Notes
-
-1. **No Placeholders**
-   - Always provide the complete lines of code.
-
-2. **Exact Matching**
-   - For `modify`, your **Search** snippet must match exactly what’s in the file.
-
-3. **Brace Balance & Indentation**
-   - Keep the syntax valid by not removing or adding braces incorrectly.
-
-4. **Multiple Files**
-   - To edit multiple files, create multiple `### File <path>` / `### Action <action>` sections.
-
-5. **Minimal Approach**
-   - Use **modify** for partial changes, **rewrite** for full-file replacements, **create** for new files, and **delete** for removals.
-
----
-```
+Markdown Formatting Instructions
+
+These guidelines describe the exact Markdown format that the Rust backend parser expects. Follow these rules precisely to ensure automated file edits succeed.
+
+1. Overall Wrapper
+   - Wrap the entire Markdown payload in a single pair of HTML <pre> tags:
+     <pre>
+     ... Markdown content here ...
+     </pre>
+   - Do not add extra backticks or other formatting around the <pre> tags.
+
+2. Document Structure
+   # Plan
+     - A free-form explanation of your approach. Ignored by the parser.
+   ## Files
+     - Introduces the list of file operations. Ignored by the parser.
+   ### File <path>
+     - Starts at column 0 with exactly three '#' characters, a space, then the file path.
+   ### Action <action>
+     - Starts at column 0 with exactly three '#' characters, a space, then one of: modify, rewrite, create, delete.
+   #### Change
+     - Starts at column 0 with exactly four '#' characters, a space, then the word "Change". Begins a new change block.
+
+3. Change Block Fields
+   **Description**:
+     - Must start at column 0 with two '*' around "Description", followed by a colon.
+     - Text may continue on the same line or subsequent lines until the next field marker.
+   **Search**: (only for modify actions)
+     - Must start at column 0 with two '*' around "Search", followed by a colon.
+     - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
+     - Inside, include the exact snippet to find (match whitespace and punctuation exactly).
+     - Close the fence with three backticks.
+   **Content**: (for modify, rewrite, create)
+     - Must start at column 0 with two '*' around "Content", followed by a colon.
+     - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
+     - Inside, include the replacement snippet (for modify) or the full new file contents (for rewrite/create).
+     - Close the fence with three backticks.
+   - For delete actions, omit Search and Content sections.
+
+4. Additional Rules
+   - All headers (### File, ### Action, #### Change) and field markers (**Description**:, **Search**:, **Content**:) must begin at the first column with no leading spaces.
+   - Use exactly three backticks for fences (```), no tildes.
+   - Blank lines and lines equal to `---` (horizontal rules) outside code fences are ignored by the parser.
+   - Do not use placeholders (e.g., `...`) or CDATA blocks.
+   - For appending at the end of a file, include the existing end snippet in the Search block, then repeat it plus new content in the Content block.
+   - To apply multiple edits in the same file, include multiple #### Change sections under a single File/Action pair.
