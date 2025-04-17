@@ -40,21 +40,18 @@
           "width": 600
         }
       },
+      "entitlements": "",
       "files": {},
       "hardenedRuntime": true,
       "minimumSystemVersion": "10.13"
     },
     "targets": "all",
-    "icon": [
-      "icons/icon.icns"
-    ]
+    "icon": ["icons/icon.icns"]
   },
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": [
-          "o11n"
-        ]
+        "schemes": ["o11n"]
       }
     }
   }
