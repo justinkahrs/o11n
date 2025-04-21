@@ -36,16 +36,20 @@ const Commit = () => {
       planToApply = plan.replace(fileRegex, (_full, filePath, fileBlock) => {
         const selections = selectedDescriptions[filePath.trim()] || [];
         // separate preamble before first change
-        const firstChangeIdx = fileBlock.indexOf('#### Change');
-        const preamble = firstChangeIdx !== -1 ? fileBlock.slice(0, firstChangeIdx) : fileBlock;
+        const firstChangeIdx = fileBlock.indexOf("#### Change");
+        const preamble =
+          firstChangeIdx !== -1
+            ? fileBlock.slice(0, firstChangeIdx)
+            : fileBlock;
         // collect change blocks
         const changeRegex = /#### Change[\s\S]*?(?=#### Change|$)/g;
         const blocks = fileBlock.match(changeRegex) || [];
-        const kept = blocks.filter((b, idx) => selections[idx]);
-        return `### File ${filePath}\n${preamble}${kept.join('')}`;
+        // biome-ignore lint/suspicious/noExplicitAny: idgaf right now
+        const kept = blocks.filter((_b: any, idx: number) => selections[idx]);
+        return `### File ${filePath}\n${preamble}${kept.join("")}`;
       });
     } catch (e) {
-      console.error('Error filtering plan', e);
+      console.error("Error filtering plan", e);
       planToApply = plan;
     }
     let commitError = false;
@@ -65,7 +69,10 @@ const Commit = () => {
     setProjects((prev) =>
       prev.map((proj) => ({ ...proj, loadedChildren: false }))
     );
-    if (planToApply.includes("### File") && planToApply.includes("### Action create")) {
+    if (
+      planToApply.includes("### File") &&
+      planToApply.includes("### Action create")
+    ) {
       try {
         const regex =
           /### File\s+([^\n]+)[\s\S]+?### Action create[\s\S]+?\*\*Content\*\*:\s*\n\s*```(?:\w+)?\n([\s\S]*?)```/gi;
