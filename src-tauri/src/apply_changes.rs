@@ -10,8 +10,16 @@ pub fn apply_changes(xml_protocol: &str) -> Result<()> {
 
     log::debug!("Parsed {} FileChange entries: {:#?}", parsed.len(), parsed);
     for fc in parsed {
-        apply_file_change(&fc)
-            .context(format!("Failed applying changes to file: {:?}", fc.path))?;
+        log::debug!(
+            "Applying FileChange: path={:?}, action={:?}, changes={:#?}",
+            fc.path,
+            fc.action,
+            fc.changes
+        );
+        apply_file_change(&fc).context(format!(
+            "Failed applying changes to file: {:?}, action: {:?}, changes: {:#?}",
+            fc.path, fc.action, fc.changes
+        ))?;
     }
 
     Ok(())
