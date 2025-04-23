@@ -108,7 +108,7 @@ jobs:
         if: matrix.platform == 'macos-latest'
         run: |
           echo "Listing DMG contents"
-          for dmg in src-tauri/target/release/bundle/dmg/*.dmg; do
+          for dmg in src-tauri/target/*/release/bundle/dmg/*.dmg; do
             echo "Mounting $dmg"
             mount=$(hdiutil attach "$dmg" -nobrowse -readonly)
             mount_point=$(echo "$mount" | grep "^/dev" | awk '{print $3}')
