@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/react";
 
 Sentry.init({
   dsn: "https://670f41ff6f2403d4838ea67a695f3791@o4509202782683136.ingest.us.sentry.io/4509202784649216",
-  release: `o11n@${process.env.npm_package_version}`,
+  // release: `o11n@${process.env.npm_package_version}`,
 });
 
 import { Grid, CircularProgress, useTheme, Box } from "@mui/material";

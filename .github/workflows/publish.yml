@@ -95,10 +95,15 @@ jobs:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          PROVISION_PROFILE: ${{ secrets. PROVISION_PROFILE }}
+          PROVISION_PROFILE: ${{ secrets.PROVISION_PROFILE }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }}
+      - name: staple notarization ticket
+        if: matrix.platform == 'macos-latest'
+        run: |
+          find src-tauri/target -type f -name "*.app" -exec xcrun stapler staple {} \;
+          find src-tauri/target -type f -name "*.dmg" -exec xcrun stapler staple {} \;
 
   publish-release:
     permissions:
