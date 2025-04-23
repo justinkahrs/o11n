@@ -1,4 +1,10 @@
 import { useState, useRef } from "react";
+import * as Sentry from "@sentry/react";
+
+Sentry.init({
+  dsn: "https://670f41ff6f2403d4838ea67a695f3791@o4509202782683136.ingest.us.sentry.io/4509202784649216",
+});
+
 import { Grid, CircularProgress, useTheme, Box } from "@mui/material";
 import FileExplorer from "./components/FileExplorer";
 import FilePreview from "./components/FilePreview";
@@ -59,13 +65,13 @@ function App() {
             height: "100%",
           }}
         >
-        <div style={{ flexGrow: 1, overflow: "auto" }}>
+          <div style={{ flexGrow: 1, overflow: "auto" }}>
             <FileExplorer />
-        </div>
-        {/* Settings button aligned with explorer content */}
-        <Box sx={{ alignSelf: 'flex-start' }}>
-          <SettingsMenu />
-        </Box>
+          </div>
+          {/* Settings button aligned with explorer content */}
+          <Box sx={{ alignSelf: "flex-start" }}>
+            <SettingsMenu />
+          </Box>
         </Grid>
         <VerticalSeparator
           containerRef={containerRef}

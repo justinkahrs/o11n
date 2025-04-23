@@ -25,7 +25,7 @@ These guidelines describe the exact Markdown format that the Rust backend parser
    **Description**:
      - Must start at column 0 with two '*' around "Description", followed by a colon.
      - Text may continue on the same line or subsequent lines until the next field marker.
-   **Search**: (only for modify actions)
+   **Search**: (required for modify actions)
      - Must start at column 0 with two '*' around "Search", followed by a colon.
      - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
      - Inside, include the exact snippet to find (match whitespace and punctuation exactly).
@@ -33,7 +33,7 @@ These guidelines describe the exact Markdown format that the Rust backend parser
    **Content**: (for modify, rewrite, create)
      - Must start at column 0 with two '*' around "Content", followed by a colon.
      - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
-     - Inside, include the replacement snippet (for modify) or the full new file contents (for rewrite/create).
+     - Inside, include the exact replacement snippet (for modify) or the full new file contents (for rewrite/create).
      - Close the fence with three backticks.
    - For delete actions, omit Search and Content sections.
 
@@ -41,6 +41,7 @@ These guidelines describe the exact Markdown format that the Rust backend parser
    - All headers (### File, ### Action, #### Change) and field markers (**Description**:, **Search**:, **Content**:) must begin at the first column with no leading spaces.
    - Use exactly three backticks for fences (```), no tildes.
    - Blank lines and lines equal to `---` (horizontal rules) outside code fences are ignored by the parser.
-   - Do not use placeholders (e.g., `...`) or CDATA blocks.
+   - Do not use placeholders (e.g., `...`, `// rest of the code here`) or CDATA blocks.
    - For appending at the end of a file, include the existing end snippet in the Search block, then repeat it plus new content in the Content block.
    - To apply multiple edits in the same file, include multiple #### Change sections under a single File/Action pair.
+   - Do not create any scheduled tasks
