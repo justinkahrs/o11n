@@ -1,7 +1,6 @@
 name: "publish"
 
-on:
-  pull_request
+on: pull_request
 
 jobs:
   create-release:
@@ -63,7 +62,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm'
+          cache: "npm"
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
@@ -73,7 +72,7 @@ jobs:
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
-          workspaces: './src-tauri -> target'          
+          workspaces: "./src-tauri -> target"
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
@@ -104,10 +103,24 @@ jobs:
           PROVISION_PROFILE: ${{ secrets.PROVISION_PROFILE }}
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
-          args: ${{ matrix.args }}
+          args: ${{ matrix.args }} --verbose
+      - name: Debug DMG contents
+        if: matrix.platform == 'macos-latest'
+        run: |
+          echo "Listing DMG contents"
+          for dmg in src-tauri/target/release/bundle/dmg/*.dmg; do
+            echo "Mounting $dmg"
+            mount=$(hdiutil attach "$dmg" -nobrowse -readonly)
+            mount_point=$(echo "$mount" | grep "^/dev" | awk '{print $3}')
+            echo "Contents at $mount_point:"
+            ls -lh "$mount_point"
+            echo "Verifying codesign"
+            codesign --verify --deep --strict --verbose=2 "$mount_point/"*.app || true
+            hdiutil detach "$mount_point"
+          done
       - name: staple notarization ticket
         if: matrix.platform == 'macos-latest'
-        continue-on-error: true
+        continue-on-error: false
         run: |
           find src-tauri/target -type f -name "*.app" -exec xcrun stapler staple {} \;
 
