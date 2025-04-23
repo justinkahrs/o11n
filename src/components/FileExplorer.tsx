@@ -7,7 +7,11 @@ import FolderIcon from "@mui/icons-material/Folder";
 import LogoSVG from "./LogoSVG";
 import SearchFiles from "./SearchFiles";
 import DirectoryView from "./DirectoryView";
-import { FolderSpecial, Delete, InsertDriveFile as InsertDriveFileIcon } from "@mui/icons-material";
+import {
+  FolderSpecial,
+  Delete,
+  InsertDriveFile as InsertDriveFileIcon,
+} from "@mui/icons-material";
 import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
 import { useUserContext } from "../context/UserContext";
@@ -43,47 +47,53 @@ export default function FileExplorer() {
       if (node.path === ".") {
         options.baseDir = BaseDirectory.Home;
       }
-      const contents = await readDir(node.path, options);
-      let entries = contents.map((entry) => ({
-        id: node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
-        name: entry.name || "",
-        path:
-          node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
-        isDirectory: !!entry.isDirectory,
-        children: [],
-        loadedChildren: false,
-        ignorePatterns: node.ignorePatterns,
-      }));
-      if (!showDotfiles) {
-        entries = entries.filter((entry) => !entry.name.startsWith("."));
-      }
-      // Filter out files that match .gitignore patterns if present
-      if (node.ignorePatterns && node.ignorePatterns.length > 0) {
-        function matchesPattern(fileName: string, pattern: string): boolean {
-          const escaped = pattern.replace(/[-\/\\^$+?.()|[\]{}]/g, "\\$&");
-          const regexPattern = `^${escaped.replace(/\*/g, ".*")}$`;
-          const regex = new RegExp(regexPattern);
-          return regex.test(fileName);
+      try {
+        const contents = await readDir(node.path, options);
+        let entries = contents.map((entry) => ({
+          id:
+            node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
+          name: entry.name || "",
+          path:
+            node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
+          isDirectory: !!entry.isDirectory,
+          children: [],
+          loadedChildren: false,
+          ignorePatterns: node.ignorePatterns,
+        }));
+        if (!showDotfiles) {
+          entries = entries.filter((entry) => !entry.name.startsWith("."));
         }
-        entries = entries.filter((entry) => {
-          return !node.ignorePatterns.some((pattern) =>
-            matchesPattern(entry.name, `${pattern}`)
-          );
+        // Filter out files that match .gitignore patterns if present
+        if (node.ignorePatterns && node.ignorePatterns.length > 0) {
+          function matchesPattern(fileName: string, pattern: string): boolean {
+            const escaped = pattern.replace(/[-\/\\^$+?.()|[\]{}]/g, "\\$&");
+            const regexPattern = `^${escaped.replace(/\*/g, ".*")}$`;
+            const regex = new RegExp(regexPattern);
+            return regex.test(fileName);
+          }
+          entries = entries.filter((entry) => {
+            return !node.ignorePatterns.some((pattern) =>
+              matchesPattern(entry.name, `${pattern}`)
+            );
+          });
+        }
+        entries.sort((a, b) => {
+          if (a.isDirectory && !b.isDirectory) return -1;
+          if (!a.isDirectory && b.isDirectory) return 1;
+          return a.name.localeCompare(b.name);
         });
+        node.children = entries;
+        node.loadedChildren = true;
+        setProjects((prev) => [...prev]);
+      } catch (error) {
+        console.error("Failed to read directory", node.path, error);
+        return;
       }
-      entries.sort((a, b) => {
-        if (a.isDirectory && !b.isDirectory) return -1;
-        if (!a.isDirectory && b.isDirectory) return 1;
-        return a.name.localeCompare(b.name);
-      });
-      node.children = entries;
-      node.loadedChildren = true;
-      setProjects((prev) => [...prev]);
     },
     [showDotfiles, setProjects]
   );
 
-// Called when we want to open a single file
+  // Called when we want to open a single file
   const openFile = async () => {
     const selected = await openDialog({
       multiple: false,
@@ -167,7 +177,7 @@ export default function FileExplorer() {
     >
       <Box sx={{ p: 1 }}>
         <Box sx={{ textAlign: "center", mb: 2 }}>{showLogo && <LogoSVG />}</Box>
-<Button
+        <Button
           startIcon={<FolderSpecial />}
           variant="contained"
           onClick={openProject}

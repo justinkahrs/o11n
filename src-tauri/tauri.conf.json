@@ -53,6 +53,9 @@
         "schemes": ["o11n"]
       }
     },
+    "fs": {
+      "requireLiteralLeadingDot": false
+    },
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZEMTYzQjk5OTYwNjQ4ODQKUldTRVNBYVdtVHNXYldnbzdkbHBicG9KN2JGdEU0dW1yR3hJSkRxdG1YQWlCcytVaHVaS2JuSTIK",
       "endpoints": [
