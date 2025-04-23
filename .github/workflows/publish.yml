@@ -63,11 +63,17 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
+          cache: 'npm'
 
       - name: install Rust stable
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'          
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04'
@@ -82,7 +88,7 @@ jobs:
         if: matrix.platform == 'macos-latest'
         run: |
           mkdir -p src-tauri
-          echo "${{ secrets.PROVISION_PROFILE }}" | base64 --decode > src-tauri/o11n_provision.provisionprofile
+          echo "${{ secrets.PROVISION_PROFILE }}" | base64 --decode > ./src-tauri/o11n_provision.provisionprofile
 
       - uses: tauri-apps/tauri-action@v0
         env:
@@ -101,9 +107,9 @@ jobs:
           args: ${{ matrix.args }}
       - name: staple notarization ticket
         if: matrix.platform == 'macos-latest'
+        continue-on-error: true
         run: |
           find src-tauri/target -type f -name "*.app" -exec xcrun stapler staple {} \;
-          find src-tauri/target -type f -name "*.dmg" -exec xcrun stapler staple {} \;
 
   publish-release:
     permissions:
