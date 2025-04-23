@@ -41,10 +41,6 @@
           "width": 600
         }
       },
-      "entitlements": "./Entitlements.plist",
-      "files": {
-        "embedded.provisionprofile": "/Volumes/External/Users/justin/Dev/o11n_provision.provisionprofile"
-      },
       "hardenedRuntime": true,
       "minimumSystemVersion": "10.13"
     },
