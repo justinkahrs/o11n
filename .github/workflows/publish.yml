@@ -109,8 +109,10 @@ jobs:
         run: |
           echo "Listing DMG contents"
           for dmg in src-tauri/target/*/release/bundle/dmg/*.dmg; do
-            echo "Mounting $dmg"mount_output=$(hdiutil attach "$dmg" -nobrowse -readonly)
-            mount_point=$(echo "$mount_output" | awk '/^\/dev/{print $3}' | tail -n1)echo "Contents at $mount_point:"
+            echo "Mounting $dmg"
+            mount_output=$(hdiutil attach "$dmg" -nobrowse -readonly)
+            mount_point=$(echo "$mount_output" | awk '/^\/dev/{print $3}' | tail -n1)
+            echo "Contents at $mount_point:"
             ls -lh "$mount_point"
             echo "Verifying codesign"
             codesign --verify --deep --strict --verbose=2 "$mount_point/"*.app || true
