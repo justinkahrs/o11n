@@ -16,7 +16,7 @@
         },
         "background": "./dmg-bg.png"
       },
-      "entitlements": "./entitlements.plist",
+      "entitlements": "./Entitlements.plist",
       "files": {
         "embedded.provisionprofile": "./o11n_provision.provisionprofile"
       },
