@@ -18,7 +18,7 @@ jobs:
       KEYCHAIN_PASSWORD:  ${{ secrets.KEYCHAIN_PASSWORD }}          # just a random 20-char string
       APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }} # the hash in parentheses
       # ——— notarization creds (API key is preferred) ———
-      APPLE_API_KEY_B64:  ${{ secrets.APPLE_API_KEY_B64 }}          # base64-encoded .p8
+      APPLE_API_KEY_B64:  ${{ secrets.APPLE_P8_KEY }}          # base64-encoded .p8
       APPLE_API_KEY_ID:   ${{ secrets.APPLE_API_KEY }}           # e.g.  ABCDEFGHIJ
       APPLE_API_ISSUER:   ${{ secrets.APPLE_API_ISSUER }}           # UUID
 
@@ -74,9 +74,9 @@ jobs:
           npm run tauri -- build --target ${{ matrix.target }}
         env:
           # env vars read by the bundler (documented by Tauri) …
-          APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
-          APPLE_CERTIFICATE:      ${{ env.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ env.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_CERTIFICATE:      ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD}}
         shell: bash
