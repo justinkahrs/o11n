@@ -3,7 +3,7 @@
     "macOS": {
       "entitlements": "./entitlements.plist",
       "files": {
-        "embedded.provisionprofile": "o11n_provision.provisionprofile"
+        "embedded.provisionprofile": "./o11n_provision.provisionprofile"
       }
     }
   }
