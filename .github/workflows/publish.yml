@@ -78,8 +78,7 @@ jobs:
           APPLE_CERTIFICATE:      ${{ env.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ env.APPLE_CERTIFICATE_PASSWORD }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          # CI variable skips any CLI prompts
-          CI: true
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD}}
         shell: bash
 
       # ---------- zip & notarize ----------
