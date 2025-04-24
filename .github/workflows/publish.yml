@@ -1,7 +1,6 @@
 name: macOS release (manual signing)
 
-on:
-  workflow_dispatch:      # start it from the Actions tab
+on: pull_request
 
 jobs:
   macos-build:
