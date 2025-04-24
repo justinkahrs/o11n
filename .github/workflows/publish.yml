@@ -5,7 +5,7 @@ on: pull_request
 jobs:
   macos-build:
     # Apple-silicon runner; we cross-compile x64 in a matrix
-    runs-on: macos-latest
+    runs-on: self-hosted
     strategy:
       matrix:
         target: [aarch64-apple-darwin]
