@@ -149,14 +149,17 @@ jobs:
         TAR_NAME="o11n_${VERSION}_${ARCH}.app.tar.gz"
 
         mkdir -p dist
-        tar czf dist/"${TAR_NAME}" -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
+        tar czf - \
+          -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")" \
+        | tee dist/"${TAR_NAME}" \
+        | gpg --batch --yes --armor --detach-sign \
+        --output dist/"${TAR_NAME}.sig"
 
         echo "tar_name=${TAR_NAME}" >> $GITHUB_OUTPUT
         echo "version=${VERSION}" >> $GITHUB_OUTPUT
         echo "arch=${ARCH}"     >> $GITHUB_OUTPUT
 
     - name: Import GPG signing key
-      if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
       shell: bash
       run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
 
