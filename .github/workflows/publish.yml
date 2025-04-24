@@ -20,7 +20,9 @@ jobs:
 
       # ——— notarisation (ASC API key) ———
       APPLE_API_KEY_B64:            ${{ secrets.APPLE_P8_KEY }}
-      APPLE_API_KEY_ID:             ${{ secrets.APPLE_API_KEY }}          # ← make sure this is the **Key ID**
+      APPLE_API_KEY_ID:             ${{ secrets.APPLE_API_KEY }}       
+      
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY}}
       APPLE_API_ISSUER:             ${{ secrets.APPLE_API_ISSUER }}       # 8-4-4-4-12 UUID
 
     steps:
@@ -135,11 +137,60 @@ jobs:
         mv -v "$APP_NAME.zip" dist/
       shell: bash
 
-    - name: Draft GitHub Release with artefacts
+    - name: Create .app tarball
+      id: make_tar
+      shell: bash
+      run: |
+        APP_NAME=$(jq -r '.productName' src-tauri/tauri.conf.json)
+        APP_PATH=$(find src-tauri/target/*/release/bundle -type d -name "${APP_NAME}.app")
+        VERSION=$(jq -r '.version' package.json)
+        RAW_ARCH=${{ matrix.target }}
+        ARCH=$(echo "$RAW_ARCH" | tr '[:upper:]-' '[:lower:]_')
+        TAR_NAME="o11n_${VERSION}_${ARCH}.app.tar.gz"
+
+        mkdir -p dist
+        tar czf dist/"${TAR_NAME}" -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")"
+
+        echo "tar_name=${TAR_NAME}" >> $GITHUB_OUTPUT
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "arch=${ARCH}"     >> $GITHUB_OUTPUT
+
+    - name: Import GPG signing key
+      if: ${{ secrets.GPG_PRIVATE_KEY != '' }}
+      shell: bash
+      run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+
+    - name: Sign the tarball
+      shell: bash
+      run: |
+        gpg --batch --yes --armor \
+          --detach-sign \
+          --output dist/"${{ steps.make_tar.outputs.tar_name }}".sig \
+          dist/"${{ steps.make_tar.outputs.tar_name }}"
+
+    - name: Create latest.json
+      shell: bash
+      run: |
+        TAG=${GITHUB_REF##*/}
+        BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
+        cat > dist/latest.json <<EOF
+        {
+          "version": "${{ steps.make_tar.outputs.version }}",
+          "files": {
+            "${{ steps.make_tar.outputs.arch }}": {
+              "url": "${BASE_URL}/o11n_${{ steps.make_tar.outputs.version }}_${{ steps.make_tar.outputs.arch }}.app.tar.gz",
+              "sig": "${BASE_URL}/o11n_${{ steps.make_tar.outputs.version }}_${{ steps.make_tar.outputs.arch }}.app.tar.gz.sig"
+            }
+          }
+        }
+        EOF
+
+    - name: Draft GitHub Release with artifacts
       uses: softprops/action-gh-release@v2
       with:
-        draft: true
-        files: dist/*
+        draft:    true
+        tag_name: ${{ github.ref_name }}
+        files:    dist/*
 
     # ---------- clean up ----------
     - name: Delete temporary keychain
