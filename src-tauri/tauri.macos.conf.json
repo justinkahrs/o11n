@@ -1,10 +1,27 @@
 {
   "bundle": {
     "macOS": {
+      "dmg": {
+        "appPosition": {
+          "x": 180,
+          "y": 170
+        },
+        "applicationFolderPosition": {
+          "x": 480,
+          "y": 170
+        },
+        "windowSize": {
+          "height": 800,
+          "width": 600
+        },
+        "background": "./dmg-bg.png"
+      },
       "entitlements": "./entitlements.plist",
       "files": {
         "embedded.provisionprofile": "./o11n_provision.provisionprofile"
-      }
+      },
+      "hardenedRuntime": true,
+      "minimumSystemVersion": "10.13"
     }
   }
 }

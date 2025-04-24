@@ -28,3 +28,4 @@ dist-ssr
 *.dmg
 # Sentry Config File
 .env.sentry-build-plugin
+*.provisionprofile
