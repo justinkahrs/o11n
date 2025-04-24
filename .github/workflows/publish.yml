@@ -71,7 +71,7 @@ jobs:
       - name: Build Tauri bundle
         run: |
           # Runs cargo tauri build with signing env present → signed .app & .dmg
-          npm run tauri -- build --target ${{ matrix.target }} --bundles dmg
+          npm run tauri -- build --target ${{ matrix.target }}
         env:
           # env vars read by the bundler (documented by Tauri) …
           APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
