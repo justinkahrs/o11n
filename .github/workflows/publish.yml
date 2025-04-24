@@ -104,7 +104,6 @@ jobs:
         APP_NAME=$(jq -r '.productName' src-tauri/tauri.conf.json)
         mkdir -p dist
         cp -v src-tauri/target/*/release/bundle/dmg/*.dmg dist/
-        mv -v "$APP_NAME.zip" dist/
       shell: bash
 
     - name: Draft GitHub Release with artifacts
