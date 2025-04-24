@@ -40,6 +40,7 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
+          cache-on-failure: true
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -53,7 +54,6 @@ jobs:
       # ---------- node & rust deps ----------
       - run: |
           npm ci
-          npm run build                # your front-end build (vite/next/…) — adjust as needed
 
       # ---------- import certificate ----------
       - name: Import Developer-ID / Apple-Distribution certificate
@@ -84,7 +84,7 @@ jobs:
       # ---------- zip & notarize ----------
       - name: Zip the .app for notarization
         run: |
-          APP_NAME=$(jq -r '.package.productName' src-tauri/tauri.conf.json)
+          APP_NAME=$(jq -r '.productName' src-tauri/tauri.conf.json)
           APP_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/macos/${APP_NAME}.app"
           ditto -c -k --keepParent "$APP_PATH" "$APP_NAME.zip"
           echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
