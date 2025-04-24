@@ -17,9 +17,6 @@
         "background": "./dmg-bg.png"
       },
       "entitlements": "./Entitlements.plist",
-      "files": {
-        "embedded.provisionprofile": "./o11n_provision.provisionprofile"
-      },
       "hardenedRuntime": true,
       "minimumSystemVersion": "10.13"
     }
