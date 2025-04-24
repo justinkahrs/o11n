@@ -93,100 +93,11 @@ jobs:
         APPLE_CERTIFICATE_PASSWORD:   ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
         TAURI_SIGNING_PRIVATE_KEY:    ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        CI: true                       # skips any CLI questions
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
       shell: bash
-
-    # ---------- zip & notarise ----------
-    - name: Zip the .app for notarisation
-      run: |
-        APP_NAME=$(jq -r '.productName' src-tauri/tauri.conf.json)
-
-        # locate the real bundle path (works with or without target triple)
-        APP_PATH=$(find src-tauri/target -type d -name "${APP_NAME}.app" | head -n1)
-        if [[ -z "$APP_PATH" ]]; then
-          echo "::error ::Could not locate ${APP_NAME}.app"
-          exit 1
-        fi
-
-        ditto -c -k --keepParent "$APP_PATH" "${APP_NAME}.zip"
-
-        echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
-        echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Restore ASC API key file
-      run: echo "$APPLE_API_KEY_B64" | base64 --decode > "$HOME/AuthKey.p8"
-
-    - name: Submit to Apple notarisation service
-      run: |
-        xcrun notarytool submit "$APP_NAME.zip" \
-          --key "$HOME/AuthKey.p8" \
-          --key-id "$APPLE_API_KEY_ID" \
-          --issuer "$APPLE_API_ISSUER" \
-          --wait
-      shell: bash
-
-    - name: Staple the ticket
-      run: xcrun stapler staple -q "$APP_PATH"
-
-    # ---------- release artefacts ----------
-    - name: Collect DMG + ZIP for release
-      run: |
-        mkdir -p dist
-        cp -v src-tauri/target/*/release/bundle/dmg/*.dmg dist/
-        mv -v "$APP_NAME.zip" dist/
-      shell: bash
-
-    - name: Create .app tarball
-      id: make_tar
-      shell: bash
-      run: |
-        APP_NAME=$(jq -r '.productName' src-tauri/tauri.conf.json)
-        APP_PATH=$(find src-tauri/target/*/release/bundle -type d -name "${APP_NAME}.app")
-        VERSION=$(jq -r '.version' package.json)
-        RAW_ARCH=${{ matrix.target }}
-        ARCH=$(echo "$RAW_ARCH" | tr '[:upper:]-' '[:lower:]_')
-        TAR_NAME="o11n_${VERSION}_${ARCH}.app.tar.gz"
-
-        mkdir -p dist
-        tar czf - \
-          -C "$(dirname "$APP_PATH")" "$(basename "$APP_PATH")" \
-        | tee dist/"${TAR_NAME}" \
-        | gpg --batch --yes --armor --detach-sign \
-        --output dist/"${TAR_NAME}.sig"
-
-        echo "tar_name=${TAR_NAME}" >> $GITHUB_OUTPUT
-        echo "version=${VERSION}" >> $GITHUB_OUTPUT
-        echo "arch=${ARCH}"     >> $GITHUB_OUTPUT
-
-    - name: Import GPG signing key
-      shell: bash
-      run: echo "$GPG_PRIVATE_KEY" | gpg --batch --import
-
-    - name: Sign the tarball
-      shell: bash
-      run: |
-        gpg --batch --yes --armor \
-          --detach-sign \
-          --output dist/"${{ steps.make_tar.outputs.tar_name }}".sig \
-          dist/"${{ steps.make_tar.outputs.tar_name }}"
-
-    - name: Create latest.json
-      shell: bash
-      run: |
-        TAG=${GITHUB_REF##*/}
-        BASE_URL="https://github.com/${{ github.repository }}/releases/download/${TAG}"
-        cat > dist/latest.json <<EOF
-        {
-          "version": "${{ steps.make_tar.outputs.version }}",
-          "files": {
-            "${{ steps.make_tar.outputs.arch }}": {
-              "url": "${BASE_URL}/o11n_${{ steps.make_tar.outputs.version }}_${{ steps.make_tar.outputs.arch }}.app.tar.gz",
-              "sig": "${BASE_URL}/o11n_${{ steps.make_tar.outputs.version }}_${{ steps.make_tar.outputs.arch }}.app.tar.gz.sig"
-            }
-          }
-        }
-        EOF
 
     - name: Draft GitHub Release with artifacts
       uses: softprops/action-gh-release@v2
