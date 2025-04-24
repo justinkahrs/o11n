@@ -110,9 +110,16 @@ jobs:
           echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
           echo "Certificate imported."
 
+      - name: Decode and save the .p8 key
+        run: |
+          echo "${{ secrets.APPLE_P8_KEY }}" | base64 --decode > AuthKey.p8
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_PATH: ${{ github.workspace }}/AuthKey.p8
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -128,25 +135,6 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.args }} --verbose
-      - name: Debug DMG contents
-        if: matrix.platform == 'macos-latest'
-        run: |
-          echo "Listing DMG contents"
-          for dmg in src-tauri/target/*/release/bundle/dmg/*.dmg; do
-            echo "Mounting $dmg"
-            mount_output=$(hdiutil attach "$dmg" -nobrowse -readonly)
-            mount_point=$(echo "$mount_output" | awk '/^\/dev/{print $3}' | tail -n1)
-            echo "Contents at $mount_point:"
-            ls -lh "$mount_point"
-            echo "Verifying codesign"
-            codesign --verify --deep --strict --verbose=2 "$mount_point/"*.app || true
-            hdiutil detach "$mount_point"
-          done
-      - name: staple notarization ticket
-        if: matrix.platform == 'macos-latest'
-        continue-on-error: false
-        run: |
-          find src-tauri/target -type f -name "*.app" -exec xcrun stapler staple {} \;
 
   publish-release:
     permissions:
