@@ -97,7 +97,7 @@ jobs:
     # ---------- zip & notarise ----------
     - name: Zip the .app for notarisation
       run: |
-        APP_NAME=$(jq -r '.package.productName' src-tauri/tauri.conf.json)
+        APP_NAME=$(jq -r '.productName' src-tauri/tauri.conf.json)
 
         # locate the real bundle path (works with or without target triple)
         APP_PATH=$(find src-tauri/target -type d -name "${APP_NAME}.app" | head -n1)
