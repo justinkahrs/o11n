@@ -1,50 +1,126 @@
-name: 'build'
+name: macOS release (manual signing)
 
-on: pull_request
+on:
+  workflow_dispatch:      # start it from the Actions tab
 
 jobs:
-  build-macos:
+  macos-build:
+    # Apple-silicon runner; we cross-compile x64 in a matrix
+    runs-on: macos-14
     strategy:
       matrix:
-        include:
-          - args: '--target aarch64-apple-darwin'
-            platform: 'macos-latest'
-          # - args: '--target x86_64-apple-darwin'
-          #   arch: 'intel'
-    runs-on: macos-latest
-    env:
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_ID_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+        target: [aarch64-apple-darwin]
+
+    env:                   # keep secrets out of the script body
+      RUSTFLAGS: "-C target-cpu=native"
+      # ——— signing cert & keychain ———
+      APPLE_CERTIFICATE:  ${{ secrets.APPLE_CERTIFICATE }}          # base64-encoded .p12
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      KEYCHAIN_PASSWORD:  ${{ secrets.KEYCHAIN_PASSWORD }}          # just a random 20-char string
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }} # the hash in parentheses
+      # ——— notarization creds (API key is preferred) ———
+      APPLE_API_KEY_B64:  ${{ secrets.APPLE_API_KEY_B64 }}          # base64-encoded .p8
+      APPLE_API_KEY_ID:   ${{ secrets.APPLE_API_KEY }}           # e.g.  ABCDEFGHIJ
+      APPLE_API_ISSUER:   ${{ secrets.APPLE_API_ISSUER }}           # UUID
+
     steps:
-      - name: Import Apple Developer Certificate
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
-        run: |
-          echo $APPLE_CERTIFICATE | base64 --decode > certificate.p12
-          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security default-keychain -s build.keychain
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-          security import certificate.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
-          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
-          security find-identity -v -p codesigning build.keychain
-      - name: Verify Certificate
-        run: |
-          CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep -E "Developer ID Application")
-          CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
-          echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
-          echo "Certificate imported."
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
+      - uses: actions/checkout@v4
+        with: {fetch-depth: 0}
+
+      # ---------- toolchains ----------
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
         with:
-          tagName: app-v__VERSION__
-          releaseName: 'App v__VERSION__'
-          releaseBody: 'See the assets to download this version and install.'
-          releaseDraft: false
-          prerelease: false
-          args: ${{ matrix.args }}
+          profile: minimal
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+
+      
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install global CLI
+        run:  npm install -g @tauri-apps/cli@1            # just the CLI, not the Action
+
+      # ---------- node & rust deps ----------
+      - run: |
+          npm ci
+          npm run build                # your front-end build (vite/next/…) — adjust as needed
+
+      # ---------- import certificate ----------
+      - name: Import Developer-ID / Apple-Distribution certificate
+        run: |
+          echo "$APPLE_CERTIFICATE" | base64 --decode > cert.p12
+          security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
+          security default-keychain  -s build.keychain
+          security unlock-keychain   -p "$KEYCHAIN_PASSWORD" build.keychain
+          security import cert.p12 -k build.keychain -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$KEYCHAIN_PASSWORD" build.keychain
+          security find-identity -v -p codesigning | grep "$APPLE_SIGNING_IDENTITY"
+        shell: bash
+
+      # ---------- build & code-sign ----------
+      - name: Build Tauri bundle
+        run: |
+          # Runs cargo tauri build with signing env present → signed .app & .dmg
+          npm run tauri -- build --target ${{ matrix.target }} --bundles dmg
+        env:
+          # env vars read by the bundler (documented by Tauri) …
+          APPLE_SIGNING_IDENTITY: ${{ env.APPLE_SIGNING_IDENTITY }}
+          APPLE_CERTIFICATE:      ${{ env.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ env.APPLE_CERTIFICATE_PASSWORD }}
+          # CI variable skips any CLI prompts
+          CI: true
+        shell: bash
+
+      # ---------- zip & notarize ----------
+      - name: Zip the .app for notarization
+        run: |
+          APP_NAME=$(jq -r '.package.productName' src-tauri/tauri.conf.json)
+          APP_PATH="src-tauri/target/${{ matrix.target }}/release/bundle/macos/${APP_NAME}.app"
+          ditto -c -k --keepParent "$APP_PATH" "$APP_NAME.zip"
+          echo "APP_NAME=$APP_NAME" >> $GITHUB_ENV
+          echo "APP_PATH=$APP_PATH" >> $GITHUB_ENV
+
+      - name: Restore API key file
+        run:  echo "$APPLE_API_KEY_B64" | base64 --decode > $HOME/AuthKey.p8
+
+      - name: Submit to Apple notarization service
+        run: |
+          xcrun notarytool submit "$APP_NAME.zip" \
+            --key $HOME/AuthKey.p8 \
+            --key-id "$APPLE_API_KEY_ID" \
+            --issuer "$APPLE_API_ISSUER" \
+            --wait
+        shell: bash
+
+      - name: Staple the ticket
+        run:  xcrun stapler staple -q "$APP_PATH"
+
+      # ---------- release artifacts ----------
+      - name: Pack DMG + zip for release
+        run:  |
+          # dmg already exists in the bundle folder
+          cp -v "src-tauri/target/${{ matrix.target }}/release/bundle/dmg/"*.dmg .
+          cp -v "$APP_NAME.zip" .
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: |
+            *.dmg
+            ${{ env.APP_NAME }}.zip
+
+      # ---------- clean up ----------
+      - name: Delete temp keychain
+        if: always()
+        run:  security delete-keychain build.keychain
