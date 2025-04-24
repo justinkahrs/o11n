@@ -1,6 +1,9 @@
 name: macOS release (manual signing)
 
-on: pull_request         # run on every PR pushed to the repo
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   create-release:
