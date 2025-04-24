@@ -98,6 +98,14 @@ jobs:
         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
       shell: bash
+    
+    - name: Collect DMG + ZIP for release
+      run: |
+        APP_NAME=$(jq -r '.productName' src-tauri/tauri.conf.json)
+        mkdir -p dist
+        cp -v src-tauri/target/*/release/bundle/dmg/*.dmg dist/
+        mv -v "$APP_NAME.zip" dist/
+      shell: bash
 
     - name: Draft GitHub Release with artifacts
       uses: softprops/action-gh-release@v2
