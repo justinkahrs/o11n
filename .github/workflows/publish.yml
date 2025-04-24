@@ -88,7 +88,7 @@ jobs:
         cache: 'npm'
 
     - name: Install Tauri CLI globally
-      run: npm install -g @tauri-apps/cli@1
+      run: npm install -g @tauri-apps/cli
 
     # ---------- JS deps ----------
     - run: npm ci
@@ -137,13 +137,6 @@ jobs:
       with:
         releaseId: ${{ needs.create-release.outputs.release_id }}
         args: ${{ matrix.args }}
-    
-    - name: Collect DMG + ZIP for release
-      run: |
-        APP_NAME=$(jq -r '.productName' src-tauri/tauri.conf.json)
-        mkdir -p dist
-        cp -v src-tauri/target/*/release/bundle/dmg/*.dmg dist/
-      shell: bash
 
     - name: Draft GitHub Release with artifacts
       uses: softprops/action-gh-release@v2
