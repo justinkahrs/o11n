@@ -3,11 +3,48 @@ name: macOS release (manual signing)
 on: pull_request         # run on every PR pushed to the repo
 
 jobs:
-  macos-build:
+  create-release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create-release.outputs.result }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+
+      - name: get version
+        run: echo "PACKAGE_VERSION=$(node -p \"require('./package.json').version\")" >> $GITHUB_ENV
+
+      - name: create release
+        id: create-release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const { data } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `app-v${process.env.PACKAGE_VERSION}`,
+              name: `Desktop App v${process.env.PACKAGE_VERSION}`,
+              body: 'Take a look at the assets to download and install this app.',
+              draft: true,
+              prerelease: false
+            })
+            return data.id
+
+  build-tauri:
+    needs: create-release
     runs-on: macos-latest
     strategy:
       matrix:
-        target: [aarch64-apple-darwin]
+        include:
+          - args: '--target aarch64-apple-darwin'
+            arch: 'silicon'
 
     env:
       RUSTFLAGS: "-C target-cpu=native"
@@ -15,8 +52,8 @@ jobs:
       # ——— signing cert & keychain ———
       APPLE_CERTIFICATE:            ${{ secrets.APPLE_CERTIFICATE }}
       APPLE_CERTIFICATE_PASSWORD:   ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      KEYCHAIN_PASSWORD:            ${{ secrets.KEYCHAIN_PASSWORD }}      # any random string
-      APPLE_SIGNING_IDENTITY:       ${{ secrets.APPLE_SIGNING_IDENTITY }} # either CN or SHA-1
+      KEYCHAIN_PASSWORD:            ${{ secrets.KEYCHAIN_PASSWORD }}
+      APPLE_SIGNING_IDENTITY:       ${{ secrets.APPLE_SIGNING_IDENTITY }}
 
       # ——— notarisation (ASC API key) ———
       APPLE_API_KEY_B64:            ${{ secrets.APPLE_P8_KEY }}
@@ -35,7 +72,7 @@ jobs:
       with:
         profile: minimal
         toolchain: stable
-        target: ${{ matrix.target }}
+        target: ${{ matrix.arch }}
         override: true
 
     - name: Rust cache
@@ -86,8 +123,9 @@ jobs:
 
     # ---------- build & codesign ----------
     - name: Build Tauri bundle (signed)
-      run: npm run tauri -- build --target ${{ matrix.target }}
+      uses: tauri-apps/tauri-action@v0
       env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         APPLE_SIGNING_IDENTITY:       ${{ secrets.APPLE_SIGNING_IDENTITY }}
         APPLE_CERTIFICATE:            ${{ secrets.APPLE_CERTIFICATE }}
         APPLE_CERTIFICATE_PASSWORD:   ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -96,8 +134,9 @@ jobs:
         APPLE_ID: ${{ secrets.APPLE_ID }}
         APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
         APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-
-      shell: bash
+      with:
+        releaseId: ${{ needs.create-release.outputs.release_id }}
+        args: ${{ matrix.args }}
     
     - name: Collect DMG + ZIP for release
       run: |
