@@ -29,7 +29,7 @@ jobs:
             const { data } = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag_name: `app-v${process.env.PACKAGE_VERSION}`,
+              tag_name: `${process.env.PACKAGE_VERSION}`,
               name: `Desktop App v${process.env.PACKAGE_VERSION}`,
               body: 'Take a look at the assets to download and install this app.',
               draft: true,
@@ -87,45 +87,14 @@ jobs:
         node-version: '22'
         cache: 'npm'
 
-    - name: Install Tauri CLI globally
-      run: npm install -g @tauri-apps/cli
-
-    # ---------- JS deps ----------
     - run: npm ci
-
-    # ---------- import certificate (hardened: no password prompt) ----------
-    - name: Import Developer-ID / Apple-Distribution certificate
-      run: |
-        echo "$APPLE_CERTIFICATE" | base64 --decode > cert.p12
-
-        # 0) create + unlock an isolated keychain
-        security create-keychain -p "$KEYCHAIN_PASSWORD" build.keychain
-        security set-keychain-settings -lut 3600 build.keychain            # keep unlocked 1 h
-        security unlock-keychain   -p "$KEYCHAIN_PASSWORD" build.keychain
-        # put it first in the search path
-        security list-keychains -d user -s build.keychain $(security list-keychains -d user | tr -d '"')
-
-        # 1) import + pre-authorise the key for codesign/productbuild/notarytool
-        security import cert.p12 -k build.keychain \
-          -P "$APPLE_CERTIFICATE_PASSWORD" \
-          -T /usr/bin/codesign \
-          -T /usr/bin/productbuild \
-          -T /usr/bin/xcrun \
-          -T /usr/bin/security \
-          -A                                         # allow all, or remove for stricter
-
-        # 2) extra ACL for 10.15+
-        security set-key-partition-list -S apple-tool:,apple:,codesign: \
-          -s -k "$KEYCHAIN_PASSWORD" build.keychain
-
-        security find-identity -v -p codesigning build.keychain | grep "$APPLE_SIGNING_IDENTITY"
-      shell: bash
 
     # ---------- build & codesign ----------
     - name: Build Tauri bundle (signed)
       uses: tauri-apps/tauri-action@v0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        APPLE_API_KEY_B64: ${{ secrets.APPLE_P8_KEY}}
         APPLE_SIGNING_IDENTITY:       ${{ secrets.APPLE_SIGNING_IDENTITY }}
         APPLE_CERTIFICATE:            ${{ secrets.APPLE_CERTIFICATE }}
         APPLE_CERTIFICATE_PASSWORD:   ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -137,15 +106,3 @@ jobs:
       with:
         releaseId: ${{ needs.create-release.outputs.release_id }}
         args: ${{ matrix.args }}
-
-    - name: Draft GitHub Release with artifacts
-      uses: softprops/action-gh-release@v2
-      with:
-        draft:    true
-        tag_name: ${{ github.ref_name }}
-        files:    dist/*
-
-    # ---------- clean up ----------
-    - name: Delete temporary keychain
-      if: always()
-      run: security delete-keychain build.keychain
