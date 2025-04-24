@@ -8,9 +8,9 @@ jobs:
       matrix:
         include:
           - args: '--target aarch64-apple-darwin'
-            arch: 'silicon'
-          - args: '--target x86_64-apple-darwin'
-            arch: 'intel'
+            platform: 'macos-latest'
+          # - args: '--target x86_64-apple-darwin'
+          #   arch: 'intel'
     runs-on: macos-latest
     env:
       APPLE_ID: ${{ secrets.APPLE_ID }}
@@ -42,4 +42,9 @@ jobs:
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
         with:
+          tagName: app-v__VERSION__
+          releaseName: 'App v__VERSION__'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: false
+          prerelease: false
           args: ${{ matrix.args }}
