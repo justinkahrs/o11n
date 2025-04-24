@@ -148,6 +148,7 @@ function FilePreview({ file }: FilePreviewProps) {
               whiteSpace: "pre-wrap",
               wordBreak: "break-word",
               overflowX: "auto",
+              userSelect: "text !important",
             }}
             // biome-ignore lint/security/noDangerouslySetInnerHtml: required for syntax highlighting
             dangerouslySetInnerHTML={{ __html: content }}
