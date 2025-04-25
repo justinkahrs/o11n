@@ -11,7 +11,7 @@
           "y": 170
         },
         "windowSize": {
-          "height": 800,
+          "height": 600,
           "width": 600
         },
         "background": "./dmg-bg.png"
