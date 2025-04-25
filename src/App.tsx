@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import * as Sentry from "@sentry/react";
-import { check } from '@tauri-apps/plugin-updater';
-import { relaunch } from '@tauri-apps/plugin-process';
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
 
 Sentry.init({
   dsn: "https://670f41ff6f2403d4838ea67a695f3791@o4509202782683136.ingest.us.sentry.io/4509202784649216",
@@ -9,6 +9,7 @@ Sentry.init({
 });
 
 import { Grid, CircularProgress, useTheme, Box } from "@mui/material";
+import AutoUpdateModal from "./components/AutoUpdateModal";
 import FileExplorer from "./components/FileExplorer";
 import FilePreview from "./components/FilePreview";
 import { useUserContext } from "./context/UserContext";
@@ -23,49 +24,49 @@ import { SelectedFiles } from "./components/SelectedFiles";
 import ModeButtons from "./components/ModeButtons";
 import ActionButtons from "./components/ActionButtons";
 import "./App.css";
-const GITHUB_AUTH_TOKEN = import.meta.env.VITE_UPDATE_TOKEN as string
-console.log({GITHUB_AUTH_TOKEN})
-function App() {useEffect(() => {
-  if (!import.meta.env.PROD) {
-    return;
-  }
-  (async () => {
-    try {const update = await check({
-        headers: {
-          Authorization: `Bearer ${GITHUB_AUTH_TOKEN}`,
-        },
-      });
-      if (update) {
-        console.log(
-          `found update ${update.version} from ${update.date} with notes ${update.body}`
-        );
-        let downloaded = 0;
-        let contentLength: number | undefined;
-        // alternatively we could also call update.download() and update.install() separately
-        await update.downloadAndInstall((event) => {
-          switch (event.event) {
-            case 'Started':
-              contentLength = event.data.contentLength;
-              console.log(`started downloading ${event.data.contentLength} bytes`);
-              break;
-            case 'Progress':
-              downloaded += event.data.chunkLength;
-              console.log(`downloaded ${downloaded} from ${contentLength as number}`);
-              break;
-            case 'Finished':
-              console.log('download finished');
-              break;
-          }
-        });
-        console.log('update installed');
-        await relaunch();
-      }
-} catch (e) {
-      console.error('Update check failed:', e);
+const GITHUB_AUTH_TOKEN = import.meta.env.VITE_UPDATE_TOKEN as string;
+console.log({ GITHUB_AUTH_TOKEN });
+function App() {
+  useEffect(() => {
+    if (!import.meta.env.PROD) {
+      return;
     }
+    (async () => {
+      try {
+        const update = await check({
+          headers: {
+            Authorization: `Bearer ${GITHUB_AUTH_TOKEN}`,
+          },
+        });
+        if (update) {
+          setShowUpdateModal(true);
+          let downloaded = 0;
+          let contentLength: number | undefined;
+          await update.downloadAndInstall((event) => {
+            switch (event.event) {
+              case "Started":
+                contentLength = event.data.contentLength;
+                break;
+              case "Progress":
+                downloaded += event.data.chunkLength;
+                if (contentLength) {
+                  setUpdateProgress((downloaded / contentLength) * 100);
+                }
+                break;
+              case "Finished":
+                setUpdateProgress(100);
+                break;
+            }
+          });
+        }
+      } catch (e) {
+        console.error("Update check failed:", e);
+      }
     })();
   }, []);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateProgress, setUpdateProgress] = useState(0);
   const [explorerWidth, setExplorerWidth] = useState(300);
   const theme = useTheme();
 
@@ -140,6 +141,13 @@ function App() {useEffect(() => {
         </Grid>
       </Grid>
       <FilePreview />
+      <AutoUpdateModal
+        open={showUpdateModal}
+        progress={updateProgress}
+        onRelaunch={async () => {
+          await relaunch();
+        }}
+      />
       <LoaderOverlay />
     </Providers>
   );

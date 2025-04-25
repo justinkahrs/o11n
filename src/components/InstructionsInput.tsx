@@ -6,8 +6,8 @@ export function InstructionsInput() {
   const { instructions, mode, setInstructions } = useAppContext();
   const { formatOutput } = useUserContext();
   const label = formatOutput
-    ? "Describe a feature to fix or a bug to create... wait"
-    : "Chat about your files";
+    ? "Describe what you want to change."
+    : "Talk about what you want to change";
   return (
     mode !== "do" && (
       <Box sx={{ px: 2, py: 2 }}>

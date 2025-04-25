@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
-          cache: 'npm'
+          cache: "npm"
 
       - name: get version
         run: echo "PACKAGE_VERSION=$(node -p "require('./package.json').version")" >> $GITHUB_ENV
@@ -47,8 +47,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - args: '--target aarch64-apple-darwin'
-            arch: 'aarch64-apple-darwin'
+          - args: "--target aarch64-apple-darwin"
+            arch: "aarch64-apple-darwin"
 
     env:
       # - Auto updates
@@ -57,66 +57,71 @@ jobs:
       RUSTFLAGS: "-C target-cpu=native"
 
       # ——— signing cert & keychain ———
-      APPLE_CERTIFICATE:            ${{ secrets.APPLE_CERTIFICATE }}
-      APPLE_CERTIFICATE_PASSWORD:   ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-      KEYCHAIN_PASSWORD:            ${{ secrets.KEYCHAIN_PASSWORD }}
-      APPLE_SIGNING_IDENTITY:       ${{ secrets.APPLE_SIGNING_IDENTITY }}
+      APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+      APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
 
       # ——— notarisation (ASC API key) ———
-      APPLE_API_KEY_B64:            ${{ secrets.APPLE_P8_KEY }}
-      APPLE_API_KEY_ID:             ${{ secrets.APPLE_API_KEY }}       
-      
+      APPLE_API_KEY_B64: ${{ secrets.APPLE_P8_KEY }}
+      APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY }}
+
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY}}
-      APPLE_API_ISSUER:             ${{ secrets.APPLE_API_ISSUER }}       # 8-4-4-4-12 UUID
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }} # 8-4-4-4-12 UUID
 
     steps:
-    - uses: actions/checkout@v4
-      with: { fetch-depth: 0 }
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
 
-    - name: Decode Apple ASC API Key
-      run: |
-        KEY_FILE=$(mktemp /tmp/apple_api_key.XXXXXX.p8)
-        echo "${{ secrets.APPLE_P8_KEY }}" | base64 --decode > "$KEY_FILE"
-        echo "APPLE_API_KEY_PATH=$KEY_FILE" >> $GITHUB_ENV
-    
-    # ---------- toolchains ----------
-    - name: Install Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-        target: ${{ matrix.arch }}
-        override: true
+      - name: Decode Apple ASC API Key
+        run: |
+          KEY_FILE=$(mktemp /tmp/apple_api_key.XXXXXX.p8)
+          echo "${{ secrets.APPLE_P8_KEY }}" | base64 --decode > "$KEY_FILE"
+          echo "APPLE_API_KEY_PATH=$KEY_FILE" >> $GITHUB_ENV
 
-    - name: Rust cache
-      uses: swatinem/rust-cache@v2
-      with:
-        workspaces: './src-tauri -> target'
-        cache-on-failure: true
+      # ---------- toolchains ----------
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: ${{ matrix.arch }}
+          override: true
 
-    - name: Install Node
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: 'npm'
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: "./src-tauri -> target"
+          cache-on-failure: true
 
-    - run: npm ci
-    # ---------- build & codesign ----------
-    - name: Build Tauri bundle (signed)
-      uses: tauri-apps/tauri-action@v0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-        APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-        APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
-        APPLE_SIGNING_IDENTITY:       ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        APPLE_CERTIFICATE:            ${{ secrets.APPLE_CERTIFICATE }}
-        APPLE_CERTIFICATE_PASSWORD:   ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-        TAURI_SIGNING_PRIVATE_KEY:    ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-        TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        APPLE_ID: ${{ secrets.APPLE_ID }}
-        APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-      with:
-        releaseId: ${{ needs.create-release.outputs.release_id }}
-        args: ${{ matrix.args }}
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - run: npm ci
+      # ---------- build & codesign ----------
+      - name: Build Tauri bundle (signed)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+          APPLE_API_KEY_PATH: ${{ env.APPLE_API_KEY_PATH }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        with:
+          tagName: __VERSION__
+          releaseName: "o11n v__VERSION__"
+          releaseBody: "You know what to do."
+          releaseDraft: false
+          prerelease: false
+          releaseId: ${{ needs.create-release.outputs.release_id }}
+          args: ${{ matrix.args }}
