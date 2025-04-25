@@ -13,3 +13,8 @@ cp icon.png                   icon.iconset/icon_512x512@2x.png
 
 iconutil -c icns icon.iconset -o ./src-tauri/icons/icon.icns
 rm -r icon.iconset
+
+
+
+/* make sure it's the RIGHT type of PNG (RGBA) */
+convert src-tauri/icons/icon.png -alpha on -background none -define png:color-type=6 src-tauri/icons/icon.png
