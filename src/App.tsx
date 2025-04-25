@@ -1,12 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import * as Sentry from "@sentry/react";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-
-Sentry.init({
-  dsn: "https://670f41ff6f2403d4838ea67a695f3791@o4509202782683136.ingest.us.sentry.io/4509202784649216",
-  // release: `o11n@${process.env.npm_package_version}`,
-});
 
 import { Grid, CircularProgress, useTheme, Box } from "@mui/material";
 import AutoUpdateModal from "./components/AutoUpdateModal";
@@ -25,7 +19,6 @@ import ModeButtons from "./components/ModeButtons";
 import ActionButtons from "./components/ActionButtons";
 import "./App.css";
 const GITHUB_AUTH_TOKEN = import.meta.env.VITE_UPDATE_TOKEN as string;
-console.log({ GITHUB_AUTH_TOKEN });
 function App() {
   useEffect(() => {
     (async () => {
