@@ -35,10 +35,12 @@ function App() {
       try {
         const update = await check({
           headers: {
+            Accept: "application/octet-stream",
             Authorization: `Bearer ${GITHUB_AUTH_TOKEN}`,
           },
         });
         if (update) {
+          console.log({ update });
           setShowUpdateModal(true);
           let downloaded = 0;
           let contentLength: number | undefined;

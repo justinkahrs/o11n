@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "o11n",
-  "version": "1.0.53",
+  "version": "1.0.54",
   "identifier": "com.senna-automation.o11n",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -27,12 +27,16 @@
     "category": "public.app-category.developer-tools",
     "createUpdaterArtifacts": true,
     "targets": "all",
-    "icon": ["icons/icon.icns"]
+    "icon": [
+      "icons/icon.icns"
+    ]
   },
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["o11n"]
+        "schemes": [
+          "o11n"
+        ]
       }
     },
     "fs": {
@@ -41,7 +45,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZEMTYzQjk5OTYwNjQ4ODQKUldTRVNBYVdtVHNXYldnbzdkbHBicG9KN2JGdEU0dW1yR3hJSkRxdG1YQWlCcytVaHVaS2JuSTIK",
       "endpoints": [
-        "https://github.com/justinkahrs/o11n/releases/latest/download/latest.json"
+        "https://api.github.com/repos/justinkahrs/o11n/releases/latest"
       ]
     }
   }
