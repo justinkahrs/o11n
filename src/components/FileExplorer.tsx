@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { BaseDirectory, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
-import { Box, Button, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, IconButton, Typography, useTheme } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
 import LogoSVG from "./LogoSVG";
 import SearchFiles from "./SearchFiles";
@@ -16,6 +16,7 @@ import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
 import { useUserContext } from "../context/UserContext";
 import { useAppContext } from "../context/AppContext";
+import RetroButton from "./RetroButton";
 
 export default function FileExplorer() {
   const theme = useTheme();
@@ -177,25 +178,23 @@ export default function FileExplorer() {
     >
       <Box sx={{ p: 1 }}>
         <Box sx={{ textAlign: "center", mb: 2 }}>{showLogo && <LogoSVG />}</Box>
-        <Button
-          startIcon={<FolderSpecial />}
-          variant="contained"
-          onClick={openProject}
+        <RetroButton
           fullWidth
-          size="small"
+          onClick={openProject}
+          startIcon={<FolderSpecial />}
+          sx={{ height: 40, mb: 1 }}
         >
           {buttonLabel}
-        </Button>
-        <Button
-          startIcon={<InsertDriveFileIcon />}
-          variant="outlined"
-          onClick={openFile}
+        </RetroButton>
+        <RetroButton
           fullWidth
-          size="small"
-          sx={{ mt: 1 }}
+          onClick={openFile}
+          startIcon={<InsertDriveFileIcon />}
+          sx={{ height: 40, mt: 1 }}
+          variant="outlined"
         >
           Load File
-        </Button>
+        </RetroButton>
         <SearchFiles
           searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
@@ -270,7 +269,7 @@ export default function FileExplorer() {
                 <Box
                   sx={{
                     p: 1,
-                    maxHeight: 300,
+                    maxHeight: 400,
                     overflowY: "auto",
                   }}
                 >

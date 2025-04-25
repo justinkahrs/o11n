@@ -17,6 +17,8 @@ import tinycolor from "tinycolor2";
 import { useUserContext } from "../context/UserContext";
 import { HexColorPicker } from "react-colorful";
 import LogoSVG from "./LogoSVG";
+import RetroButton from "./RetroButton";
+
 type ThemeModalProps = {
   open: boolean;
   onClose: () => void;
@@ -197,9 +199,7 @@ export default function ThemeModal({
         </Box>
       </DialogContent>
       <DialogActions sx={{ display: "flex", justifyContent: "space-between" }}>
-        <Button
-          startIcon={<Close />}
-          variant="outlined"
+        <RetroButton
           onClick={() => {
             if (initialThemeRef.current) {
               const { primary, secondary, mode } = initialThemeRef.current;
@@ -212,9 +212,12 @@ export default function ThemeModal({
             }
             onClose();
           }}
+          startIcon={<Close />}
+          sx={{ height: 40, mb: 1, ml: 1 }}
+          variant="outlined"
         >
           Cancel
-        </Button>
+        </RetroButton>
         <Button
           startIcon={<Replay />}
           variant="text"
@@ -234,25 +237,21 @@ export default function ThemeModal({
         <Button
           startIcon={<Shuffle />}
           variant="text"
-onClick={() => {
+          onClick={() => {
             const newPrimary = tinycolor.random().toHexString();
-            const newSecondary = tinycolor(newPrimary).complement().toHexString();
+            const newSecondary = tinycolor(newPrimary)
+              .complement()
+              .toHexString();
             const newIsDarkMode = Math.random() < 0.5;
             setPrimaryColor(newPrimary);
             setSecondaryColor(newSecondary);
             setIsDarkMode(newIsDarkMode);
-            onApply(
-              newPrimary,
-              newSecondary,
-              newIsDarkMode ? "dark" : "light"
-            );
+            onApply(newPrimary, newSecondary, newIsDarkMode ? "dark" : "light");
           }}
         >
           Randomize
         </Button>
-        <Button
-          variant="contained"
-          startIcon={<Save />}
+        <RetroButton
           onClick={() => {
             onApply(
               primaryColor,
@@ -261,9 +260,11 @@ onClick={() => {
             );
             onClose();
           }}
+          startIcon={<Save />}
+          sx={{ height: 40, mb: 1, mr: 1 }}
         >
           Apply
-        </Button>
+        </RetroButton>
       </DialogActions>
     </Dialog>
   );
