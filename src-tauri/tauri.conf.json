@@ -27,16 +27,12 @@
     "category": "public.app-category.developer-tools",
     "createUpdaterArtifacts": true,
     "targets": "all",
-    "icon": [
-      "icons/icon.icns"
-    ]
+    "icon": ["icons/icons.icns"]
   },
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": [
-          "o11n"
-        ]
+        "schemes": ["o11n"]
       }
     },
     "fs": {
