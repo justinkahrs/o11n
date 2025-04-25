@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Button,
   CircularProgress,
   Modal,
   Grid,
@@ -16,6 +15,7 @@ import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useAppContext } from "../context/AppContext";
 import { getImageMime, isImage } from "../utils/image";
 import { loadImageDataUrl } from "../utils/image";
+import RetroButton from "./RetroButton";
 interface FilePreviewProps {
   file: {
     id: string;
@@ -104,24 +104,22 @@ function FilePreview({ file }: FilePreviewProps) {
           <Grid container justifyContent="space-between">
             <Grid item>{file.name}</Grid>
             <Grid item>
-              <Button
-                variant="outlined"
-                size="small"
+              <RetroButton
                 onClick={() => setSelectedFile(null)}
-                sx={{ mr: 2 }}
+                sx={{ height: 40, mr: 2 }}
+                variant="outlined"
               >
                 Close
-              </Button>
-              <Button
-                variant="contained"
-                size="small"
+              </RetroButton>
+              <RetroButton
                 onClick={() => {
                   handleFileSelect(file);
                   setSelectedFile(null);
                 }}
+                sx={{ height: 40 }}
               >
                 {isSelected ? "Remove file" : "Add file"}
-              </Button>
+              </RetroButton>
             </Grid>
           </Grid>
         }

@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Button, CircularProgress, Grid, Typography } from "@mui/material";
-import { Create } from "@mui/icons-material";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppContext } from "../context/AppContext";
+import { CircularProgress, Grid, Typography } from "@mui/material";
+import { Create } from "@mui/icons-material";
+import RetroButton from "./RetroButton";
 import type { FileNode } from "../types";
 const Commit = () => {
   const [committing, setCommitting] = useState(false);
@@ -117,8 +118,9 @@ const Commit = () => {
 
   return (
     <Grid container spacing={1} direction="column">
-      <Button
-        variant="contained"
+      <RetroButton
+        disabled={committing || !isPlanValid()}
+        onClick={handleCommit}
         startIcon={
           committing ? (
             <CircularProgress size={20} color="inherit" />
@@ -126,16 +128,14 @@ const Commit = () => {
             <Create />
           )
         }
-        size="large"
-        onClick={handleCommit}
-        disabled={committing || !isPlanValid()}
+        sx={{ mx: 2, width: "220px" }}
       >
         {committing
           ? "Processing..."
           : commitFailed
           ? "Commit Failed!"
           : "Commit Changes"}
-      </Button>
+      </RetroButton>
       {errorMessage && (
         <Typography color="secondary" sx={{ mt: 1 }}>
           Check your plan formatting. o4-mini recommended. If this keeps

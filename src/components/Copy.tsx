@@ -1,4 +1,3 @@
-import { Button, CircularProgress, Tooltip } from "@mui/material";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
@@ -9,6 +8,9 @@ import { ContentCopy } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
+import { CircularProgress, Tooltip } from "@mui/material";
+import RetroButton from "./RetroButton";
+
 export default function Copy() {
   const { instructions, selectedFiles, customTemplates } = useAppContext();
   const { countTokens, formatOutput, includeFileTree } = useUserContext();
@@ -157,8 +159,8 @@ export default function Copy() {
 
   if (!countTokens) {
     return (
-      <Button
-        variant="contained"
+      <RetroButton
+        disabled={copying || instructions.trim() === ""}
         onClick={handleCopy}
         startIcon={
           copying ? (
@@ -167,9 +169,7 @@ export default function Copy() {
             <ContentCopy />
           )
         }
-        disabled={copying || instructions.trim() === ""}
-        size="large"
-        sx={{ mx: 2, width: "350px" }}
+        sx={{ mx: 2 }}
       >
         {copying
           ? "Processing..."
@@ -178,7 +178,7 @@ export default function Copy() {
           : formattedTokenCount
           ? `Copy Prompt (~${formattedTokenCount} tokens)`
           : "Copy Prompt"}
-      </Button>
+      </RetroButton>
     );
   }
   return (
@@ -190,8 +190,7 @@ export default function Copy() {
       placement="right"
     >
       <span>
-        <Button
-          variant="contained"
+        <RetroButton
           onClick={handleCopy}
           startIcon={
             copying ? (
@@ -201,8 +200,7 @@ export default function Copy() {
             )
           }
           disabled={copying || instructions.trim() === ""}
-          size="large"
-          sx={{ mx: 2, width: "350px" }}
+          sx={{ mx: 2 }}
         >
           {copying
             ? "Processing..."
@@ -211,7 +209,7 @@ export default function Copy() {
             : formattedTokenCount
             ? `Copy Prompt (~${formattedTokenCount} tokens)`
             : "Copy Prompt"}
-        </Button>
+        </RetroButton>
       </span>
     </Tooltip>
   );

@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Button,
   IconButton,
 } from "@mui/material";
 import {
@@ -21,6 +20,7 @@ import {
 import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useAppContext } from "../context/AppContext";
+import RetroButton from "./RetroButton";
 
 interface CustomTemplate {
   id: string;
@@ -204,19 +204,20 @@ const TemplateSelection = () => {
             />
           </DialogContent>
           <DialogActions>
-            <Button
-              variant="outlined"
+            <RetroButton
               onClick={() => setCreateDialogOpen(false)}
+              sx={{ height: 40, mb: 1, mx: 1 }}
+              variant="outlined"
             >
               Cancel
-            </Button>
-            <Button
-              variant="contained"
+            </RetroButton>
+            <RetroButton
               onClick={handleCreateSubmit}
               startIcon={<Create />}
+              sx={{ height: 40, mb: 1, mr: 2 }}
             >
               Create
-            </Button>
+            </RetroButton>
           </DialogActions>
         </Dialog>
       </Box>
