@@ -12,7 +12,7 @@
         },
         "windowSize": {
           "height": 600,
-          "width": 600
+          "width": 800
         },
         "background": "./dmg-bg.png"
       },

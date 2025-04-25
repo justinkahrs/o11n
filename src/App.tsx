@@ -28,9 +28,6 @@ const GITHUB_AUTH_TOKEN = import.meta.env.VITE_UPDATE_TOKEN as string;
 console.log({ GITHUB_AUTH_TOKEN });
 function App() {
   useEffect(() => {
-    if (!import.meta.env.PROD) {
-      return;
-    }
     (async () => {
       try {
         const update = await check({
