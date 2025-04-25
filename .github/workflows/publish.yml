@@ -51,6 +51,9 @@ jobs:
             arch: 'aarch64-apple-darwin'
 
     env:
+      # - Auto updates
+      VITE_UPDATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       RUSTFLAGS: "-C target-cpu=native"
 
       # ——— signing cert & keychain ———

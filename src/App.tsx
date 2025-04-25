@@ -1,5 +1,7 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import * as Sentry from "@sentry/react";
+import { check } from '@tauri-apps/plugin-updater';
+import { relaunch } from '@tauri-apps/plugin-process';
 
 Sentry.init({
   dsn: "https://670f41ff6f2403d4838ea67a695f3791@o4509202782683136.ingest.us.sentry.io/4509202784649216",
@@ -21,8 +23,48 @@ import { SelectedFiles } from "./components/SelectedFiles";
 import ModeButtons from "./components/ModeButtons";
 import ActionButtons from "./components/ActionButtons";
 import "./App.css";
-
-function App() {
+const GITHUB_AUTH_TOKEN = import.meta.env.VITE_UPDATE_TOKEN as string
+console.log({GITHUB_AUTH_TOKEN})
+function App() {useEffect(() => {
+  if (!import.meta.env.PROD) {
+    return;
+  }
+  (async () => {
+    try {const update = await check({
+        headers: {
+          Authorization: `Bearer ${GITHUB_AUTH_TOKEN}`,
+        },
+      });
+      if (update) {
+        console.log(
+          `found update ${update.version} from ${update.date} with notes ${update.body}`
+        );
+        let downloaded = 0;
+        let contentLength: number | undefined;
+        // alternatively we could also call update.download() and update.install() separately
+        await update.downloadAndInstall((event) => {
+          switch (event.event) {
+            case 'Started':
+              contentLength = event.data.contentLength;
+              console.log(`started downloading ${event.data.contentLength} bytes`);
+              break;
+            case 'Progress':
+              downloaded += event.data.chunkLength;
+              console.log(`downloaded ${downloaded} from ${contentLength as number}`);
+              break;
+            case 'Finished':
+              console.log('download finished');
+              break;
+          }
+        });
+        console.log('update installed');
+        await relaunch();
+      }
+} catch (e) {
+      console.error('Update check failed:', e);
+    }
+    })();
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const [explorerWidth, setExplorerWidth] = useState(300);
   const theme = useTheme();
