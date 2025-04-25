@@ -18,17 +18,11 @@ import { SelectedFiles } from "./components/SelectedFiles";
 import ModeButtons from "./components/ModeButtons";
 import ActionButtons from "./components/ActionButtons";
 import "./App.css";
-const GITHUB_AUTH_TOKEN = import.meta.env.VITE_UPDATE_TOKEN as string;
 function App() {
   useEffect(() => {
     (async () => {
       try {
-        const update = await check({
-          headers: {
-            Accept: "application/octet-stream",
-            Authorization: `Bearer ${GITHUB_AUTH_TOKEN}`,
-          },
-        });
+        const update = await check();
         if (update) {
           console.log({ update });
           setShowUpdateModal(true);
