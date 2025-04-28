@@ -8,6 +8,6 @@ fn main() {
         // see https://docs.sentry.io/platforms/rust/data-management/data-collected for more info
         send_default_pii: true,
         ..Default::default()
-      }));
-    o11n_lib::run()
+    }));
+    o11n_lib::run();
 }
