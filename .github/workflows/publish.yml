@@ -11,8 +11,12 @@ jobs:
     strategy:
       matrix:
         include:
-          - args: "--target aarch64-apple-darwin"
-            arch: "aarch64-apple-darwin"
+          # - platform: "macos-latest"
+          #   args: "--target aarch64-apple-darwin"
+          #   arch: "aarch64-apple-darwin"
+          - platform: "macos-latest"
+            args: "--target x86_64-apple-darwin"
+            arch: "x86_64-apple-darwin"
 
     env:
       # - Auto updates
@@ -51,6 +55,7 @@ jobs:
           toolchain: stable
           target: ${{ matrix.arch }}
           override: true
+          default: true
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
