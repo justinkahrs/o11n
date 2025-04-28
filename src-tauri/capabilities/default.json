@@ -101,6 +101,28 @@
     "fs:allow-write",
     "fs:allow-write-file",
     "fs:allow-write-text-file",
+    "fs:scope-app-recursive",
+    "fs:scope-appcache-recursive",
+    "fs:scope-appconfig-recursive",
+    "fs:scope-appdata-recursive",
+    "fs:scope-applocaldata-recursive",
+    "fs:scope-applog-recursive",
+    "fs:scope-cache-recursive",
+    "fs:scope-config-recursive",
+    "fs:scope-data-recursive",
+    "fs:scope-desktop-recursive",
+    "fs:scope-document-recursive",
+    "fs:scope-download-recursive",
+    "fs:scope-exe-recursive",
+    "fs:scope-font-recursive",
+    "fs:scope-home-recursive",
+    "fs:scope-localdata-recursive",
+    "fs:scope-log-recursive",
+    "fs:scope-public-recursive",
+    "fs:scope-resource-recursive",
+    "fs:scope-runtime-recursive",
+    "fs:scope-temp-recursive",
+    "fs:scope-template-recursive",
     "log:default",
     "clipboard-manager:default",
     "dialog:default",
@@ -109,7 +131,5 @@
     "updater:default",
     "process:default"
   ],
-  "windows": [
-    "main"
-  ]
+  "windows": ["main"]
 }
