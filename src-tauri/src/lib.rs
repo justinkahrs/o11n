@@ -9,7 +9,10 @@ mod token_utils;
 fn apply_protocol(xml_input: &str) -> Result<String, String> {
     match crate::apply_changes::apply_changes(xml_input) {
         Ok(_) => Ok("Changes applied successfully!".to_string()),
-        Err(e) => Err(format!("Failed to apply changes: {}", e)),
+        Err(e) => {
+            sentry::capture_error(&*e);
+            Err(format!("Failed to apply changes: {}", e))
+        }
     }
 }
 #[cfg_attr(mobile, tauri::mobile_entry_point)]

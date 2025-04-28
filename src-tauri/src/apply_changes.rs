@@ -16,10 +16,16 @@ pub fn apply_changes(xml_protocol: &str) -> Result<()> {
             fc.action,
             fc.changes
         );
-        apply_file_change(&fc).context(format!(
+        match apply_file_change(&fc).context(format!(
             "Failed applying changes to file: {:?}, action: {:?}, changes: {:#?}",
             fc.path, fc.action, fc.changes
-        ))?;
+        )) {
+            Ok(_) => {}
+            Err(e) => {
+                sentry::capture_error(&*e);
+                return Err(e);
+            }
+        }
     }
 
     Ok(())
