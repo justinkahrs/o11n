@@ -47,15 +47,17 @@ function App() {
         }
       } catch (e) {
         console.error("Update check failed:", e);
+        setUpdateError(String(e));
+        setShowUpdateModal(true);
       }
     })();
   }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
+  const [updateError, setUpdateError] = useState<string | null>(null);
   const [explorerWidth, setExplorerWidth] = useState(300);
   const theme = useTheme();
-
   function LoaderOverlay() {
     const { loading } = useUserContext();
     if (!loading) return null;
@@ -130,8 +132,13 @@ function App() {
       <AutoUpdateModal
         open={showUpdateModal}
         progress={updateProgress}
+        error={updateError}
         onRelaunch={async () => {
           await relaunch();
+        }}
+        onClose={() => {
+          setShowUpdateModal(false);
+          setUpdateError(null);
         }}
       />
       <LoaderOverlay />
