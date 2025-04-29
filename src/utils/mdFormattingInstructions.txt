@@ -15,7 +15,7 @@ These guidelines describe the exact Markdown format that the Rust backend parser
    ## Files
      - Introduces the list of file operations. Ignored by the parser.
    ### File <path>
-     - Starts at column 0 with exactly three '#' characters, a space, then the file path.
+     - Starts at column 0 with exactly three '#' characters, a space, then the full file path.
    ### Action <action>
      - Starts at column 0 with exactly three '#' characters, a space, then one of: modify, rewrite, create, delete.
    #### Change
