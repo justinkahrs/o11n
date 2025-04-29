@@ -27,23 +27,19 @@
     "category": "public.app-category.developer-tools",
     "createUpdaterArtifacts": true,
     "targets": "all",
-    "icon": [
-      "icons/icon.icns"
-    ]
+    "icon": ["icons/icon.icns"]
   },
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": [
-          "o11n"
-        ]
+        "schemes": ["o11n"]
       }
     },
     "fs": {
       "requireLiteralLeadingDot": false
     },
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEE0RjY1MTIzMTlGQjExQjAKUldTd0Vmc1pJMUgycERLNzV2RDREQ2pjWkE1R0dLcE1pOGJNT054L0RwamlaeXkxNjNuYUhMWVoK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDU5NEVGNTNBM0MxRjI4QgpSV1NMOHNHalUrK1VCYUM3OEhjcnJUNEFEZmpyM002Q0ZuZTRyLzlVYUM3dVdEaXJGc05uL0NKaQo=",
       "endpoints": [
         "https://github.com/justinkahrs/o11n/releases/latest/download/latest.json"
       ]
