@@ -25,7 +25,7 @@ These guidelines describe the exact Markdown format that the Rust backend parser
    **Description**:
      - Must start at column 0 with two '*' around "Description", followed by a colon.
      - Text may continue on the same line or subsequent lines until the next field marker.
-   **Search**: (required for modify actions)
+   **Search**: (REQUIRED for ALL modify changes)
      - Must start at column 0 with two '*' around "Search", followed by a colon.
      - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
      - Inside, include the exact snippet to find (match whitespace and punctuation exactly).
