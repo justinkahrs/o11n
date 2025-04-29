@@ -105,7 +105,6 @@ const ContextPersistenceManager = () => {
         const store = await Store.load("settings.json", { autoSave: false });
         await store.set("context", context);
         await store.save();
-        console.log("Saved store: ", store);
       } catch (err) {
         console.error("Error saving context:", err);
       }

@@ -18,7 +18,7 @@ const Logo: React.FC<LogoProps> = (props) => {
   return (
     <svg
       height={height}
-      viewBox="0 0 800 400"
+      viewBox="0 0 673 347"
       preserveAspectRatio="xMidYMid meet"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -59,7 +59,7 @@ const Logo: React.FC<LogoProps> = (props) => {
         </g>
         <g id="section1">
           <path
-            d="M44.5 137.5H0V93.5H17.5V78H33V61.5H141V78H159V93.5H177.5V137.5H131V93.5H44.5V137.5Z"
+            d="M44.5 130H0V93.5H17.5V78H33V61.5H141V78H159V93.5H177.5V137.5H131V93.5H44.5V130Z"
             fill={section1Color}
           />
           <path
