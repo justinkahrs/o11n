@@ -32,6 +32,7 @@ const RetroButton = styled(Button, {
 
     "&:hover": {
       backgroundColor: isOutlined ? "transparent" : theme.palette.primary.main,
+      border: isOutlined ? `2px solid ${theme.palette.primary.main}` : "none",
     },
 
     "&:active": {

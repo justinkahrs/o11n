@@ -8,6 +8,7 @@ These guidelines describe the exact Markdown format that the Rust backend parser
      ... Markdown content here ...
      </pre>
    - Do not add extra backticks or other formatting around the <pre> tags.
+   - Do not add |oai:code-citation|
 
 2. Document Structure
    # Plan
