@@ -55,7 +55,7 @@ function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
-  const [updateError, setUpdateError] = useState<string | null>(null);
+  const [updateError, setUpdateError] = useState<string | undefined>(undefined);
   const [explorerWidth, setExplorerWidth] = useState(300);
   const theme = useTheme();
   function LoaderOverlay() {
@@ -138,7 +138,7 @@ function App() {
         }}
         onClose={() => {
           setShowUpdateModal(false);
-          setUpdateError(null);
+          setUpdateError(undefined);
         }}
       />
       <LoaderOverlay />
