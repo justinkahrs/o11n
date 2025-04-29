@@ -69,6 +69,12 @@ export function PlanPreview() {
     const contentMatch = rawBlock.match(
       /\*\*Content\*\*:[\s\S]*?```(?:[^\n]*\n)?([\s\S]*?)```/
     );
+// Handle create or rewrite blocks without search (new files)
+if (!searchMatch && contentMatch) {
+  const newLines = contentMatch[1].trimEnd().split("\n");
+  const diffLines = newLines.map((line) => `+ ${line}`);
+  return diffLines.join("\n");
+}
 
     if (searchMatch && contentMatch) {
       const oldLines = searchMatch[1].trimEnd().split("\n");
