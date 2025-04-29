@@ -12,7 +12,8 @@ import { CircularProgress, Tooltip } from "@mui/material";
 import RetroButton from "./RetroButton";
 
 export default function Copy() {
-  const { instructions, selectedFiles, customTemplates } = useAppContext();
+  const { instructions, selectedFiles, customTemplates, projects } =
+    useAppContext();
   const { countTokens, formatOutput, includeFileTree } = useUserContext();
 
   const [copying, setCopying] = useState(false);
@@ -40,7 +41,10 @@ export default function Copy() {
     lastBuildTimeRef.current = now;
     const lines: string[] = [];
     // 1. File Map (Markdown)
-    const filePaths = selectedFiles.map((file) => file.path);
+    let filePaths = selectedFiles.map((file) => file.path);
+    if (filePaths.length === 0 && projects?.length) {
+      filePaths = projects.map((project) => project.path);
+    }
     const fileMap = generateFileMap(filePaths);
     if (includeFileTree) {
       lines.push("## File Map");
@@ -113,6 +117,7 @@ export default function Copy() {
     cachedPromptTextRef.current = promptText;
     return promptText;
   }, [
+    projects,
     selectedFiles,
     customTemplates,
     includeFileTree,
