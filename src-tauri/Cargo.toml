@@ -1,6 +1,6 @@
 [package]
 name = "o11n"
-version = "1.0.87"
+version = "1.0.88"
 description = "A Tauri App"
 authors = ["Senna Automation", "Justin Kahrs"]
 edition = "2021"
