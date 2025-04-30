@@ -59,12 +59,16 @@ export default function AutoUpdateModal({
             </Typography>
           ) : isDownloading ? (
             <>
-              <Typography variant="body1">
-                {`Downloading update: ${Math.floor(progress)}%`}
-              </Typography>
+              {progress > 0 ? (
+                <Typography variant="body1">
+                  {`Downloading update: ${Math.floor(progress)}%`}
+                </Typography>
+              ) : (
+                <Typography variant="body1">Downloading update...</Typography>
+              )}
               <LinearProgress
-                variant="determinate"
-                value={progress}
+                variant={progress > 0 ? "determinate" : "indeterminate"}
+                value={progress > 0 ? progress : undefined}
                 sx={{
                   height: 10,
                   borderRadius: 5,
