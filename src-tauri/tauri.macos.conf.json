@@ -1,6 +1,7 @@
 {
   "bundle": {
     "macOS": {
+      "entitlements": "entitlements.plist",
       "dmg": {
         "appPosition": {
           "x": 180,
