@@ -1,6 +1,6 @@
 [package]
 name = "o11n"
-version = "1.0.92"
+version = "1.0.93"
 description = "A Tauri App"
 authors = ["Senna Automation", "Justin Kahrs"]
 edition = "2021"
@@ -22,7 +22,7 @@ anyhow = "1.0"
 quick-xml = "0.30"
 log = "0.4"
 regex = "1.9"
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["devtools"] }
 tauri-plugin-opener = "2"
 sentry = "0.37.0"
 serde = { version = "1", features = ["derive"] }
