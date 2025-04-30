@@ -26,12 +26,16 @@ export default function AutoUpdateModal({
   const theme = useTheme();
   const isFinished = progress >= 100;
   return (
-    <Dialog open={open} maxWidth="sm" fullWidth>
+    <Dialog onClose={onClose} open={open} maxWidth="sm" fullWidth>
       <DialogTitle>Updating Application</DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {error ? (
-            <Typography variant="body1" color="error">
+            <Typography
+              variant="body1"
+              color="error"
+              sx={{ userSelect: "text !important" }}
+            >
               {error}
             </Typography>
           ) : (

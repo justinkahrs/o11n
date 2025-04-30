@@ -42,6 +42,10 @@ function App() {
               case "Finished":
                 setUpdateProgress(100);
                 break;
+              default:
+                // TO-DO extract and display a nicer message coming from the server
+                setUpdateError("Something went way wrong");
+                break;
             }
           });
         }
