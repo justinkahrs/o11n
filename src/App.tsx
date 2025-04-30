@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from "react";
-import { check } from "@tauri-apps/plugin-updater";
+import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-
 import { Grid, CircularProgress, useTheme, Box } from "@mui/material";
 import AutoUpdateModal from "./components/AutoUpdateModal";
 import FileExplorer from "./components/FileExplorer";
@@ -25,29 +24,8 @@ function App() {
         const update = await check();
         if (update) {
           console.log({ update });
+          setUpdateInfo(update);
           setShowUpdateModal(true);
-          let downloaded = 0;
-          let contentLength: number | undefined;
-          await update.downloadAndInstall((event) => {
-            switch (event.event) {
-              case "Started":
-                contentLength = event.data.contentLength;
-                break;
-              case "Progress":
-                downloaded += event.data.chunkLength;
-                if (contentLength) {
-                  setUpdateProgress((downloaded / contentLength) * 100);
-                }
-                break;
-              case "Finished":
-                setUpdateProgress(100);
-                break;
-              default:
-                // TO-DO extract and display a nicer message coming from the server
-                setUpdateError("Something went way wrong");
-                break;
-            }
-          });
         }
       } catch (e) {
         console.error("Update check failed:", e);
@@ -58,10 +36,79 @@ function App() {
   }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<Update | null>(null);
+  const [downloadStarted, setDownloadStarted] = useState(false);
   const [updateProgress, setUpdateProgress] = useState(0);
   const [updateError, setUpdateError] = useState<string | undefined>(undefined);
   const [explorerWidth, setExplorerWidth] = useState(300);
   const theme = useTheme();
+  const handleDownload = async () => {
+    if (!updateInfo) return;
+    setDownloadStarted(true);
+    let downloaded = 0;
+    let contentLength: number | undefined;
+    try {
+      await updateInfo.download((event) => {
+        switch (event.event) {
+          case "Started":
+            contentLength = event.data.contentLength;
+            break;
+          case "Progress":
+            downloaded += event.data.chunkLength;
+            if (contentLength) {
+              setUpdateProgress((downloaded / contentLength) * 100);
+            }
+            break;
+          case "Finished":
+            setUpdateProgress(100);
+            break;
+          default:
+            setUpdateError("Something went way wrong");
+            break;
+        }
+      });
+    } catch (e) {
+      console.error("Update download failed:", e);
+      setUpdateError(String(e));
+    }
+  };
+  const handleInstallNow = async () => {
+    if (!updateInfo) return;
+    try {
+      await updateInfo.install();
+      await relaunch();
+    } catch (e) {
+      console.error("Update install failed:", e);
+      setUpdateError(String(e));
+    }
+  };
+  const handleInstallLater = async () => {
+    if (!updateInfo) return;
+    try {
+      await updateInfo.install();
+      await updateInfo.close();
+      setShowUpdateModal(false);
+      setUpdateInfo(null);
+      setDownloadStarted(false);
+      setUpdateProgress(0);
+      setUpdateError(undefined);
+    } catch (e) {
+      console.error("Update install failed:", e);
+      setUpdateError(String(e));
+    }
+  };
+  const handleCancel = async () => {
+    if (updateInfo) {
+      try {
+        await updateInfo.close();
+      } catch {}
+    }
+    setShowUpdateModal(false);
+    setUpdateInfo(null);
+    setDownloadStarted(false);
+    setUpdateProgress(0);
+    setUpdateError(undefined);
+  };
   function LoaderOverlay() {
     const { loading } = useUserContext();
     if (!loading) return null;
@@ -84,14 +131,13 @@ function App() {
       </div>
     );
   }
-
   return (
     <Providers>
       <Grid
         ref={containerRef}
         style={{ display: "flex", height: "100vh", padding: "16px" }}
       >
-        {/* Left Panel: file explorer scrolls, settings fixed at bottom */}
+        {/* Left Panel */}
         <Grid
           style={{
             width: explorerWidth,
@@ -104,7 +150,6 @@ function App() {
           <div style={{ flexGrow: 1, overflow: "auto" }}>
             <FileExplorer />
           </div>
-          {/* Settings button aligned with explorer content */}
           <Box sx={{ alignSelf: "flex-start" }}>
             <SettingsMenu />
           </Box>
@@ -113,7 +158,7 @@ function App() {
           containerRef={containerRef}
           setExplorerWidth={setExplorerWidth}
         />
-        {/* Right Panel*/}
+        {/* Right Panel */}
         <Grid
           sx={{
             display: "flex",
@@ -135,15 +180,13 @@ function App() {
       <FilePreview />
       <AutoUpdateModal
         open={showUpdateModal}
+        downloadStarted={downloadStarted}
         progress={updateProgress}
         error={updateError}
-        onRelaunch={async () => {
-          await relaunch();
-        }}
-        onClose={() => {
-          setShowUpdateModal(false);
-          setUpdateError(undefined);
-        }}
+        onDownload={handleDownload}
+        onInstallNow={handleInstallNow}
+        onInstallLater={handleInstallLater}
+        onCancel={handleCancel}
       />
       <LoaderOverlay />
     </Providers>
