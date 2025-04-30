@@ -50,6 +50,6 @@
     "@vitejs/plugin-react": "^4.3.4",
     "semver": "^7.3.8",
     "typescript": "~5.8.3",
-    "vite": "^6.0.3"
+    "vite": "^6.3.4"
   }
 }
