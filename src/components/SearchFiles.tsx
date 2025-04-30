@@ -1,6 +1,7 @@
 import type React from "react";
 import { TextField, IconButton, InputAdornment } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import { useAppContext } from "../context/AppContext";
 interface SearchFilesProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -9,8 +10,11 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
   searchQuery,
   setSearchQuery,
 }) => {
+  const { mode } = useAppContext();
+  const doMode = mode === "do";
   return (
     <TextField
+      disabled={doMode}
       label="Search Files"
       variant="outlined"
       size="small"
