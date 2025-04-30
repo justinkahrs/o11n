@@ -1,6 +1,4 @@
-Markdown Formatting Instructions
-
-These guidelines describe the exact Markdown format that the Rust backend parser expects. Follow these rules precisely to ensure automated file edits succeed.
+Below is a description of the exact format our Rust backend parser expects. Follow these rules precisely to ensure we are able to effortlessly replace code snippets.
 
 1. Overall Wrapper
    - Wrap the entire Markdown payload in a single pair of HTML <pre> tags:
@@ -29,20 +27,24 @@ These guidelines describe the exact Markdown format that the Rust backend parser
    **Search**: (REQUIRED for ALL modify changes)
      - Must start at column 0 with two '*' around "Search", followed by a colon.
      - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
-     - Inside, include the exact snippet to find (match whitespace and punctuation exactly).
+     - Inside, include the exact code snippet to find (match whitespace and punctuation exactly).
+     - Do NOT use placeholders (examples: `...`, `// rest of the code here`, `/* other code goes here */`)
      - Close the fence with three backticks.
+     - NO COMMENTS IN THE CODE
    **Content**: (for modify, rewrite, create)
      - Must start at column 0 with two '*' around "Content", followed by a colon.
      - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
-     - Inside, include the exact replacement snippet (for modify) or the full new file contents (for rewrite/create).
+     - Inside, include only the exact replacement code snippet (for modify) or the full new file contents (for rewrite/create).
+     - Do NOT include any plus/minus symbols to indicate changes.
      - Close the fence with three backticks.
+     - NO COMMENTS IN THE CODE
    - For delete actions, omit Search and Content sections.
 
 4. Additional Rules
    - All headers (### File, ### Action, #### Change) and field markers (**Description**:, **Search**:, **Content**:) must begin at the first column with no leading spaces.
    - Use exactly three backticks for fences (```), no tildes.
    - Blank lines and lines equal to `---` (horizontal rules) outside code fences are ignored by the parser.
-   - Do not use placeholders (e.g., `...`, `// rest of the code here`) or CDATA blocks.
+   -  or CDATA blocks.
    - For appending at the end of a file, include the existing end snippet in the Search block, then repeat it plus new content in the Content block.
    - To apply multiple edits in the same file, include multiple #### Change sections under a single File/Action pair.
    - Do not create any scheduled tasks

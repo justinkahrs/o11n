@@ -34,6 +34,7 @@ export default function DirectoryView({
   const [expanded, setExpanded] = useState<string[]>([]);
   const { countTokens } = useUserContext();
   const { mode, setMode } = useAppContext();
+  const doMode = mode === "do";
 
   // Automatically refresh node children if the node is expanded but not loaded.
   useEffect(() => {
@@ -126,63 +127,70 @@ export default function DirectoryView({
   };
 
   return (
-    <TreeView
-      aria-label="directory tree"
-      defaultCollapseIcon={<ExpandMore />}
-      defaultExpandIcon={<ChevronRight />}
-      expanded={expanded}
-      onNodeToggle={handleToggle}
-      onNodeSelect={handleNodeSelect}
-      sx={{ marginLeft: 1 }}
+    <Box
+      sx={{
+        pointerEvents: doMode ? "none" : "auto",
+        opacity: doMode ? 0.5 : 1,
+      }}
     >
-      {node.loadedChildren
-        ? filterChildren(node.children).map((child) => {
-            if (child.isDirectory) {
+      <TreeView
+        aria-label="directory tree"
+        defaultCollapseIcon={<ExpandMore />}
+        defaultExpandIcon={<ChevronRight />}
+        expanded={expanded}
+        onNodeToggle={handleToggle}
+        onNodeSelect={handleNodeSelect}
+        sx={{ marginLeft: 1 }}
+      >
+        {node.loadedChildren
+          ? filterChildren(node.children).map((child) => {
+              if (child.isDirectory) {
+                return (
+                  <TreeItem
+                    key={child.id}
+                    nodeId={child.id}
+                    label={
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 1,
+                          "&:hover .file-icon": { color: "primary.main" },
+                        }}
+                      >
+                        <FolderIcon className="file-icon" fontSize="small" />
+                        <span>{child.name}/</span>
+                      </Box>
+                    }
+                  >
+                    <DirectoryView
+                      onPreviewFile={onPreviewFile}
+                      node={child}
+                      onFileSelect={onFileSelect}
+                      showDotfiles={showDotfiles}
+                      loadChildren={loadChildren}
+                      searchQuery={searchQuery}
+                    />
+                  </TreeItem>
+                );
+              }
               return (
-                <TreeItem
+                <FileItemWithHover
                   key={child.id}
+                  file={{
+                    id: child.id,
+                    name: child.name,
+                    path: child.path,
+                    size: 0,
+                    // tokenSize,
+                  }}
                   nodeId={child.id}
-                  label={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        "&:hover .file-icon": { color: "primary.main" },
-                      }}
-                    >
-                      <FolderIcon className="file-icon" fontSize="small" />
-                      <span>{child.name}/</span>
-                    </Box>
-                  }
-                >
-                  <DirectoryView
-                    onPreviewFile={onPreviewFile}
-                    node={child}
-                    onFileSelect={onFileSelect}
-                    showDotfiles={showDotfiles}
-                    loadChildren={loadChildren}
-                    searchQuery={searchQuery}
-                  />
-                </TreeItem>
+                  onPreviewFile={onPreviewFile}
+                />
               );
-            }
-            return (
-              <FileItemWithHover
-                key={child.id}
-                file={{
-                  id: child.id,
-                  name: child.name,
-                  path: child.path,
-                  size: 0,
-                  // tokenSize,
-                }}
-                nodeId={child.id}
-                onPreviewFile={onPreviewFile}
-              />
-            );
-          })
-        : null}
-    </TreeView>
+            })
+          : null}
+      </TreeView>
+    </Box>
   );
 }

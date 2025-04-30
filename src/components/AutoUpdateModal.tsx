@@ -11,23 +11,38 @@ import {
 import { useTheme } from "@mui/material/styles";
 type AutoUpdateModalProps = {
   open: boolean;
+  downloadStarted: boolean;
   progress: number;
   error?: string;
-  onRelaunch: () => void;
-  onClose: () => void;
+  onDownload: () => void;
+  onInstallNow: () => void;
+  onInstallLater: () => void;
+  onCancel: () => void;
 };
 export default function AutoUpdateModal({
   open,
+  downloadStarted,
   progress,
   error,
-  onRelaunch,
-  onClose,
+  onDownload,
+  onInstallNow,
+  onInstallLater,
+  onCancel,
 }: AutoUpdateModalProps) {
   const theme = useTheme();
-  const isFinished = progress >= 100;
+  const isDownloading = downloadStarted && progress < 100 && !error;
+  const isDownloaded = downloadStarted && progress >= 100 && !error;
   return (
-    <Dialog onClose={onClose} open={open} maxWidth="sm" fullWidth>
-      <DialogTitle>Updating Application</DialogTitle>
+    <Dialog onClose={onCancel} open={open} maxWidth="sm" fullWidth>
+      <DialogTitle>
+        {error
+          ? "Update Error"
+          : !downloadStarted
+          ? "Update Available"
+          : isDownloading
+          ? "Downloading Update"
+          : "Install Update"}
+      </DialogTitle>
       <DialogContent>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {error ? (
@@ -38,16 +53,22 @@ export default function AutoUpdateModal({
             >
               {error}
             </Typography>
-          ) : (
+          ) : !downloadStarted ? (
+            <Typography variant="body1">
+              Do you want to download the new update?
+            </Typography>
+          ) : isDownloading ? (
             <>
-              <Typography variant="body1">
-                {isFinished
-                  ? "Download complete. Ready to relaunch."
-                  : `Downloading update: ${Math.floor(progress)}%`}
-              </Typography>
+              {progress > 0 ? (
+                <Typography variant="body1">
+                  {`Downloading update: ${Math.floor(progress)}%`}
+                </Typography>
+              ) : (
+                <Typography variant="body1">Downloading update...</Typography>
+              )}
               <LinearProgress
-                variant="determinate"
-                value={progress}
+                variant={progress > 0 ? "determinate" : "indeterminate"}
+                value={progress > 0 ? progress : undefined}
                 sx={{
                   height: 10,
                   borderRadius: 5,
@@ -58,17 +79,44 @@ export default function AutoUpdateModal({
                 }}
               />
             </>
-          )}
+          ) : isDownloaded ? (
+            <Typography variant="body1">
+              Download complete. What would you like to do?
+            </Typography>
+          ) : null}
         </Box>
       </DialogContent>
       <DialogActions>
-        {isFinished && !error && (
-          <Button variant="contained" onClick={onRelaunch}>
-            Relaunch
+        {!downloadStarted && !error && (
+          <>
+            <Button variant="contained" onClick={onDownload}>
+              Download
+            </Button>
+            <Button variant="outlined" onClick={onCancel}>
+              Cancel
+            </Button>
+          </>
+        )}
+        {isDownloading && !error && (
+          <Button variant="outlined" onClick={onCancel}>
+            Cancel
           </Button>
         )}
+        {isDownloaded && !error && (
+          <>
+            <Button variant="contained" onClick={onInstallNow}>
+              Restart and install now
+            </Button>
+            <Button variant="contained" onClick={onInstallLater}>
+              Install on next load
+            </Button>
+            <Button variant="outlined" onClick={onCancel}>
+              Cancel
+            </Button>
+          </>
+        )}
         {error && (
-          <Button variant="outlined" onClick={onClose}>
+          <Button variant="outlined" onClick={onCancel}>
             Close
           </Button>
         )}
