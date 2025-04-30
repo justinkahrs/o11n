@@ -15,7 +15,7 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^5.13.7",
     "@mui/lab": "^5.0.0-alpha.127",
-    "@mui/material": "^5.16.14",
+    "@mui/material": "^7.0.2",
     "@mui/x-tree-view": "^7.26.0",
     "@sentry/react": "^9.13.0",
     "@sentry/vite-plugin": "^3.3.1",
