@@ -2703,7 +2703,7 @@ dependencies = [
 
 [[package]]
 name = "o11n"
-version = "1.0.99"
+version = "1.0.100"
 dependencies = [
  "anyhow",
  "log",

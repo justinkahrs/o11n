@@ -42,6 +42,7 @@ jobs:
         with: { fetch-depth: 0 }
 
       - name: Decode Apple ASC API Key
+        if: ${{ matrix.platform == 'macos-latest' }}
         run: |
           KEY_FILE=$(mktemp /tmp/apple_api_key.XXXXXX.p8)
           echo "${{ secrets.APPLE_P8_KEY }}" | base64 --decode > "$KEY_FILE"
@@ -68,7 +69,6 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
-
       - run: npm ci
       # ---------- build & codesign ----------
       - name: Build Tauri bundle (signed)
