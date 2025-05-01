@@ -7,15 +7,17 @@ on:
 
 jobs:
   build-tauri:
-    runs-on: macos-latest
     strategy:
       matrix:
         include:
           - args: "--target aarch64-apple-darwin"
             arch: "aarch64-apple-darwin"
+            platform: "macos-latest"
           - args: ""
             arch: "windows-latest"
+            platform: "windows-latest"
 
+    runs-on: ${{ matrix.platform }}
     env:
       # - Auto updates
       VITE_UPDATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
