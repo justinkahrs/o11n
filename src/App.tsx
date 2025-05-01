@@ -1,5 +1,9 @@
 import { useState, useRef, useEffect } from "react";
-import { check, type Update } from "@tauri-apps/plugin-updater";
+import {
+  check,
+  type DownloadEvent,
+  type Update,
+} from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { Grid, CircularProgress, useTheme, Box } from "@mui/material";
 import AutoUpdateModal from "./components/AutoUpdateModal";
@@ -23,7 +27,6 @@ function App() {
       try {
         const update = await check();
         if (update) {
-          console.log({ update });
           setUpdateInfo(update);
           setShowUpdateModal(true);
         }
@@ -48,7 +51,8 @@ function App() {
     let downloaded = 0;
     let contentLength: number | undefined;
     try {
-      await updateInfo.download((event) => {
+      await updateInfo.download((event: DownloadEvent) => {
+        console.log({ event });
         switch (event.event) {
           case "Started":
             contentLength = event.data.contentLength;
@@ -67,6 +71,7 @@ function App() {
             break;
         }
       });
+      setUpdateProgress(100);
     } catch (e) {
       console.error("Update download failed:", e);
       setUpdateError(String(e));
