@@ -13,6 +13,8 @@ jobs:
         include:
           - args: "--target aarch64-apple-darwin"
             arch: "aarch64-apple-darwin"
+          - args: ""
+            arch: "windows-latest"
 
     env:
       # - Auto updates
@@ -49,7 +51,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          target: ${{ matrix.arch }}
+          target: ${{ matrix.arch == 'aarch64-apple-darwin' && 'aarch64-apple-darwin' || '' }}
           override: true
           default: true
 
