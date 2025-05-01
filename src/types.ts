@@ -14,7 +14,6 @@ export interface CustomTemplate {
   active: boolean;
 }
 export interface TreeItemData {
-  ignorePatterns: string[];
   id: string;
   name: string;
   path: string; // This may be '.' or a full path
