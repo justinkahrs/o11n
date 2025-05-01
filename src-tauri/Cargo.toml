@@ -19,7 +19,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 anyhow = "1.0"
-quick-xml = "0.30"
+quick-xml = "0.37"
 log = "0.4"
 regex = "1.9"
 tauri = { version = "2", features = ["devtools"] }
