@@ -1,4 +1,4 @@
-name: macOS release (manual signing)
+name: Build o11n
 
 on:
   push:
