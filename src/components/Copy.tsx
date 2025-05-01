@@ -212,7 +212,7 @@ export default function Copy() {
             : promptCopied
             ? "Prompt Copied!"
             : formattedTokenCount
-            ? `Copy Prompts (~${formattedTokenCount} tokens)`
+            ? `Copy Prompt (~${formattedTokenCount} tokens)`
             : "Copy Prompt"}
         </RetroButton>
       </span>
