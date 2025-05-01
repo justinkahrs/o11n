@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { BaseDirectory, readDir, readTextFile } from "@tauri-apps/plugin-fs";
+import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
 import { Box, IconButton, Typography, useTheme } from "@mui/material";
@@ -42,7 +42,6 @@ export default function FileExplorer() {
       isDirectory: true,
       children: [],
       loadedChildren: false,
-      ignorePatterns: [],
     };
   }
 
