@@ -33,6 +33,7 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
       }}
     >
       <Tooltip
+        arrow
         disableInteractive
         enterDelay={500}
         placement="right"
@@ -69,6 +70,7 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
           }}
         >
           <Tooltip
+            arrow
             disableInteractive
             enterDelay={500}
             title="Preview"

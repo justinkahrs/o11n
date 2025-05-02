@@ -228,6 +228,7 @@ export function PlanPreview() {
                                   {desc}
                                 </Typography>
                                 <Tooltip
+                                  arrow
                                   disableInteractive
                                   enterDelay={500}
                                   placement="left"

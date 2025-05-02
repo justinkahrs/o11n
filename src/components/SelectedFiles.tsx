@@ -1,4 +1,4 @@
-import { Box, IconButton } from "@mui/material";
+import { Box, IconButton, Tooltip } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { FolderGroup } from "./FolderGroup";
 import { FileCard } from "./FileCard";
@@ -85,14 +85,20 @@ export function SelectedFiles() {
           >
             <IconButton
               onClick={() => setAllExpanded((prev) => !prev)}
-              title={allExpanded ? "Collapse All" : "Expand All"}
               sx={{
                 transform: allExpanded ? "rotate(0deg)" : "rotate(180deg)",
                 transition: "transform 0.3s",
                 mb: 1,
               }}
             >
-              <ExpandMoreIcon />
+              <Tooltip
+                arrow
+                enterDelay={2000}
+                title={allExpanded ? "Collapse All" : "Expand All"}
+                placement="left"
+              >
+                <ExpandMoreIcon fontSize="small" />
+              </Tooltip>
             </IconButton>
           </Box>
         )}

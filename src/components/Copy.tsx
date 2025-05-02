@@ -187,6 +187,7 @@ export default function Copy() {
   }
   return (
     <Tooltip
+      arrow
       disableInteractive
       enterDelay={1000}
       title={`${

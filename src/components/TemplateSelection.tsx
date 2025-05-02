@@ -67,9 +67,10 @@ const TemplateSelection = () => {
         ],
       });
       if (selectedPath && typeof selectedPath === "string") {
+        const fileName = selectedPath.split("/").pop() || "Template";
         const newTemplate = {
           id: Date.now().toString(),
-          name: selectedPath.split("/").pop() || "Template",
+          name: fileName.replace(/\.[^/.]+$/, ""),
           path: selectedPath,
           active: true,
         };
@@ -111,15 +112,16 @@ const TemplateSelection = () => {
           justifyContent: "space-between",
           alignItems: "center",
           mx: 2,
+          mb: 1,
         }}
       >
         <Stack direction="row" spacing={1} sx={{ mr: 2 }}>
           <Tooltip
+            arrow
             disableInteractive
             enterDelay={500}
             enterNextDelay={500}
             title="Create toggle"
-            arrow
           >
             <IconButton
               size="small"
@@ -132,11 +134,11 @@ const TemplateSelection = () => {
             </IconButton>
           </Tooltip>
           <Tooltip
+            arrow
             disableInteractive
             enterDelay={500}
             enterNextDelay={500}
             title="Open toggle"
-            arrow
           >
             <IconButton
               size="small"
@@ -172,7 +174,13 @@ const TemplateSelection = () => {
                 avatar={
                   hoveredId === template.id ? (
                     <>
-                      <Tooltip title="Toggle" arrow>
+                      <Tooltip
+                        arrow
+                        disableInteractive
+                        enterDelay={500}
+                        enterNextDelay={500}
+                        title="Toggle"
+                      >
                         <IconButton
                           size="small"
                           onClick={() => onToggleTemplate(template.id)}
@@ -180,7 +188,13 @@ const TemplateSelection = () => {
                           <VisibilityOff fontSize="small" />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title="Delete toggle" arrow>
+                      <Tooltip
+                        arrow
+                        disableInteractive
+                        enterDelay={500}
+                        enterNextDelay={500}
+                        title="Remove toggle"
+                      >
                         <IconButton
                           size="small"
                           onClick={() => onRemoveTemplate(template.id)}
@@ -191,7 +205,7 @@ const TemplateSelection = () => {
                     </>
                   ) : undefined
                 }
-                label={template.name}
+                label={template.name.replace(/\.[^/.]+$/, "")}
                 color={template.active ? "secondary" : "default"}
               />
             </Box>

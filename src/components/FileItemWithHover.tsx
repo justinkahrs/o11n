@@ -33,6 +33,7 @@ export default function FileItemWithHover({
           }}
         >
           <Tooltip
+            arrow
             disableInteractive
             enterDelay={500}
             enterNextDelay={500}

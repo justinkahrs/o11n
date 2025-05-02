@@ -87,7 +87,12 @@ export function FolderGroup({
             </Typography>
           </Typography>
         </Box>
-        <Tooltip disableInteractive enterDelay={500} title="Remove folder">
+        <Tooltip
+          arrow
+          disableInteractive
+          enterDelay={500}
+          title="Remove folder"
+        >
           <IconButton
             onClick={(e) => {
               e.stopPropagation();

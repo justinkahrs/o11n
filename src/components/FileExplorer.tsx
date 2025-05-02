@@ -236,6 +236,7 @@ export default function FileExplorer() {
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Tooltip
+                    arrow
                     disableInteractive
                     enterDelay={500}
                     title="Reload project"
@@ -258,6 +259,7 @@ export default function FileExplorer() {
                     </IconButton>
                   </Tooltip>
                   <Tooltip
+                    arrow
                     disableInteractive
                     enterDelay={500}
                     title="Remove project"
