@@ -9,6 +9,7 @@ import {
   DialogActions,
   TextField,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import {
   Add,
@@ -16,6 +17,7 @@ import {
   FolderOpen,
   VisibilityOff,
   Close,
+  InfoOutlined,
 } from "@mui/icons-material";
 import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -78,7 +80,7 @@ const TemplateSelection = () => {
 
   const handleCreateSubmit = async () => {
     if (!templateName) return;
-    // Save file in ./.o11n/ folder with the template name as filename and .txt extension
+    // Save file in home folder with the template name as filename and .txt extension
     const filePath = `${templateName}.txt`;
     try {
       await writeTextFile(filePath, templateInstructions, {
@@ -110,37 +112,51 @@ const TemplateSelection = () => {
         }}
       >
         <Stack direction="row" spacing={1} sx={{ mr: 2 }}>
-          <Chip
-            label="Add saved prompt"
-            avatar={
-              hoveredId === "add" ? (
-                <>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleCreateClick();
-                    }}
-                  >
-                    <Create fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleOpenClick();
-                    }}
-                  >
-                    <FolderOpen fontSize="small" />
-                  </IconButton>
-                </>
-              ) : (
-                <Add />
-              )
-            }
-            onMouseEnter={() => setHoveredId("add")}
-            onMouseLeave={() => setHoveredId(null)}
-          />
+          <Tooltip
+            disableInteractive
+            enterDelay={500}
+            enterNextDelay={500}
+            title="Create toggle"
+            arrow
+          >
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleCreateClick();
+              }}
+            >
+              <Create fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip
+            disableInteractive
+            enterDelay={500}
+            enterNextDelay={500}
+            title="Open toggle"
+            arrow
+          >
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleOpenClick();
+              }}
+            >
+              <FolderOpen fontSize="small" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip
+            disableInteractive
+            enterDelay={500}
+            enterNextDelay={500}
+            title="Handy for switching context easily"
+            arrow
+          >
+            <IconButton size="small">
+              <InfoOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </Stack>
         <Stack direction="row" spacing={1}>
           {customTemplates.map((template) => (
@@ -179,13 +195,14 @@ const TemplateSelection = () => {
           open={createDialogOpen}
           onClose={() => setCreateDialogOpen(false)}
         >
-          <DialogTitle>Create Custom Template</DialogTitle>
+          <DialogTitle>Create Toggle Prompt</DialogTitle>
           <DialogContent>
             <TextField
+              placeholder="probably a role (Frontend Developer, 3D Animator, etc)"
               variant="outlined"
               autoFocus
               margin="dense"
-              label="Template Name"
+              label="Name"
               fullWidth
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
@@ -213,6 +230,7 @@ const TemplateSelection = () => {
             </RetroButton>
             <RetroButton
               onClick={handleCreateSubmit}
+              disabled={!templateName || !templateInstructions}
               startIcon={<Create />}
               sx={{ height: 40, mb: 1, mr: 2 }}
             >
