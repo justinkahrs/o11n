@@ -14,8 +14,7 @@
         "windowSize": {
           "height": 600,
           "width": 800
-        },
-        "background": "./dmg-bg.png"
+        }
       },
       "hardenedRuntime": true,
       "minimumSystemVersion": "10.13",
