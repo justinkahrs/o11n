@@ -12,7 +12,7 @@ const Logo: React.FC<LogoProps> = (props) => {
     section1Color = theme.palette.primary.main,
     section2Color = theme.palette.secondary.main,
     section3Color = theme.palette.secondary.dark,
-    height = "5rem",
+    height = "5em",
     ...svgProps
   } = props;
   return (

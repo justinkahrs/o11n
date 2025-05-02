@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Store } from "@tauri-apps/plugin-store";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 const ContextPersistenceManager = () => {
+  const initialLoadRef = useRef(true);
   const {
     mode,
     instructions,
@@ -72,6 +73,8 @@ const ContextPersistenceManager = () => {
         }
       } catch (err) {
         console.error("Error loading context:", err);
+      } finally {
+        initialLoadRef.current = false;
       }
     };
     loadContext();
@@ -122,8 +125,9 @@ const ContextPersistenceManager = () => {
         console.error("Error saving context:", err);
       }
     };
-    // Save context immediately on every dependency change.
-    saveContext();
+    if (!initialLoadRef.current) {
+      saveContext();
+    }
     window.addEventListener("beforeunload", saveContext);
     return () => {
       window.removeEventListener("beforeunload", saveContext);
