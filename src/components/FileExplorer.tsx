@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 
-import { Box, IconButton, Typography, useTheme } from "@mui/material";
+import { Box, IconButton, Typography, useTheme, Tooltip } from "@mui/material";
 import FolderIcon from "@mui/icons-material/Folder";
 import LogoSVG from "./LogoSVG";
 import SearchFiles from "./SearchFiles";
@@ -10,7 +10,8 @@ import DirectoryView from "./DirectoryView";
 import {
   FolderSpecial,
   Delete,
-  InsertDriveFile as InsertDriveFileIcon,
+  InsertDriveFile,
+  Refresh,
 } from "@mui/icons-material";
 import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
@@ -168,7 +169,7 @@ export default function FileExplorer() {
         <RetroButton
           fullWidth
           onClick={openFile}
-          startIcon={<InsertDriveFileIcon />}
+          startIcon={<InsertDriveFile />}
           sx={{ height: 40, mt: 1 }}
           variant="outlined"
         >
@@ -234,15 +235,43 @@ export default function FileExplorer() {
                   {root.name}
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <IconButton
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeProject(root.path);
-                    }}
-                    size="small"
+                  <Tooltip
+                    disableInteractive
+                    enterDelay={500}
+                    title="Reload project"
                   >
-                    <Delete fontSize="inherit" />
-                  </IconButton>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProjects((prev) =>
+                          prev.map((proj) =>
+                            proj.path === root.path
+                              ? { ...proj, children: [], loadedChildren: false }
+                              : proj
+                          )
+                        );
+                        loadChildren(root);
+                      }}
+                      size="small"
+                    >
+                      <Refresh fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip
+                    disableInteractive
+                    enterDelay={500}
+                    title="Remove project"
+                  >
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeProject(root.path);
+                      }}
+                      size="small"
+                    >
+                      <Delete fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
               </Box>
               {/* Animated Directory tree */}

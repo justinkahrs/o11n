@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
-import { Box, Typography, IconButton, useTheme } from "@mui/material";
+import { Box, Typography, IconButton, useTheme, Tooltip } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Folder from "@mui/icons-material/Folder";
 import { formatFileSize } from "../utils/formatFileSize";
@@ -29,9 +29,11 @@ export function FolderGroup({
 }: FolderGroupProps) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(true);
-  const prevTotalRef = useRef(totalFolders);useEffect(() => {
-  setExpanded(forceExpanded !== undefined ? forceExpanded : true);
-}, [forceExpanded]);useEffect(() => {
+  const prevTotalRef = useRef(totalFolders);
+  useEffect(() => {
+    setExpanded(forceExpanded !== undefined ? forceExpanded : true);
+  }, [forceExpanded]);
+  useEffect(() => {
     prevTotalRef.current = totalFolders;
   }, [totalFolders]);
 
@@ -85,15 +87,17 @@ export function FolderGroup({
             </Typography>
           </Typography>
         </Box>
-        <IconButton
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemoveFolder(folder);
-          }}
-          aria-label="delete folder"
-        >
-          <DeleteIcon sx={{ fontSize: "18px" }} />
-        </IconButton>
+        <Tooltip disableInteractive enterDelay={500} title="Remove folder">
+          <IconButton
+            onClick={(e) => {
+              e.stopPropagation();
+              onRemoveFolder(folder);
+            }}
+            aria-label="delete folder"
+          >
+            <DeleteIcon sx={{ fontSize: "18px" }} />
+          </IconButton>
+        </Tooltip>
       </div>
       <AccordionItem isOpen={expanded}>
         <div

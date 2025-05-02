@@ -8,6 +8,7 @@ import {
   ListItem,
   Checkbox,
   IconButton,
+  Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -69,12 +70,12 @@ export function PlanPreview() {
     const contentMatch = rawBlock.match(
       /\*\*Content\*\*:[\s\S]*?```(?:[^\n]*\n)?([\s\S]*?)```/
     );
-// Handle create or rewrite blocks without search (new files)
-if (!searchMatch && contentMatch) {
-  const newLines = contentMatch[1].trimEnd().split("\n");
-  const diffLines = newLines.map((line) => `+ ${line}`);
-  return diffLines.join("\n");
-}
+    // Handle create or rewrite blocks without search (new files)
+    if (!searchMatch && contentMatch) {
+      const newLines = contentMatch[1].trimEnd().split("\n");
+      const diffLines = newLines.map((line) => `+ ${line}`);
+      return diffLines.join("\n");
+    }
 
     if (searchMatch && contentMatch) {
       const oldLines = searchMatch[1].trimEnd().split("\n");
@@ -226,15 +227,25 @@ if (!searchMatch && contentMatch) {
                                 >
                                   {desc}
                                 </Typography>
-                                <IconButton
-                                  size="small"
-                                  onClick={() =>
-                                    setOpenDiff({ file: fileChange.file, idx })
-                                  }
-                                  sx={{ ml: 1 }}
+                                <Tooltip
+                                  disableInteractive
+                                  enterDelay={500}
+                                  placement="left"
+                                  title="Preview change"
                                 >
-                                  <VisibilityIcon fontSize="small" />
-                                </IconButton>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() =>
+                                      setOpenDiff({
+                                        file: fileChange.file,
+                                        idx,
+                                      })
+                                    }
+                                    sx={{ ml: 1 }}
+                                  >
+                                    <VisibilityIcon fontSize="small" />
+                                  </IconButton>
+                                </Tooltip>
                               </ListItem>
                             );
                           })}

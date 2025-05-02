@@ -188,6 +188,7 @@ export default function Copy() {
   }
   return (
     <Tooltip
+      disableInteractive
       enterDelay={1000}
       title={`${
         promptTokenCount !== null ? promptTokenCount : "calculating..."

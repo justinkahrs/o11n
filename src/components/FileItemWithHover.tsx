@@ -1,7 +1,7 @@
 import { TreeItem } from "@mui/lab";
-import { Box } from "@mui/material";
+import { Box, Tooltip } from "@mui/material";
 import { motion } from "framer-motion";
-import { InsertDriveFile as FileIcon } from "@mui/icons-material";
+import { InsertDriveFile } from "@mui/icons-material";
 import type { FileNode } from "../types";
 interface FileItemWithHoverProps {
   file: FileNode;
@@ -32,15 +32,24 @@ export default function FileItemWithHover({
             gap: 1,
           }}
         >
-          <FileIcon
-            className="file-icon"
-            sx={{
-              color: "secondary.main",
-              "&:hover": { color: "primary.main" },
-            }}
-            onClick={handleClick}
-            fontSize="small"
-          />
+          <Tooltip
+            disableInteractive
+            enterDelay={500}
+            enterNextDelay={500}
+            placement="left"
+            title="Preview"
+          >
+            <InsertDriveFile
+              className="file-icon"
+              sx={{
+                color: "secondary.main",
+                "&:hover": { color: "primary.main" },
+              }}
+              onClick={handleClick}
+              fontSize="small"
+            />
+          </Tooltip>
+
           <Box>{file.name}</Box>
         </Box>
       }
