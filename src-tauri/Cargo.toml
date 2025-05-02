@@ -1,6 +1,6 @@
 [package]
 name = "o11n"
-version = "1.0.103"
+version = "1.0.104"
 description = "Prompt generation, file orchestration."
 authors = ["Senna Automation", "Justin Kahrs"]
 edition = "2021"

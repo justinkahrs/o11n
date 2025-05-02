@@ -174,7 +174,6 @@ export default function Copy() {
             <ContentCopy />
           )
         }
-        sx={{ mx: 2 }}
       >
         {copying
           ? "Processing..."

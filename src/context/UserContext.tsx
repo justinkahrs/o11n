@@ -26,7 +26,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [showDotfiles, setShowDotfiles] = useState(false);
   const [showLogo, setShowLogo] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(theme);
-  const [countTokens, setCountTokens] = useState(false);
+  const [countTokens, setCountTokens] = useState(true);
   const [formatOutput, setFormatOutput] = useState(true);
   const [includeFileTree, setIncludeFileTree] = useState(true);
   const [loading, setLoading] = useState(false);
