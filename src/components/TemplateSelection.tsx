@@ -12,7 +12,6 @@ import {
   Tooltip,
 } from "@mui/material";
 import {
-  Add,
   Create,
   FolderOpen,
   VisibilityOff,
@@ -21,6 +20,7 @@ import {
 } from "@mui/icons-material";
 import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
+import { homeDir } from "@tauri-apps/api/path";
 import { useAppContext } from "../context/AppContext";
 import RetroButton from "./RetroButton";
 
@@ -55,8 +55,10 @@ const TemplateSelection = () => {
 
   const handleOpenClick = async () => {
     try {
+      const dir = await homeDir();
       const selectedPath = await open({
         multiple: false,
+        defaultPath: dir,
         filters: [
           {
             name: "Text Files",
@@ -170,18 +172,22 @@ const TemplateSelection = () => {
                 avatar={
                   hoveredId === template.id ? (
                     <>
-                      <IconButton
-                        size="small"
-                        onClick={() => onToggleTemplate(template.id)}
-                      >
-                        <VisibilityOff fontSize="small" />
-                      </IconButton>
-                      <IconButton
-                        size="small"
-                        onClick={() => onRemoveTemplate(template.id)}
-                      >
-                        <Close fontSize="small" />
-                      </IconButton>
+                      <Tooltip title="Toggle" arrow>
+                        <IconButton
+                          size="small"
+                          onClick={() => onToggleTemplate(template.id)}
+                        >
+                          <VisibilityOff fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Delete toggle" arrow>
+                        <IconButton
+                          size="small"
+                          onClick={() => onRemoveTemplate(template.id)}
+                        >
+                          <Close fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </>
                   ) : undefined
                 }
