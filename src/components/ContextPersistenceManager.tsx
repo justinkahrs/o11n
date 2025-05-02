@@ -30,6 +30,10 @@ const ContextPersistenceManager = () => {
     setCountTokens,
     setFormatOutput,
     setLoading,
+    primaryColor,
+    secondaryColor,
+    themeMode,
+    onThemeChange,
   } = useUserContext();
   // On application startup, load the saved context and update both contexts.
   useEffect(() => {
@@ -59,6 +63,11 @@ const ContextPersistenceManager = () => {
             setCountTokens(contextObj.userContext.countTokens);
             setFormatOutput(contextObj.userContext.formatOutput);
             setLoading(contextObj.userContext.loading);
+            onThemeChange(
+              contextObj.userContext.primaryColor,
+              contextObj.userContext.secondaryColor,
+              contextObj.userContext.themeMode
+            );
           }
         }
       } catch (err) {
@@ -79,6 +88,7 @@ const ContextPersistenceManager = () => {
     setCountTokens,
     setFormatOutput,
     setLoading,
+    onThemeChange,
   ]);
   // Save context on app exit using the beforeunload event.
   useEffect(() => {
@@ -100,6 +110,9 @@ const ContextPersistenceManager = () => {
             countTokens,
             formatOutput,
             loading,
+            primaryColor,
+            secondaryColor,
+            themeMode,
           },
         };
         const store = await Store.load("settings.json", { autoSave: false });
@@ -128,6 +141,9 @@ const ContextPersistenceManager = () => {
     countTokens,
     formatOutput,
     loading,
+    primaryColor,
+    secondaryColor,
+    themeMode,
   ]);
   return null;
 };

@@ -52,7 +52,6 @@ const Commit = () => {
     } catch (e) {
       console.error("Error filtering plan", e);
       planToApply = plan;
-      throw e;
     }
     let commitError = false;
     try {
@@ -66,9 +65,9 @@ const Commit = () => {
       setErrorMessage(
         error instanceof Error ? error.message : "Failed to apply changes"
       );
-      throw error;
+    } finally {
+      setCommitting(false);
     }
-    setCommitting(false);
     setProjects((prev) =>
       prev.map((proj) => ({ ...proj, loadedChildren: false }))
     );

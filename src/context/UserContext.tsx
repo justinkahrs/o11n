@@ -1,5 +1,11 @@
 import { createTheme, ThemeProvider } from "@mui/material";
-import { createContext, useState, type ReactNode, useContext } from "react";
+import {
+  createContext,
+  useState,
+  type ReactNode,
+  useContext,
+  useCallback,
+} from "react";
 import { theme } from "../theme";
 
 interface UserContextType {
@@ -12,12 +18,18 @@ interface UserContextType {
     secondary: string,
     mode: "light" | "dark"
   ) => void;
+  primaryColor: string;
+  secondaryColor: string;
+  themeMode: "light" | "dark";
   showDotfiles: boolean;
   setCountTokens: React.Dispatch<React.SetStateAction<boolean>>;
   setIncludeFileTree: React.Dispatch<React.SetStateAction<boolean>>;
   setFormatOutput: React.Dispatch<React.SetStateAction<boolean>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setShowDotfiles: React.Dispatch<React.SetStateAction<boolean>>;
+  setPrimaryColor: React.Dispatch<React.SetStateAction<string>>;
+  setSecondaryColor: React.Dispatch<React.SetStateAction<string>>;
+  setThemeMode: React.Dispatch<React.SetStateAction<"light" | "dark">>;
   showLogo: boolean;
   setShowLogo: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -26,26 +38,33 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [showDotfiles, setShowDotfiles] = useState(false);
   const [showLogo, setShowLogo] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(theme);
+  const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
+  const [primaryColor, setPrimaryColor] = useState(theme.palette.primary.main);
+  const [secondaryColor, setSecondaryColor] = useState(
+    theme.palette.secondary.main
+  );
   const [countTokens, setCountTokens] = useState(true);
   const [formatOutput, setFormatOutput] = useState(true);
   const [includeFileTree, setIncludeFileTree] = useState(true);
   const [loading, setLoading] = useState(false);
-  const onThemeChange = (
-    primary: string,
-    secondary: string,
-    mode: "light" | "dark"
-  ) => {
-    setCurrentTheme(
-      createTheme({
-        typography: theme.typography,
-        palette: {
-          mode,
-          primary: { main: primary },
-          secondary: { main: secondary },
-        },
-      })
-    );
-  };
+  const onThemeChange = useCallback(
+    (primary: string, secondary: string, mode: "light" | "dark") => {
+      setPrimaryColor(primary);
+      setSecondaryColor(secondary);
+      setThemeMode(mode);
+      setCurrentTheme(
+        createTheme({
+          typography: theme.typography,
+          palette: {
+            mode,
+            primary: { main: primary },
+            secondary: { main: secondary },
+          },
+        })
+      );
+    },
+    []
+  );
 
   return (
     <UserContext.Provider
@@ -55,6 +74,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         includeFileTree,
         setIncludeFileTree,
         onThemeChange,
+        primaryColor,
+        secondaryColor,
+        themeMode,
+        setPrimaryColor,
+        setSecondaryColor,
+        setThemeMode,
         countTokens,
         setCountTokens,
         formatOutput,
