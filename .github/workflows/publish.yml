@@ -112,7 +112,7 @@ jobs:
 
     steps:
       - name: Download all build artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: bundles
 
@@ -127,7 +127,7 @@ jobs:
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl private --delete
-          source_dir: bundles/o11n-macos-latest-bundle/src-tauri/target/release/bundle/
+          source_dir: bundles/o11n-macos-latest-bundle/
         env:
           AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
 
