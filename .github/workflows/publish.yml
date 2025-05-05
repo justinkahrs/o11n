@@ -96,7 +96,7 @@ jobs:
       # Upload the signed bundles as artifacts
       # ───────────────────────────────────────
       - name: Upload signed bundles
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: o11n-${{ matrix.platform }}-bundle
           path: src-tauri/target/release/bundle/
