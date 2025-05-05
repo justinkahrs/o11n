@@ -93,3 +93,18 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      # -------------------------------
+      # Deploy artifacts to private S3
+      # -------------------------------
+      - name: Sync build artifacts to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          # --delete will remove any stale files in the bucket
+          args: --acl private --delete
+        env:
+          AWS_S3_BUCKET: ${{ secrets.S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: "us-east-2"
+          SOURCE_DIR: "src-tauri/target/release/bundle/"
