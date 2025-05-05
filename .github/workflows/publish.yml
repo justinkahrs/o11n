@@ -16,30 +16,26 @@ jobs:
           - args: ""
             arch: "windows-latest"
             platform: "windows-latest"
-
     runs-on: ${{ matrix.platform }}
     env:
-      # - Auto updates
+      # ——— auto updates & build flags ———
       VITE_UPDATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       RUSTFLAGS: "-C target-cpu=native"
 
-      # ——— signing cert & keychain ———
+      # ——— signing certs & notarization ———
       APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
       APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
       KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
       APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-
-      # ——— notarisation (ASC API key) ———
       APPLE_API_KEY_B64: ${{ secrets.APPLE_P8_KEY }}
       APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY }}
-
-      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY}}
-      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }} # 8-4-4-4-12 UUID
+      APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
+        with:
+          fetch-depth: 0
 
       - name: Decode Apple ASC API Key
         if: ${{ matrix.platform == 'macos-latest' }}
@@ -69,7 +65,9 @@ jobs:
         with:
           node-version: "22"
           cache: "npm"
+
       - run: npm ci
+
       # ---------- build & codesign ----------
       - name: Build Tauri bundle (signed)
         uses: tauri-apps/tauri-action@v0
@@ -94,17 +92,49 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
-      # -------------------------------
-      # Deploy artifacts to private S3
-      # -------------------------------
-      - name: Sync build artifacts to S3
+      # ───────────────────────────────────────
+      # Upload the signed bundles as artifacts
+      # ───────────────────────────────────────
+      - name: Upload signed bundles
+        uses: actions/upload-artifact@v3
+        with:
+          name: o11n-${{ matrix.platform }}-bundle
+          path: src-tauri/target/release/bundle/
+
+  deploy:
+    needs: build-tauri
+    runs-on: ubuntu-latest
+    env:
+      AWS_S3_BUCKET: ${{ secrets.S3_BUCKET }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: "us-east-2"
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: bundles
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync macOS bundle to S3
         uses: jakejarvis/s3-sync-action@master
         with:
-          # --delete will remove any stale files in the bucket
           args: --acl private --delete
+          source_dir: bundles/o11n-macos-latest-bundle/src-tauri/target/release/bundle/
         env:
-          AWS_S3_BUCKET: ${{ secrets.S3_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: "us-east-2"
-          SOURCE_DIR: "src-tauri/target/release/bundle/"
+          AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
+
+      - name: Sync Windows bundle to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --acl private --delete
+          source_dir: bundles/o11n-windows-latest-bundle/src-tauri/target/release/bundle/
+        env:
+          AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
