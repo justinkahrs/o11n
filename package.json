@@ -30,7 +30,7 @@
     "@tauri-apps/plugin-store": "^2.2.0",
     "@tauri-apps/plugin-updater": "^2.7.1",
     "@tauri-apps/plugin-window-state": "^2.2.2",
-    "framer-motion": "^12.6.3",
+    "framer-motion": "^12.9.7",
     "highlight.js": "^11.11.1",
     "motion": "^12.9.2",
     "react": "^18.3.1",
