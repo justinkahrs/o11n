@@ -127,7 +127,7 @@ jobs:
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl private --delete
-          source_dir: bundles/o11n-macos-latest-bundle/
+          entryPoint: bundles/o11n-macos-latest-bundle/
         env:
           AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
 
@@ -135,6 +135,6 @@ jobs:
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl private --delete
-          source_dir: bundles/o11n-windows-latest-bundle/src-tauri/target/release/bundle/
+          entryPoint: bundles/o11n-windows-latest-bundle/
         env:
           AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
