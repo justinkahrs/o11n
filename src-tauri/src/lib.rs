@@ -3,12 +3,13 @@ mod apply_file_change;
 mod change_types;
 mod parse_change_protocol;
 mod token_utils;
+use serde_json::{json, Value};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-fn apply_protocol(xml_input: &str) -> Result<String, String> {
+fn apply_protocol(xml_input: &str) -> Result<Value, String> {
     match crate::apply_changes::apply_changes(xml_input) {
-        Ok(_) => Ok("Changes applied successfully!".to_string()),
+        Ok((successes, errors)) => Ok(json!({ "success": successes, "errors": errors })),
         Err(e) => {
             sentry::capture_error(&*e);
             Err(format!("Failed to apply changes: {}", e))

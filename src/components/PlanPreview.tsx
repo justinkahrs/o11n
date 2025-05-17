@@ -15,12 +15,18 @@ import {
   DialogActions,
 } from "@mui/material";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import CloseIcon from "@mui/icons-material/Close";
 import { useAppContext } from "../context/AppContext";
 import RetroButton from "./RetroButton";
 
 export function PlanPreview() {
-  const { selectedDescriptions, setSelectedDescriptions, mode, plan } =
-    useAppContext();
+  const {
+    selectedDescriptions,
+    setSelectedDescriptions,
+    mode,
+    plan,
+    errorReports,
+  } = useAppContext();
   const doMode = mode === "do";
   const [openDiff, setOpenDiff] = React.useState<{
     file: string;
@@ -95,6 +101,7 @@ export function PlanPreview() {
     return rawBlock;
   };
   // Compute syntax-highlighted diff HTML
+  // biome-ignore lint/correctness/useExhaustiveDependencies: we need it for some reason
   const highlightedDiff = React.useMemo(() => {
     if (!openDiff) return "";
     const raw = getRawChangeBlock(openDiff.file, openDiff.idx);
@@ -133,11 +140,13 @@ export function PlanPreview() {
   // Initialize each file's description selection (all checked by default)
   React.useEffect(() => {
     const initSelections: Record<string, boolean[]> = {};
-    fileChanges.forEach((fc) => {
+    for (const fc of fileChanges) {
       initSelections[fc.file] = fc.descriptions.map(() => true);
-    });
+    }
     setSelectedDescriptions(initSelections);
   }, [fileChanges, setSelectedDescriptions]);
+
+  console.log("Plan errors: ", errorReports);
   return (
     doMode && (
       <>
@@ -170,6 +179,20 @@ export function PlanPreview() {
                               alignItems: "center",
                             }}
                           >
+                            {errorReports.find(
+                              (r) => r.path === fileChange.file
+                            ) && (
+                              <Tooltip
+                                title="Unable to find file, path unknown"
+                                arrow
+                              >
+                                <CloseIcon
+                                  color="error"
+                                  fontSize="small"
+                                  sx={{ mr: 1 }}
+                                />
+                              </Tooltip>
+                            )}
                             <Checkbox
                               checked={allChecked}
                               onChange={() => {
