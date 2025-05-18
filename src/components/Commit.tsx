@@ -4,15 +4,13 @@ import { useAppContext } from "../context/AppContext";
 import { CircularProgress, Grid } from "@mui/material";
 import { Create } from "@mui/icons-material";
 import RetroButton from "./RetroButton";
-import type { ErrorReport, FileNode } from "../types";
+import type { ErrorReport, FileNode, SuccessReport } from "../types";
 
 const Commit = () => {
   const [committing, setCommitting] = useState(false);
   const [commitFailed, setCommitFailed] = useState(false);
   const {
     plan,
-    setMode,
-    setPlan,
     selectedFiles,
     setSelectedFiles,
     setProjects,
@@ -56,22 +54,16 @@ const Commit = () => {
     }
     let commitError = false;
     try {
-      const result = await invoke<string>("apply_protocol", {
+      const { errors, success } = await invoke<{
+        errors: ErrorReport[];
+        success: SuccessReport[];
+      }>("apply_protocol", {
         xmlInput: planToApply,
       });
-      console.log({ result });
-      // setFileSuccesses(file_success);
-      // setErrorReports(file_errors);
-      console.log("Success:", result);
+      console.log({ errors, success });
+      setFileSuccesses(success);
+      setErrorReports(errors);
     } catch (error) {
-      try {
-        const parsed = JSON.parse(error as string) as ErrorReport[];
-        setErrorReports(parsed);
-      } catch {
-        setErrorReports([
-          { path: "unknown", messages: [(error as string).toString()] },
-        ]);
-      }
       console.error("Failed to apply changes:", error);
       commitError = true;
     } finally {
@@ -116,8 +108,9 @@ const Commit = () => {
       }
     }
     if (!commitError) {
-      setMode("plan");
-      setPlan("");
+      // setMode("plan");
+      // setPlan("");
+      // console.log("no commit error: ", errorReports);
     } else {
       setCommitFailed(true);
       setTimeout(() => setCommitFailed(false), 3000);

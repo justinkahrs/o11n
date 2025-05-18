@@ -18,6 +18,7 @@ import VisibilityIcon from "@mui/icons-material/Visibility";
 import CloseIcon from "@mui/icons-material/Close";
 import { useAppContext } from "../context/AppContext";
 import RetroButton from "./RetroButton";
+import { Check } from "@mui/icons-material";
 
 export function PlanPreview() {
   const {
@@ -26,6 +27,7 @@ export function PlanPreview() {
     mode,
     plan,
     errorReports,
+    fileSuccesses,
   } = useAppContext();
   const doMode = mode === "do";
   const [openDiff, setOpenDiff] = React.useState<{
@@ -39,17 +41,6 @@ export function PlanPreview() {
       : "";
     return { planDescription };
   }, [plan]);
-  function formatPath(path: string): string {
-    const projectsIndex = path.indexOf("/Projects/");
-    if (projectsIndex !== -1) {
-      return path.substring(projectsIndex + "/Projects".length);
-    }
-    const segments = path.split("/").filter(Boolean);
-    if (segments.length >= 4) {
-      return `/${segments.slice(-4).join("/")}`;
-    }
-    return path;
-  }
   // Extract the raw change block for a given file and change index
   const getRawChangeBlock = (file: string, idx: number): string => {
     // Escape regex‐special characters in the file path
@@ -146,7 +137,6 @@ export function PlanPreview() {
     setSelectedDescriptions(initSelections);
   }, [fileChanges, setSelectedDescriptions]);
 
-  console.log("Plan errors: ", errorReports);
   return (
     doMode && (
       <>
@@ -170,6 +160,13 @@ export function PlanPreview() {
                       const fileSel =
                         selectedDescriptions[fileChange.file] || [];
                       const allChecked = fileSel.every(Boolean);
+                      const fileError = errorReports.find(
+                        (r) => r.path === fileChange.file
+                      );
+                      const fileSuccess = fileSuccesses.find(
+                        (r) => r.path === fileChange.file
+                      );
+                      console.log({ fileError, fileSuccess });
                       return (
                         <React.Fragment key={fileChange.file}>
                           <ListItem
@@ -179,20 +176,6 @@ export function PlanPreview() {
                               alignItems: "center",
                             }}
                           >
-                            {errorReports.find(
-                              (r) => r.path === fileChange.file
-                            ) && (
-                              <Tooltip
-                                title="Unable to find file, path unknown"
-                                arrow
-                              >
-                                <CloseIcon
-                                  color="error"
-                                  fontSize="small"
-                                  sx={{ mr: 1 }}
-                                />
-                              </Tooltip>
-                            )}
                             <Checkbox
                               checked={allChecked}
                               onChange={() => {
@@ -208,8 +191,32 @@ export function PlanPreview() {
                               sx={{ mr: 1, p: 0 }}
                             />
                             <Typography variant="body1" color="primary">
-                              {formatPath(fileChange.file)}
+                              {fileChange.file}
                             </Typography>
+                            {fileError && (
+                              <Tooltip
+                                title={fileError.messages?.join("\n")}
+                                arrow
+                              >
+                                <CloseIcon
+                                  color="error"
+                                  fontSize="small"
+                                  sx={{ ml: 1 }}
+                                />
+                              </Tooltip>
+                            )}
+                            {fileSuccess && (
+                              <Tooltip
+                                title={fileSuccess.messages?.join("\n")}
+                                arrow
+                              >
+                                <Check
+                                  color="success"
+                                  fontSize="small"
+                                  sx={{ ml: 1 }}
+                                />
+                              </Tooltip>
+                            )}
                           </ListItem>
                           {fileChange.descriptions.map((desc, idx) => {
                             const checked =
