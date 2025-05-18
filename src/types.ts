@@ -1,3 +1,12 @@
+export interface ErrorReport {
+  path: string;
+  messages: string[];
+}
+
+export interface SuccessReport {
+  path: string;
+  messages: string[];
+}
 export interface FileNode {
   id: string;
   name: string;

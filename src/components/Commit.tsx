@@ -1,22 +1,22 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppContext } from "../context/AppContext";
-import { CircularProgress, Grid, Typography } from "@mui/material";
+import { CircularProgress, Grid } from "@mui/material";
 import { Create } from "@mui/icons-material";
 import RetroButton from "./RetroButton";
-import type { FileNode } from "../types";
+import type { ErrorReport, FileNode, SuccessReport } from "../types";
+
 const Commit = () => {
   const [committing, setCommitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [commitFailed, setCommitFailed] = useState(false);
   const {
     plan,
-    setMode,
-    setPlan,
     selectedFiles,
     setSelectedFiles,
     setProjects,
     selectedDescriptions,
+    setErrorReports,
+    setFileSuccesses,
   } = useAppContext();
   const isPlanValid = () => {
     return (
@@ -28,7 +28,6 @@ const Commit = () => {
   };
 
   const handleCommit = async () => {
-    setErrorMessage("");
     setCommitting(true);
     // Filter plan according to selected descriptions
     let planToApply = plan;
@@ -55,16 +54,17 @@ const Commit = () => {
     }
     let commitError = false;
     try {
-      const result = await invoke("apply_protocol", {
+      const { errors, success } = await invoke<{
+        errors: ErrorReport[];
+        success: SuccessReport[];
+      }>("apply_protocol", {
         xmlInput: planToApply,
       });
-      console.log("Success:", result);
+      setFileSuccesses(success);
+      setErrorReports(errors);
     } catch (error) {
       console.error("Failed to apply changes:", error);
       commitError = true;
-      setErrorMessage(
-        error instanceof Error ? error.message : "Failed to apply changes"
-      );
     } finally {
       setCommitting(false);
     }
@@ -107,14 +107,14 @@ const Commit = () => {
       }
     }
     if (!commitError) {
-      setMode("plan");
-      setPlan("");
+      // setMode("plan");
+      // setPlan("");
+      // console.log("no commit error: ", errorReports);
     } else {
       setCommitFailed(true);
       setTimeout(() => setCommitFailed(false), 3000);
     }
   };
-
   return (
     <Grid container spacing={1} direction="column">
       <RetroButton
@@ -135,20 +135,6 @@ const Commit = () => {
           ? "Commit Failed!"
           : "Commit Changes"}
       </RetroButton>
-      {errorMessage && (
-        <Typography color="secondary" sx={{ mt: 1 }}>
-          Check your plan formatting. o4-mini recommended. If this keeps
-          happening, please file an issue with your instructions + plan{" "}
-          <a
-            href="https://github.com/justinkahrs/o11n/issues"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            here
-          </a>
-          .
-        </Typography>
-      )}
     </Grid>
   );
 };
