@@ -60,7 +60,6 @@ const Commit = () => {
       }>("apply_protocol", {
         xmlInput: planToApply,
       });
-      console.log({ errors, success });
       setFileSuccesses(success);
       setErrorReports(errors);
     } catch (error) {
