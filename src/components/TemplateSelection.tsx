@@ -218,11 +218,10 @@ const TemplateSelection = () => {
           <DialogTitle>Create Toggle Prompt</DialogTitle>
           <DialogContent>
             <TextField
-              placeholder="probably a role (Frontend Developer, 3D Animator, etc)"
               variant="outlined"
               autoFocus
               margin="dense"
-              label="Name"
+              label="Name/Role"
               fullWidth
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
@@ -231,7 +230,7 @@ const TemplateSelection = () => {
             <TextField
               margin="dense"
               variant="outlined"
-              label="Instructions"
+              label="Special Instructions"
               fullWidth
               multiline
               minRows={3}

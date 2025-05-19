@@ -99,7 +99,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: o11n-${{ matrix.platform }}-bundle
-          path: src-tauri/target/${{ matrix.arch }}/release/bundle/
+          path: ${{ matrix.platform == 'macos-latest' && format('src-tauri/target/{0}/release/bundle/', matrix.arch) || 'src-tauri/target/release/bundle' }}
 
   deploy:
     needs: build-tauri
@@ -127,7 +127,6 @@ jobs:
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl private --delete
-          source_dir: bundles/o11n-macos-latest-bundle/
         env:
           AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
 
@@ -135,6 +134,5 @@ jobs:
         uses: jakejarvis/s3-sync-action@master
         with:
           args: --acl private --delete
-          source_dir: bundles/o11n-windows-latest-bundle/src-tauri/target/release/bundle/
         env:
           AWS_S3_BUCKET: ${{ env.AWS_S3_BUCKET }}
