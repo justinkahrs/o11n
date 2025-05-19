@@ -16,7 +16,8 @@ jobs:
           - args: ""
             arch: "windows-latest"
             platform: "windows-latest"
-    runs-on: ${{ matrix.platform }}
+    # for testing only,
+    runs-on: ${{ matrix.platform == 'macos-latest' && 'macos-13' || matrix.platform }}
     env:
       # ——— auto updates & build flags ———
       VITE_UPDATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
