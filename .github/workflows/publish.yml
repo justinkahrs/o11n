@@ -20,7 +20,7 @@ jobs:
     env:
       # ——— auto updates & build flags ———
       VITE_UPDATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RUSTFLAGS: "-C target-cpu=native"
+      RUSTFLAGS: ${{ matrix.arch == 'aarch64-apple-darwin' && '' || 'target-cpu=ivybridge' }}
 
       # ——— signing certs & notarization ———
       APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
