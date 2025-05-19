@@ -19,7 +19,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 # required to fix a bug, remove once fix is pulled in elsewhere (unsure of source)
-ring = { version = "0.17.12", default-features = false, features = ["std"] }
+ring = { version = "0.17.13", default-features = false, features = ["std"] }
 
 anyhow = "1.0"
 quick-xml = "0.37"
