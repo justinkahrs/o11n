@@ -20,7 +20,6 @@ jobs:
     env:
       # ——— auto updates & build flags ———
       VITE_UPDATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RUSTFLAGS: ${{ matrix.arch == 'aarch64-apple-darwin' && '' || 'target-cpu=ivybridge' }}
 
       # ——— signing certs & notarization ———
       APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
@@ -50,7 +49,6 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          target: ${{ matrix.arch == 'aarch64-apple-darwin' && 'aarch64-apple-darwin' || '' }}
           override: true
           default: true
 
