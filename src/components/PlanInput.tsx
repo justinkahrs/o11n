@@ -5,7 +5,8 @@ import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 
 export function PlanInput() {
-  const { mode, plan, setMode, setPlan } = useAppContext();
+  const { mode, plan, setErrorReports, setFileSuccesses, setMode, setPlan } =
+    useAppContext();
   const { formatOutput } = useUserContext();
   const [inputValue, setInputValue] = useState(plan);
   const doMode = mode === "do";
@@ -18,6 +19,12 @@ export function PlanInput() {
     if (!formatOutput) setMode("plan");
   }, [formatOutput, setMode]);
 
+  const clearPlan = () => {
+    setInputValue("");
+    setPlan("");
+    setErrorReports([]);
+    setFileSuccesses([]);
+  };
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
     setPlan(e.target.value);
@@ -40,14 +47,7 @@ export function PlanInput() {
           InputProps={{
             startAdornment: inputValue ? (
               <InputAdornment position="start">
-                <IconButton
-                  color="primary"
-                  size="small"
-                  onClick={() => {
-                    setInputValue("");
-                    setPlan("");
-                  }}
-                >
+                <IconButton color="primary" size="small" onClick={clearPlan}>
                   <CloseIcon />
                 </IconButton>
               </InputAdornment>

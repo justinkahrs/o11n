@@ -2703,13 +2703,14 @@ dependencies = [
 
 [[package]]
 name = "o11n"
-version = "1.0.112"
+version = "1.1.2"
 dependencies = [
  "anyhow",
  "log",
  "markdown",
  "quick-xml 0.37.2",
  "regex",
+ "ring",
  "sentry",
  "serde",
  "serde_json",
