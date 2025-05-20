@@ -7,6 +7,8 @@
     "opener:default",
     "clipboard-manager:allow-write-text",
     "fs:default",
+    "fs:read-all",
+    "fs:write-all",
     "fs:allow-app-read-recursive",
     "fs:allow-app-write-recursive",
     "fs:allow-app-meta-recursive",
@@ -123,6 +125,10 @@
     "fs:scope-runtime-recursive",
     "fs:scope-temp-recursive",
     "fs:scope-template-recursive",
+    {
+      "identifier": "fs:scope",
+      "allow": ["**/*"]
+    },
     "log:default",
     "clipboard-manager:default",
     "dialog:default",
