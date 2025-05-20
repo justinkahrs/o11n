@@ -9,7 +9,7 @@ import {
   writeTextFile,
 } from "@tauri-apps/plugin-fs";
 import { useAppContext } from "../context/AppContext";
-import { isImage } from "../utils/image";
+import { getImageMime, isImage, loadImageDataUrl } from "../utils/image";
 import RetroButton from "./RetroButton";
 
 interface FilePreviewProps {
@@ -63,16 +63,25 @@ function FilePreview({ file }: FilePreviewProps) {
     let isMounted = true;
 
     if (isImage(file.name)) {
-      // If the file is an image, load it using the loadImageDataUrl util
-      if (isMounted && monacoEl.current) {
-        monaco.editor.create(monacoEl.current, {
-          value: `![my image](${file.path})`,
-          language: getLanguage(file.name),
-          readOnly: true,
-          automaticLayout: true,
-          minimap: { enabled: false },
+      loadImageDataUrl(file.path, getImageMime(file.name))
+        .then((dataUrl) => {
+          if (isMounted) {
+            if (monacoEl.current) {
+              monacoEl.current.innerHTML = "";
+              monacoEl.current.style.display = "flex";
+              monacoEl.current.style.justifyContent = "center";
+              monacoEl.current.style.alignItems = "center";
+              const img = document.createElement("img");
+              img.src = dataUrl as string;
+              img.style.objectFit = "scale-down";
+              img.style.objectPosition = "center";
+              monacoEl.current.appendChild(img);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error("Error loading image", error);
         });
-      }
     } else {
       readTextFile(file.path)
         .then((text) => {
