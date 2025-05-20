@@ -124,9 +124,11 @@ function FilePreview({ file }: FilePreviewProps) {
     >
       <CardHeader
         title={
-          <Grid container justifyContent="space-between">
-            <Grid item>{file.name}</Grid>
-            <Grid item>
+          <Grid container alignItems="center">
+            <Grid item xs>
+              {file.name}
+            </Grid>
+            <Grid item xs container justifyContent="center">
               <RetroButton
                 onClick={saveToFile}
                 disabled={!isDirty}
@@ -135,20 +137,21 @@ function FilePreview({ file }: FilePreviewProps) {
                 Save
               </RetroButton>
               <RetroButton
-                onClick={() => setSelectedFile(null)}
-                sx={{ height: 40, mr: 2 }}
-                variant="outlined"
-              >
-                Close
-              </RetroButton>
-              <RetroButton
                 onClick={() => {
                   handleFileSelect(file);
-                  setSelectedFile(null);
                 }}
                 sx={{ height: 40 }}
               >
-                {isSelected ? "Remove file" : "Add file"}
+                {isSelected ? "Remove from selected" : "Add to selected"}
+              </RetroButton>
+            </Grid>
+            <Grid item xs container justifyContent="flex-end">
+              <RetroButton
+                onClick={() => setSelectedFile(null)}
+                sx={{ height: 40, minWidth: 40 }}
+                variant="outlined"
+              >
+                Close
               </RetroButton>
             </Grid>
           </Grid>
