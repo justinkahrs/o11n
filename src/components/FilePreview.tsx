@@ -1,21 +1,17 @@
-import { useEffect, useState } from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Modal,
-  Grid,
-} from "@mui/material";
-import hljs from "highlight.js";
-import "highlight.js/styles/github.css";
+import { useEffect, useState, useRef } from "react";
+import { Box, Card, CardContent, CardHeader, Modal, Grid } from "@mui/material";
+import * as monaco from "monaco-editor";
 import "./FilePreview.css";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import {
+  BaseDirectory,
+  readTextFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import { useAppContext } from "../context/AppContext";
-import { getImageMime, isImage } from "../utils/image";
-import { loadImageDataUrl } from "../utils/image";
+import { getImageMime, isImage, loadImageDataUrl } from "../utils/image";
 import RetroButton from "./RetroButton";
+import { useUserContext } from "../context/UserContext";
+
 interface FilePreviewProps {
   file: {
     id: string;
@@ -43,48 +39,87 @@ const getLanguage = (fileName: string): string => {
 };
 
 function FilePreview({ file }: FilePreviewProps) {
+  const [isDirty, setIsDirty] = useState(false);
+  const { themeMode } = useUserContext();
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const saveToFile = async () => {
+    if (editorRef.current) {
+      try {
+        const content = editorRef.current.getValue();
+        await writeTextFile(file.path, content, {
+          baseDir: BaseDirectory.Home,
+        });
+        setIsDirty(false);
+      } catch (err) {
+        console.error("Save failed:", err);
+      }
+    }
+  };
   const { handleFileSelect, setSelectedFile, selectedFiles } = useAppContext();
   const isSelected = selectedFiles.some(
     (selected) => selected.path === file.path
   );
-  const [content, setContent] = useState<string>("");
-  const [imgSrc, setImgSrc] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const monacoEl = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
 
     if (isImage(file.name)) {
-      // If the file is an image, load it using the loadImageDataUrl util
       loadImageDataUrl(file.path, getImageMime(file.name))
         .then((dataUrl) => {
           if (isMounted) {
-            setImgSrc(dataUrl as string);
-            setLoading(false);
+            if (monacoEl.current) {
+              monacoEl.current.innerHTML = "";
+              monacoEl.current.style.display = "flex";
+              monacoEl.current.style.justifyContent = "center";
+              monacoEl.current.style.alignItems = "center";
+              const img = document.createElement("img");
+              img.src = dataUrl as string;
+              img.style.objectFit = "scale-down";
+              img.style.objectPosition = "center";
+              monacoEl.current.appendChild(img);
+            }
           }
         })
         .catch((error) => {
           console.error("Error loading image", error);
-          if (isMounted) {
-            setLoading(false);
-          }
         });
     } else {
-      // For non-image files, read the text and apply syntax highlighting
       readTextFile(file.path)
         .then((text) => {
-          if (isMounted) {
-            const lang = getLanguage(file.name);
-            const highlighted = hljs.highlight(text, { language: lang }).value;
-            setContent(highlighted);
-            setLoading(false);
+          if (isMounted && monacoEl.current) {
+            const editor = monaco.editor.create(monacoEl.current, {
+              value: text,
+              language: getLanguage(file.name),
+              readOnly: false,
+              automaticLayout: true,
+              defaultColorDecorators: true,
+              minimap: { enabled: false },
+              quickSuggestions: false,
+              theme: themeMode === "dark" ? "vs-dark" : "vs",
+            });
+            editorRef.current = editor;
+            editor.onDidChangeModelContent(() => {
+              setIsDirty(true);
+            });
+            setIsDirty(false);
+            monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(
+              {
+                noSyntaxValidation: true,
+                noSemanticValidation: true,
+              }
+            );
           }
         })
         .catch((error) => {
-          console.error("Error reading file", error);
-          if (isMounted) {
-            setContent("Error loading file.");
-            setLoading(false);
+          console.error(error);
+          if (isMounted && monacoEl.current) {
+            monaco.editor.create(monacoEl.current, {
+              value: "Error loading file.",
+              language: "plaintext",
+              readOnly: true,
+              automaticLayout: true,
+              minimap: { enabled: false },
+            });
           }
         });
     }
@@ -92,7 +127,7 @@ function FilePreview({ file }: FilePreviewProps) {
     return () => {
       isMounted = false;
     };
-  }, [file]);
+  }, [file, themeMode]);
   return (
     <Card
       className="file-preview-card"
@@ -101,24 +136,35 @@ function FilePreview({ file }: FilePreviewProps) {
     >
       <CardHeader
         title={
-          <Grid container justifyContent="space-between">
-            <Grid item>{file.name}</Grid>
-            <Grid item>
-              <RetroButton
-                onClick={() => setSelectedFile(null)}
-                sx={{ height: 40, mr: 2 }}
-                variant="outlined"
-              >
-                Close
-              </RetroButton>
+          <Grid container alignItems="center">
+            <Grid item xs>
+              {file.name}
+            </Grid>
+            <Grid item xs container justifyContent="center">
               <RetroButton
                 onClick={() => {
                   handleFileSelect(file);
-                  setSelectedFile(null);
                 }}
-                sx={{ height: 40 }}
+                sx={{ height: 30, m: 1 }}
+                variant="outlined"
               >
-                {isSelected ? "Remove file" : "Add file"}
+                {isSelected ? "Remove" : "Add"}
+              </RetroButton>
+              <RetroButton
+                onClick={saveToFile}
+                disabled={!isDirty}
+                sx={{ height: 30, m: 1 }}
+              >
+                Save
+              </RetroButton>
+            </Grid>
+            <Grid item xs container justifyContent="flex-end">
+              <RetroButton
+                onClick={() => setSelectedFile(null)}
+                sx={{ height: 40, minWidth: 40 }}
+                variant="outlined"
+              >
+                Close
               </RetroButton>
             </Grid>
           </Grid>
@@ -130,28 +176,8 @@ function FilePreview({ file }: FilePreviewProps) {
           zIndex: 1,
         }}
       />
-      <CardContent
-        sx={{ display: "flex", justifyContent: "center", mt: 0, pt: 0 }}
-      >
-        {loading ? (
-          <CircularProgress />
-        ) : isImage(file.name) ? (
-          <img src={imgSrc} alt={file.name} />
-        ) : (
-          <Box
-            component="pre"
-            sx={{
-              mt: 0,
-              pt: 0,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              overflowX: "auto",
-              userSelect: "text !important",
-            }}
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: required for syntax highlighting
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        )}
+      <CardContent>
+        <div ref={monacoEl} style={{ height: "80vh", width: "100%" }} />
       </CardContent>
     </Card>
   );

@@ -140,7 +140,7 @@ export default function DirectoryView({
         expanded={expanded}
         onNodeToggle={handleToggle}
         onNodeSelect={handleNodeSelect}
-        sx={{ marginLeft: 1 }}
+        sx={{ marginLeft: 1, wordBreak: "keep-all" }}
       >
         {node.loadedChildren
           ? filterChildren(node.children).map((child) => {
