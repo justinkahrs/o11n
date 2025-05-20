@@ -1,21 +1,13 @@
-import { useEffect, useState } from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  CircularProgress,
-  Modal,
-  Grid,
-} from "@mui/material";
-import hljs from "highlight.js";
-import "highlight.js/styles/github.css";
+import { useEffect, useState, useRef } from "react";
+import { Box, Card, CardContent, CardHeader, Modal, Grid } from "@mui/material";
+import * as monaco from "monaco-editor";
+import "monaco-editor/min/vs/editor/editor.main.css";
 import "./FilePreview.css";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useAppContext } from "../context/AppContext";
-import { getImageMime, isImage } from "../utils/image";
-import { loadImageDataUrl } from "../utils/image";
+import { isImage } from "../utils/image";
 import RetroButton from "./RetroButton";
+
 interface FilePreviewProps {
   file: {
     id: string;
@@ -47,44 +39,52 @@ function FilePreview({ file }: FilePreviewProps) {
   const isSelected = selectedFiles.some(
     (selected) => selected.path === file.path
   );
-  const [content, setContent] = useState<string>("");
-  const [imgSrc, setImgSrc] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
+  const monacoEl = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let isMounted = true;
-    setLoading(true);
 
     if (isImage(file.name)) {
       // If the file is an image, load it using the loadImageDataUrl util
-      loadImageDataUrl(file.path, getImageMime(file.name))
-        .then((dataUrl) => {
-          if (isMounted) {
-            setImgSrc(dataUrl as string);
-            setLoading(false);
-          }
-        })
-        .catch((error) => {
-          console.error("Error loading image", error);
-          if (isMounted) {
-            setLoading(false);
-          }
+      if (isMounted && monacoEl.current) {
+        monaco.editor.create(monacoEl.current, {
+          value: `![my image](${file.path})`,
+          language: getLanguage(file.name),
+          readOnly: true,
+          automaticLayout: true,
+          minimap: { enabled: false },
         });
+        setLoading(false);
+      }
     } else {
-      // For non-image files, read the text and apply syntax highlighting
       readTextFile(file.path)
         .then((text) => {
-          if (isMounted) {
-            const lang = getLanguage(file.name);
-            const highlighted = hljs.highlight(text, { language: lang }).value;
-            setContent(highlighted);
-            setLoading(false);
+          if (isMounted && monacoEl.current) {
+            monaco.editor.create(monacoEl.current, {
+              value: text,
+              language: getLanguage(file.name),
+              readOnly: false,
+              automaticLayout: true,
+              defaultColorDecorators: true,
+              minimap: { enabled: false },
+              quickSuggestions: false,
+            });
+            monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(
+              {
+                noSyntaxValidation: true,
+                noSemanticValidation: true,
+              }
+            );
           }
         })
         .catch((error) => {
-          console.error("Error reading file", error);
-          if (isMounted) {
-            setContent("Error loading file.");
-            setLoading(false);
+          if (isMounted && monacoEl.current) {
+            monaco.editor.create(monacoEl.current, {
+              value: "Error loading file.",
+              language: "plaintext",
+              readOnly: true,
+              automaticLayout: true,
+              minimap: { enabled: false },
+            });
           }
         });
     }
@@ -130,28 +130,8 @@ function FilePreview({ file }: FilePreviewProps) {
           zIndex: 1,
         }}
       />
-      <CardContent
-        sx={{ display: "flex", justifyContent: "center", mt: 0, pt: 0 }}
-      >
-        {loading ? (
-          <CircularProgress />
-        ) : isImage(file.name) ? (
-          <img src={imgSrc} alt={file.name} />
-        ) : (
-          <Box
-            component="pre"
-            sx={{
-              mt: 0,
-              pt: 0,
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              overflowX: "auto",
-              userSelect: "text !important",
-            }}
-            // biome-ignore lint/security/noDangerouslySetInnerHtml: required for syntax highlighting
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        )}
+      <CardContent>
+        <div ref={monacoEl} style={{ height: "80vh", width: "100%" }} />
       </CardContent>
     </Card>
   );
