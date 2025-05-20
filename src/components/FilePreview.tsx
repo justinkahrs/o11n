@@ -3,7 +3,11 @@ import { Box, Card, CardContent, CardHeader, Modal, Grid } from "@mui/material";
 import * as monaco from "monaco-editor";
 import "monaco-editor/min/vs/editor/editor.main.css";
 import "./FilePreview.css";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import {
+  BaseDirectory,
+  readTextFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import { useAppContext } from "../context/AppContext";
 import { isImage } from "../utils/image";
 import RetroButton from "./RetroButton";
@@ -35,6 +39,21 @@ const getLanguage = (fileName: string): string => {
 };
 
 function FilePreview({ file }: FilePreviewProps) {
+  const [isDirty, setIsDirty] = useState(false);
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const saveToFile = async () => {
+    if (editorRef.current) {
+      try {
+        const content = editorRef.current.getValue();
+        await writeTextFile(file.path, content, {
+          baseDir: BaseDirectory.Home,
+        });
+        setIsDirty(false);
+      } catch (err) {
+        console.error("Save failed:", err);
+      }
+    }
+  };
   const { handleFileSelect, setSelectedFile, selectedFiles } = useAppContext();
   const isSelected = selectedFiles.some(
     (selected) => selected.path === file.path
@@ -53,13 +72,12 @@ function FilePreview({ file }: FilePreviewProps) {
           automaticLayout: true,
           minimap: { enabled: false },
         });
-        setLoading(false);
       }
     } else {
       readTextFile(file.path)
         .then((text) => {
           if (isMounted && monacoEl.current) {
-            monaco.editor.create(monacoEl.current, {
+            const editor = monaco.editor.create(monacoEl.current, {
               value: text,
               language: getLanguage(file.name),
               readOnly: false,
@@ -68,6 +86,11 @@ function FilePreview({ file }: FilePreviewProps) {
               minimap: { enabled: false },
               quickSuggestions: false,
             });
+            editorRef.current = editor;
+            editor.onDidChangeModelContent(() => {
+              setIsDirty(true);
+            });
+            setIsDirty(false);
             monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(
               {
                 noSyntaxValidation: true,
@@ -104,6 +127,13 @@ function FilePreview({ file }: FilePreviewProps) {
           <Grid container justifyContent="space-between">
             <Grid item>{file.name}</Grid>
             <Grid item>
+              <RetroButton
+                onClick={saveToFile}
+                disabled={!isDirty}
+                sx={{ height: 40, mr: 2 }}
+              >
+                Save
+              </RetroButton>
               <RetroButton
                 onClick={() => setSelectedFile(null)}
                 sx={{ height: 40, mr: 2 }}
