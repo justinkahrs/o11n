@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Box, Card, CardContent, CardHeader, Modal, Grid } from "@mui/material";
 import * as monaco from "monaco-editor";
-import "monaco-editor/min/vs/editor/editor.main.css";
 import "./FilePreview.css";
 import {
   BaseDirectory,
@@ -11,6 +10,7 @@ import {
 import { useAppContext } from "../context/AppContext";
 import { getImageMime, isImage, loadImageDataUrl } from "../utils/image";
 import RetroButton from "./RetroButton";
+import { useUserContext } from "../context/UserContext";
 
 interface FilePreviewProps {
   file: {
@@ -40,6 +40,7 @@ const getLanguage = (fileName: string): string => {
 
 function FilePreview({ file }: FilePreviewProps) {
   const [isDirty, setIsDirty] = useState(false);
+  const { themeMode } = useUserContext();
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const saveToFile = async () => {
     if (editorRef.current) {
@@ -94,6 +95,7 @@ function FilePreview({ file }: FilePreviewProps) {
               defaultColorDecorators: true,
               minimap: { enabled: false },
               quickSuggestions: false,
+              theme: themeMode === "dark" ? "vs-dark" : "vs",
             });
             editorRef.current = editor;
             editor.onDidChangeModelContent(() => {
@@ -109,6 +111,7 @@ function FilePreview({ file }: FilePreviewProps) {
           }
         })
         .catch((error) => {
+          console.error(error);
           if (isMounted && monacoEl.current) {
             monaco.editor.create(monacoEl.current, {
               value: "Error loading file.",
@@ -124,7 +127,7 @@ function FilePreview({ file }: FilePreviewProps) {
     return () => {
       isMounted = false;
     };
-  }, [file]);
+  }, [file, themeMode]);
   return (
     <Card
       className="file-preview-card"
@@ -139,19 +142,20 @@ function FilePreview({ file }: FilePreviewProps) {
             </Grid>
             <Grid item xs container justifyContent="center">
               <RetroButton
-                onClick={saveToFile}
-                disabled={!isDirty}
-                sx={{ height: 40, mr: 2 }}
-              >
-                Save
-              </RetroButton>
-              <RetroButton
                 onClick={() => {
                   handleFileSelect(file);
                 }}
-                sx={{ height: 40 }}
+                sx={{ height: 30, m: 1 }}
+                variant="outlined"
               >
-                {isSelected ? "Remove from selected" : "Add to selected"}
+                {isSelected ? "Remove" : "Add"}
+              </RetroButton>
+              <RetroButton
+                onClick={saveToFile}
+                disabled={!isDirty}
+                sx={{ height: 30, m: 1 }}
+              >
+                Save
               </RetroButton>
             </Grid>
             <Grid item xs container justifyContent="flex-end">
