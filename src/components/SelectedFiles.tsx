@@ -106,7 +106,6 @@ export function SelectedFiles() {
           .sort()
           .map((folder) => {
             const filesInFolder = groupedFiles[folder];
-            const count = filesInFolder.length;
             const folderSize = filesInFolder.reduce(
               (sum, f) => sum + (f.size ?? 0),
               0
@@ -122,7 +121,6 @@ export function SelectedFiles() {
               <FolderGroup
                 key={folder}
                 folder={folder}
-                count={count}
                 folderSize={folderSize}
                 percentage={percentage}
                 onRemoveFolder={handleRemoveFolder}

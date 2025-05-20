@@ -7,7 +7,6 @@ import { formatFileSize } from "../utils/formatFileSize";
 import { AccordionItem } from "./AccordionItem";
 interface FolderGroupProps {
   folder: string;
-  count: number;
   folderSize: number;
   percentage: string;
   onRemoveFolder: (folder: string) => void;
@@ -18,7 +17,6 @@ interface FolderGroupProps {
 }
 export function FolderGroup({
   folder,
-  count,
   folderSize,
   percentage,
   onRemoveFolder,
@@ -70,39 +68,63 @@ export function FolderGroup({
           sx={{
             display: "flex",
             alignContent: "center",
+            justifyContent: "space-between",
             flexGrow: 1,
           }}
         >
           <Typography
             variant="subtitle1"
-            style={{ display: "flex", alignItems: "center" }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+
+              wordBreak: "break-all",
+            }}
           >
             <Folder style={{ marginRight: ".5rem" }} />
-            {`${displayedFolder} - ${count} file${count === 1 ? "" : "s"}`}
-            <Typography
-              variant="caption"
-              sx={{ color: "text.secondary", ml: 1 }}
-            >
-              {` - ${formatFileSize(folderSize)} (${percentage}%)`}
+            <Typography sx={{ lineHeight: "1.2rem" }}>
+              {`${displayedFolder}`}
             </Typography>
           </Typography>
+          <Box sx={{ display: "flex", justifyContent: "end" }}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "column",
+                textAlign: "center",
+              }}
+            >
+              <Typography
+                variant="caption"
+                sx={{ color: "text.secondary", ml: 1 }}
+              >
+                {`${formatFileSize(folderSize)} `}
+              </Typography>
+              <Typography
+                variant="caption"
+                sx={{ color: "text.secondary", ml: 1 }}
+              >
+                {`(${percentage}%)`}
+              </Typography>
+            </Box>
+            <Tooltip
+              arrow
+              disableInteractive
+              enterDelay={500}
+              title="Remove folder"
+            >
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemoveFolder(folder);
+                }}
+                aria-label="delete folder"
+              >
+                <DeleteIcon sx={{ fontSize: "18px" }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
-        <Tooltip
-          arrow
-          disableInteractive
-          enterDelay={500}
-          title="Remove folder"
-        >
-          <IconButton
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemoveFolder(folder);
-            }}
-            aria-label="delete folder"
-          >
-            <DeleteIcon sx={{ fontSize: "18px" }} />
-          </IconButton>
-        </Tooltip>
       </div>
       <AccordionItem isOpen={expanded}>
         <div
