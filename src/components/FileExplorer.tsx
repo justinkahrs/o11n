@@ -131,7 +131,6 @@ export default function FileExplorer() {
   // Watch for filesystem updates emitted by Rust
   useEffect(() => {
     const unlistenPromise = listen<string[]>("fs_change", () => {
-      console.log("SOMETHING CHANGED");
       setProjects((prev) =>
         prev.map((proj) => ({ ...proj, children: [], loadedChildren: false }))
       );
