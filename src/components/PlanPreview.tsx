@@ -166,7 +166,6 @@ export function PlanPreview() {
                       const fileSuccess = fileSuccesses.find(
                         (r) => r.path === fileChange.file
                       );
-                      console.log({ fileError, fileSuccess });
                       return (
                         <React.Fragment key={fileChange.file}>
                           <ListItem
@@ -296,7 +295,7 @@ export function PlanPreview() {
           fullWidth
         >
           <DialogTitle>Change Details</DialogTitle>
-          <DialogContent dividers>
+          <DialogContent dividers sx={{ userSelect: "all !important" }}>
             <Box
               component="pre"
               sx={{
@@ -306,7 +305,7 @@ export function PlanPreview() {
                 backgroundColor: "white",
                 borderRadius: 1,
                 overflowX: "auto",
-                userSelect: "text !important",
+                userSelect: "all !important",
               }}
               // biome-ignore lint/security/noDangerouslySetInnerHtml: required for syntax highlighting
               dangerouslySetInnerHTML={{ __html: highlightedDiff }}

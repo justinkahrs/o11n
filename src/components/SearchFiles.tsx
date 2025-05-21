@@ -15,7 +15,7 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
   return (
     <TextField
       disabled={doMode}
-      label="Search Files"
+      label="Search files"
       variant="outlined"
       size="small"
       value={searchQuery}

@@ -36,7 +36,8 @@ interface CustomTemplate {
 }
 
 const TemplateSelection = () => {
-  const { mode, customTemplates, setCustomTemplates } = useAppContext();
+  const { mode, customTemplates, setCustomTemplates, setProjects } =
+    useAppContext();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [templateName, setTemplateName] = useState("");
   const [templateInstructions, setTemplateInstructions] = useState("");
@@ -90,22 +91,34 @@ const TemplateSelection = () => {
 
   const handleCreateSubmit = async () => {
     if (!templateName) return;
-    // Save file in home folder with the template name as filename and .txt extension
-    const filePath = `${templateName}.txt`;
     try {
-      await writeTextFile(filePath, templateInstructions, {
-        baseDir: BaseDirectory.Home,
+      const dir = await homeDir();
+      const selectedDir = await open({
+        directory: true,
+        multiple: false,
+        defaultPath: dir,
       });
-      const newTemplate = {
-        id: Date.now().toString(),
-        name: templateName,
-        path: filePath,
-        active: true,
-      };
-      onAddTemplate(newTemplate);
-      setTemplateName("");
-      setTemplateInstructions("");
-      setCreateDialogOpen(false);
+      if (selectedDir && typeof selectedDir === "string") {
+        const filePath = `${selectedDir}/${templateName}.txt`;
+        await writeTextFile(filePath, templateInstructions);
+        const newTemplate = {
+          id: Date.now().toString(),
+          name: templateName,
+          path: filePath,
+          active: true,
+        };
+        onAddTemplate(newTemplate);
+        setTemplateName("");
+        setTemplateInstructions("");
+        setCreateDialogOpen(false);
+        setProjects((prev) =>
+          prev.map((proj) =>
+            proj.path === selectedDir || proj.path.startsWith(`${selectedDir}/`)
+              ? { ...proj, children: [], loadedChildren: false }
+              : proj
+          )
+        );
+      }
     } catch (error) {
       console.error("Error creating template file:", error);
     }
