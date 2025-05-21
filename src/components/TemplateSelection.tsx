@@ -18,7 +18,11 @@ import {
   Close,
   InfoOutlined,
 } from "@mui/icons-material";
-import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
+import {
+  writeTextFile,
+  BaseDirectory,
+  readTextFile,
+} from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
 import { homeDir } from "@tauri-apps/api/path";
 import { useAppContext } from "../context/AppContext";
@@ -37,6 +41,9 @@ const TemplateSelection = () => {
   const [templateName, setTemplateName] = useState("");
   const [templateInstructions, setTemplateInstructions] = useState("");
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [templateContents, setTemplateContents] = useState<
+    Record<string, string>
+  >({});
 
   const onAddTemplate = (template: CustomTemplate) => {
     setCustomTemplates((prev) => [...prev, template]);
@@ -167,47 +174,71 @@ const TemplateSelection = () => {
             <Box
               key={template.id}
               sx={{ position: "relative", display: "inline-block" }}
-              onMouseEnter={() => setHoveredId(template.id)}
+              onMouseEnter={() => {
+                setHoveredId(template.id);
+                if (!templateContents[template.id]) {
+                  readTextFile(template.path, { baseDir: BaseDirectory.Home })
+                    .then((content) =>
+                      setTemplateContents((prev) => ({
+                        ...prev,
+                        [template.id]: content,
+                      }))
+                    )
+                    .catch((error) =>
+                      console.error("Error reading template file:", error)
+                    );
+                }
+              }}
               onMouseLeave={() => setHoveredId(null)}
             >
-              <Chip
-                avatar={
-                  hoveredId === template.id ? (
-                    <>
-                      <Tooltip
-                        arrow
-                        disableInteractive
-                        enterDelay={500}
-                        enterNextDelay={500}
-                        title="Toggle"
-                      >
-                        <IconButton
-                          size="small"
-                          onClick={() => onToggleTemplate(template.id)}
+              <Tooltip
+                arrow
+                disableInteractive
+                enterDelay={500}
+                enterNextDelay={500}
+                title={templateContents[template.id] ?? template.path}
+              >
+                <Chip
+                  avatar={
+                    hoveredId === template.id ? (
+                      <>
+                        <Tooltip
+                          arrow
+                          disableInteractive
+                          enterDelay={500}
+                          enterNextDelay={500}
+                          title="Toggle"
+                          placement="top"
                         >
-                          <VisibilityOff fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip
-                        arrow
-                        disableInteractive
-                        enterDelay={500}
-                        enterNextDelay={500}
-                        title="Remove toggle"
-                      >
-                        <IconButton
-                          size="small"
-                          onClick={() => onRemoveTemplate(template.id)}
+                          <IconButton
+                            size="small"
+                            onClick={() => onToggleTemplate(template.id)}
+                          >
+                            <VisibilityOff fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip
+                          arrow
+                          disableInteractive
+                          enterDelay={500}
+                          enterNextDelay={500}
+                          title="Remove toggle"
+                          placement="top"
                         >
-                          <Close fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </>
-                  ) : undefined
-                }
-                label={template.name.replace(/\.[^/.]+$/, "")}
-                color={template.active ? "secondary" : "default"}
-              />
+                          <IconButton
+                            size="small"
+                            onClick={() => onRemoveTemplate(template.id)}
+                          >
+                            <Close fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      </>
+                    ) : undefined
+                  }
+                  label={template.name.replace(/\.[^/.]+$/, "")}
+                  color={template.active ? "secondary" : "default"}
+                />
+              </Tooltip>
             </Box>
           ))}
         </Stack>

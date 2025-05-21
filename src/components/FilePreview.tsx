@@ -136,11 +136,23 @@ function FilePreview({ file }: FilePreviewProps) {
     >
       <CardHeader
         title={
-          <Grid container alignItems="center">
-            <Grid item xs>
-              {file.name}
+          <Grid container alignItems="center" justifyContent="space-between">
+            <Grid item>
+              <Box>{file.name}</Box>
+              <Box sx={{ typography: "caption", color: "text.secondary" }}>
+                {file.path}
+              </Box>
             </Grid>
-            <Grid item xs container justifyContent="center">
+            <Grid item>
+              <RetroButton
+                onClick={() => setSelectedFile(null)}
+                sx={{ height: 40, minWidth: 40 }}
+                variant="outlined"
+              >
+                Close
+              </RetroButton>
+            </Grid>
+            <Grid item xs={12}>
               <RetroButton
                 onClick={() => {
                   handleFileSelect(file);
@@ -158,15 +170,6 @@ function FilePreview({ file }: FilePreviewProps) {
                 Save
               </RetroButton>
             </Grid>
-            <Grid item xs container justifyContent="flex-end">
-              <RetroButton
-                onClick={() => setSelectedFile(null)}
-                sx={{ height: 40, minWidth: 40 }}
-                variant="outlined"
-              >
-                Close
-              </RetroButton>
-            </Grid>
           </Grid>
         }
         sx={{
@@ -176,7 +179,7 @@ function FilePreview({ file }: FilePreviewProps) {
           zIndex: 1,
         }}
       />
-      <CardContent>
+      <CardContent sx={{ margin: 0, padding: 0 }}>
         <div ref={monacoEl} style={{ height: "80vh", width: "100%" }} />
       </CardContent>
     </Card>

@@ -27,8 +27,8 @@ Below is a description of the exact format our Rust backend parser expects. Foll
    **Search**: (REQUIRED for ALL modify changes)
      - Must start at column 0 with two '*' around "Search", followed by a colon.
      - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
+     - Do NOT use placeholders in Search block (examples: `...`, `// rest of the code here`, `/* other code goes here */`)
      - Inside, include the exact code snippet to find (match whitespace and punctuation exactly).
-     - Do NOT use placeholders (examples: `...`, `// rest of the code here`, `/* other code goes here */`)
      - Close the fence with three backticks.
      - NO COMMENTS IN THE CODE
    **Content**: (for modify, rewrite, create)
@@ -45,6 +45,6 @@ Below is a description of the exact format our Rust backend parser expects. Foll
    - Use exactly three backticks for fences (```), no tildes.
    - Blank lines and lines equal to `---` (horizontal rules) outside code fences are ignored by the parser.
    -  or CDATA blocks.
-   - For appending at the end of a file, include the existing end snippet in the Search block, then repeat it plus new content in the Content block.
+   - For appending at the end of a file, include the existing end snippet in the Search block (no placeholders), then repeat it plus new content in the Content block.
    - To apply multiple edits in the same file, include multiple #### Change sections under a single File/Action pair.
    - Do not create any scheduled tasks
