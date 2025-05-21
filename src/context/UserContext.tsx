@@ -22,11 +22,13 @@ interface UserContextType {
   secondaryColor: string;
   themeMode: "light" | "dark";
   showDotfiles: boolean;
+  useIgnoreFiles: boolean;
   setCountTokens: React.Dispatch<React.SetStateAction<boolean>>;
   setIncludeFileTree: React.Dispatch<React.SetStateAction<boolean>>;
   setFormatOutput: React.Dispatch<React.SetStateAction<boolean>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   setShowDotfiles: React.Dispatch<React.SetStateAction<boolean>>;
+  setUseIgnoreFiles: React.Dispatch<React.SetStateAction<boolean>>;
   setPrimaryColor: React.Dispatch<React.SetStateAction<string>>;
   setSecondaryColor: React.Dispatch<React.SetStateAction<string>>;
   setThemeMode: React.Dispatch<React.SetStateAction<"light" | "dark">>;
@@ -36,6 +38,7 @@ interface UserContextType {
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [showDotfiles, setShowDotfiles] = useState(false);
+  const [useIgnoreFiles, setUseIgnoreFiles] = useState(true);
   const [showLogo, setShowLogo] = useState(true);
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
@@ -88,6 +91,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setLoading,
         showLogo,
         setShowLogo,
+        useIgnoreFiles,
+        setUseIgnoreFiles,
       }}
     >
       <ThemeProvider theme={currentTheme}>{children}</ThemeProvider>

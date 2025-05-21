@@ -19,8 +19,10 @@ export default function SettingsMenu() {
     onThemeChange,
     setCountTokens,
     setFormatOutput,
-    setShowDotfiles,
+setShowDotfiles,
     showDotfiles,
+    useIgnoreFiles,
+    setUseIgnoreFiles,
     includeFileTree,
     setIncludeFileTree,
   } = useUserContext();
@@ -73,7 +75,7 @@ export default function SettingsMenu() {
             label="Include file tree"
           />
         </MenuItem>
-        <MenuItem>
+<MenuItem>
           <FormControlLabel
             control={
               <Checkbox
@@ -82,6 +84,17 @@ export default function SettingsMenu() {
               />
             }
             label="Show .dotfiles"
+          />
+        </MenuItem>
+        <MenuItem>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={useIgnoreFiles}
+                onChange={(e) => setUseIgnoreFiles(e.target.checked)}
+              />
+            }
+            label="Respect .gitignore"
           />
         </MenuItem>
         <MenuItem>

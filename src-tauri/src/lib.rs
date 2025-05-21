@@ -1,8 +1,11 @@
 mod apply_changes;
 mod apply_file_change;
 mod change_types;
+mod fs_api;
 mod parse_change_protocol;
 mod token_utils;
+use fs_api::{list_directory, search_files, start_watch};
+
 use serde_json::{json, Value};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -16,7 +19,6 @@ fn apply_protocol(xml_input: &str) -> Result<Value, String> {
         }
     }
 }
-#[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_process::init())
@@ -39,7 +41,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             apply_protocol,
             token_utils::count_tokens,
-            token_utils::count_tokens_path
+            token_utils::count_tokens_path,
+            list_directory,
+            search_files,
+            start_watch
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

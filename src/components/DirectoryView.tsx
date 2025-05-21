@@ -7,7 +7,7 @@ import {
   ChevronRight,
   Folder as FolderIcon,
 } from "@mui/icons-material";
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useUserContext } from "../context/UserContext";
 import { useAppContext } from "../context/AppContext";
 import type { FileNode, TreeItemData } from "../types";
@@ -16,23 +16,24 @@ export interface DirectoryViewProps {
   node: TreeItemData;
   onPreviewFile: (event: React.SyntheticEvent, file: FileNode) => void;
   onFileSelect: (file: FileNode) => void;
-  showDotfiles: boolean;
   loadChildren: (node: TreeItemData) => Promise<void>;
   searchQuery: string;
 }
 import FileItemWithHover from "./FileItemWithHover";
 import { isImage } from "../utils/image";
+import { useFS } from "../api/fs";
 
 export default function DirectoryView({
   node,
   onPreviewFile,
   onFileSelect,
-  showDotfiles,
   loadChildren,
   searchQuery,
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
+  const [hits, setHits] = useState<TreeItemData[]>([]);
   const { countTokens } = useUserContext();
+  const { search } = useFS();
   const { mode, setMode } = useAppContext();
   const doMode = mode === "do";
 
@@ -42,32 +43,28 @@ export default function DirectoryView({
       loadChildren(node);
     }
   }, [expanded, node, loadChildren]);
+
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      if (searchQuery) {
+        const res = await search(node.path, searchQuery);
+        if (!ignore) setHits(res as TreeItemData[]);
+      } else {
+        setHits([]);
+      }
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, [search, searchQuery, node.path]);
+
   // Reset expansion when children are unloaded, to collapse the arrow indicator.
   useEffect(() => {
     if (!node.loadedChildren) {
       setExpanded([]);
     }
   }, [node.loadedChildren]);
-
-  const filterChildren = (nodes: TreeItemData[]): TreeItemData[] => {
-    if (!searchQuery) return nodes;
-    return nodes.reduce((acc: TreeItemData[], node) => {
-      if (node.isDirectory) {
-        const filteredSubChildren = filterChildren(node.children);
-        if (
-          node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          filteredSubChildren.length > 0
-        ) {
-          acc.push({ ...node, children: filteredSubChildren });
-        }
-      } else {
-        if (node.name.toLowerCase().includes(searchQuery.toLowerCase())) {
-          acc.push(node);
-        }
-      }
-      return acc;
-    }, []);
-  };
 
   const handleToggle = async (
     _event: React.SyntheticEvent,
@@ -92,6 +89,28 @@ export default function DirectoryView({
     setExpanded(nodeIds);
   };
 
+  const handleSearchNodeSelect = async (
+    _event: React.SyntheticEvent,
+    nodeId: string
+  ) => {
+    const hit = hits.find((h) => h.id === nodeId);
+    if (!hit) return;
+    const metadata = await stat(hit.path, { baseDir: BaseDirectory.Home });
+    const file: FileNode = {
+      id: hit.id,
+      name: hit.name,
+      path: hit.path,
+      size: metadata.size / (1024 * 1024),
+    };
+    if (countTokens && !isImage(hit.name)) {
+      const tokenCount = await invoke("count_tokens_path", { path: hit.path });
+      file.tokenSize = Number(tokenCount);
+    }
+    if (mode === "do") {
+      setMode("plan");
+    }
+    onFileSelect(file);
+  };
   const handleNodeSelect = async (
     _event: React.SyntheticEvent,
     nodeId: string
@@ -133,64 +152,92 @@ export default function DirectoryView({
         opacity: doMode ? 0.5 : 1,
       }}
     >
-      <TreeView
-        aria-label="directory tree"
-        defaultCollapseIcon={<ExpandMore />}
-        defaultExpandIcon={<ChevronRight />}
-        expanded={expanded}
-        onNodeToggle={handleToggle}
-        onNodeSelect={handleNodeSelect}
-        sx={{ marginLeft: 1, wordBreak: "keep-all" }}
-      >
-        {node.loadedChildren
-          ? filterChildren(node.children).map((child) => {
-              if (child.isDirectory) {
+      {searchQuery ? (
+        hits.length === 0 ? (
+          <Typography sx={{ ml: 2, mt: 1 }} color="text.secondary">
+            No files found
+          </Typography>
+        ) : (
+          <TreeView
+            aria-label="search results"
+            defaultCollapseIcon={<ExpandMore />}
+            defaultExpandIcon={<ChevronRight />}
+            onNodeSelect={handleSearchNodeSelect}
+            sx={{ marginLeft: 1, wordBreak: "keep-all" }}
+          >
+            {hits.map((hit) => (
+              <FileItemWithHover
+                key={hit.id}
+                file={{
+                  id: hit.id,
+                  name: hit.name,
+                  path: hit.path,
+                  size: 0,
+                }}
+                nodeId={hit.id}
+                onPreviewFile={onPreviewFile}
+              />
+            ))}
+          </TreeView>
+        )
+      ) : (
+        <TreeView
+          aria-label="directory tree"
+          defaultCollapseIcon={<ExpandMore />}
+          defaultExpandIcon={<ChevronRight />}
+          expanded={expanded}
+          onNodeToggle={handleToggle}
+          onNodeSelect={handleNodeSelect}
+          sx={{ marginLeft: 1, wordBreak: "keep-all" }}
+        >
+          {node.loadedChildren
+            ? node.children.map((child) => {
+                if (child.isDirectory) {
+                  return (
+                    <TreeItem
+                      key={child.id}
+                      nodeId={child.id}
+                      label={
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 1,
+                            "&:hover .file-icon": { color: "primary.main" },
+                          }}
+                        >
+                          <FolderIcon className="file-icon" fontSize="small" />
+                          <span>{child.name}/</span>
+                        </Box>
+                      }
+                    >
+                      <DirectoryView
+                        onPreviewFile={onPreviewFile}
+                        node={child}
+                        onFileSelect={onFileSelect}
+                        loadChildren={loadChildren}
+                        searchQuery={searchQuery}
+                      />
+                    </TreeItem>
+                  );
+                }
                 return (
-                  <TreeItem
+                  <FileItemWithHover
                     key={child.id}
+                    file={{
+                      id: child.id,
+                      name: child.name,
+                      path: child.path,
+                      size: 0,
+                    }}
                     nodeId={child.id}
-                    label={
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1,
-                          "&:hover .file-icon": { color: "primary.main" },
-                        }}
-                      >
-                        <FolderIcon className="file-icon" fontSize="small" />
-                        <span>{child.name}/</span>
-                      </Box>
-                    }
-                  >
-                    <DirectoryView
-                      onPreviewFile={onPreviewFile}
-                      node={child}
-                      onFileSelect={onFileSelect}
-                      showDotfiles={showDotfiles}
-                      loadChildren={loadChildren}
-                      searchQuery={searchQuery}
-                    />
-                  </TreeItem>
+                    onPreviewFile={onPreviewFile}
+                  />
                 );
-              }
-              return (
-                <FileItemWithHover
-                  key={child.id}
-                  file={{
-                    id: child.id,
-                    name: child.name,
-                    path: child.path,
-                    size: 0,
-                    // tokenSize,
-                  }}
-                  nodeId={child.id}
-                  onPreviewFile={onPreviewFile}
-                />
-              );
-            })
-          : null}
-      </TreeView>
+              })
+            : null}
+        </TreeView>
+      )}
     </Box>
   );
 }

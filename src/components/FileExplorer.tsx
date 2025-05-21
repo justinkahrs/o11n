@@ -1,26 +1,26 @@
 import { useState, useEffect, useCallback } from "react";
-import { BaseDirectory, readDir } from "@tauri-apps/plugin-fs";
+import { listen } from "@tauri-apps/api/event";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
-
 import { Box, IconButton, Typography, useTheme, Tooltip } from "@mui/material";
-import FolderIcon from "@mui/icons-material/Folder";
-import LogoSVG from "./LogoSVG";
-import SearchFiles from "./SearchFiles";
-import DirectoryView from "./DirectoryView";
 import {
+  Folder,
   FolderSpecial,
   Delete,
   InsertDriveFile,
-  Refresh,
 } from "@mui/icons-material";
 import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
-import { useUserContext } from "../context/UserContext";
-import { useAppContext } from "../context/AppContext";
+import DirectoryView from "./DirectoryView";
+import LogoSVG from "./LogoSVG";
+import SearchFiles from "./SearchFiles";
 import RetroButton from "./RetroButton";
+import { useAppContext } from "../context/AppContext";
+import { useUserContext } from "../context/UserContext";
+import { useFS } from "../api/fs";
 
 export default function FileExplorer() {
   const theme = useTheme();
+  const { getChildren, watch } = useFS();
   const { showDotfiles, showLogo } = useUserContext();
   const {
     mode,
@@ -50,31 +50,13 @@ export default function FileExplorer() {
   const loadChildren = useCallback(
     async (node: TreeItemData) => {
       if (!node.isDirectory) return;
-      const options: { baseDir?: number } = {};
-      if (node.path === ".") {
-        options.baseDir = BaseDirectory.Home;
-      }
       try {
-        const contents = await readDir(node.path, options);
-        let entries = contents.map((entry) => ({
-          id:
-            node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
-          name: entry.name || "",
-          path:
-            node.path === "." ? entry.name || "" : `${node.path}/${entry.name}`,
-          isDirectory: !!entry.isDirectory,
-          children: [],
-          loadedChildren: false,
-        }));
-        if (!showDotfiles) {
-          entries = entries.filter((entry) => !entry.name.startsWith("."));
-        }
-        entries.sort((a, b) => {
+        const entries = await getChildren(node.path, showDotfiles);
+        node.children = entries.sort((a, b) => {
           if (a.isDirectory && !b.isDirectory) return -1;
           if (!a.isDirectory && b.isDirectory) return 1;
           return a.name.localeCompare(b.name);
-        });
-        node.children = entries;
+        }) as TreeItemData[]; // TO-DO sort on backend
         node.loadedChildren = true;
         setProjects((prev) => [...prev]);
       } catch (error) {
@@ -82,7 +64,7 @@ export default function FileExplorer() {
         return;
       }
     },
-    [showDotfiles, setProjects]
+    [getChildren, showDotfiles, setProjects]
   );
 
   // Called when we want to open a single file
@@ -109,6 +91,7 @@ export default function FileExplorer() {
       setProjects((prev) => [...prev, newRoot]);
       // default expanded state is true
       setExpanded((prev) => ({ ...prev, [newRoot.path]: true }));
+      await watch(selected);
     }
   };
 
@@ -144,6 +127,19 @@ export default function FileExplorer() {
       }
     })();
   }, [loadChildren, projects]);
+
+  // Watch for filesystem updates emitted by Rust
+  useEffect(() => {
+    const unlistenPromise = listen<string[]>("fs_change", () => {
+      console.log("SOMETHING CHANGED");
+      setProjects((prev) =>
+        prev.map((proj) => ({ ...proj, children: [], loadedChildren: false }))
+      );
+    });
+    return () => {
+      unlistenPromise.then((unlisten) => unlisten());
+    };
+  }, [setProjects]);
 
   const buttonLabel = "Load Project";
 
@@ -226,7 +222,7 @@ export default function FileExplorer() {
                     width: "100%",
                   }}
                 >
-                  <FolderIcon
+                  <Folder
                     className="file-icon"
                     fontSize="small"
                     sx={{ mr: 1 }}
@@ -235,29 +231,6 @@ export default function FileExplorer() {
                   {project.name}
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                  <Tooltip
-                    arrow
-                    disableInteractive
-                    enterDelay={500}
-                    title="Reload project"
-                  >
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setProjects((prev) =>
-                          prev.map((proj) =>
-                            proj.path === project.path
-                              ? { ...proj, children: [], loadedChildren: false }
-                              : proj
-                          )
-                        );
-                        loadChildren(project);
-                      }}
-                      size="small"
-                    >
-                      <Refresh fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
                   <Tooltip
                     arrow
                     disableInteractive
@@ -291,7 +264,6 @@ export default function FileExplorer() {
                     onFileSelect={(file) =>
                       handleFileSelect({ ...file, projectRoot: project.path })
                     }
-                    showDotfiles={showDotfiles}
                     loadChildren={loadChildren}
                     searchQuery={searchQuery}
                   />
