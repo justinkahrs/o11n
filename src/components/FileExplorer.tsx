@@ -186,9 +186,9 @@ export default function FileExplorer() {
             Load a project and select files to add context to your prompt.
           </Typography>
         ) : (
-          projects.map((root) => (
+          projects.map((project) => (
             <Box
-              key={root.path}
+              key={project.path}
               sx={{
                 mb: 3,
                 border: "1px solid #ccc",
@@ -216,7 +216,7 @@ export default function FileExplorer() {
                   onClick={() =>
                     setExpanded((prev) => ({
                       ...prev,
-                      [root.path]: prev[root.path] === false,
+                      [project.path]: prev[project.path] === false,
                     }))
                   }
                   sx={{
@@ -232,7 +232,7 @@ export default function FileExplorer() {
                     sx={{ mr: 1 }}
                   />
 
-                  {root.name}
+                  {project.name}
                 </Typography>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                   <Tooltip
@@ -246,12 +246,12 @@ export default function FileExplorer() {
                         e.stopPropagation();
                         setProjects((prev) =>
                           prev.map((proj) =>
-                            proj.path === root.path
+                            proj.path === project.path
                               ? { ...proj, children: [], loadedChildren: false }
                               : proj
                           )
                         );
-                        loadChildren(root);
+                        loadChildren(project);
                       }}
                       size="small"
                     >
@@ -267,7 +267,7 @@ export default function FileExplorer() {
                     <IconButton
                       onClick={(e) => {
                         e.stopPropagation();
-                        removeProject(root.path);
+                        removeProject(project.path);
                       }}
                       size="small"
                     >
@@ -277,7 +277,7 @@ export default function FileExplorer() {
                 </Box>
               </Box>
               {/* Animated Directory tree */}
-              <AccordionItem isOpen={expanded[root.path] !== false}>
+              <AccordionItem isOpen={expanded[project.path] !== false}>
                 <Box
                   sx={{
                     p: 1,
@@ -286,10 +286,10 @@ export default function FileExplorer() {
                   }}
                 >
                   <DirectoryView
-                    node={root}
+                    node={project}
                     onPreviewFile={handleFilePreviewClick}
                     onFileSelect={(file) =>
-                      handleFileSelect({ ...file, projectRoot: root.path })
+                      handleFileSelect({ ...file, projectRoot: project.path })
                     }
                     showDotfiles={showDotfiles}
                     loadChildren={loadChildren}
