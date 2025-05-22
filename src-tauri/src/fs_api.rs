@@ -41,7 +41,7 @@ pub fn list_directory(
         let meta = dent.metadata().map_err(|e| e.to_string())?;
         let name = dent.file_name().to_string_lossy().into_owned();
         out.push(TreeItemData {
-            id: name.clone(),
+            id: dent.path().to_string_lossy().into_owned(),
             name,
             path: dent.path().to_string_lossy().into_owned(),
             is_directory: meta.is_dir(),

@@ -26,6 +26,7 @@ export default function FileExplorer() {
     useAppContext();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState("");
+const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
   // Helper to create a new project node
   function createRootNode(dirPath: string): TreeItemData {
     const parts = dirPath.split(/[\\/]/);
@@ -99,6 +100,12 @@ export default function FileExplorer() {
     });
   }
 
+// Reset active search project when the query changes
+  useEffect(() => {
+    if (searchQuery) {
+      setActiveSearchProjectIndex(0);
+    }
+  }, [searchQuery]);
   // If user toggles dotfiles, re-load all projects
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
@@ -174,8 +181,8 @@ export default function FileExplorer() {
           <Typography color="primary" variant="body1">
             Load a project and select files to add context to your prompt.
           </Typography>
-        ) : (
-          projects.map((project) => (
+) : (
+          projects.map((project, index) => (
             <Box
               key={project.path}
               sx={{
@@ -249,7 +256,7 @@ export default function FileExplorer() {
                     overflowY: "auto",
                   }}
                 >
-                  <DirectoryView
+<DirectoryView
                     node={project}
                     onPreviewFile={handleFilePreviewClick}
                     onFileSelect={(file) =>
@@ -258,6 +265,17 @@ export default function FileExplorer() {
                     loadChildren={loadChildren}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
+                    isActive={searchQuery ? index === activeSearchProjectIndex : false}
+                    onMoveNext={() =>
+                      setActiveSearchProjectIndex((prev) =>
+                        prev + 1 < projects.length ? prev + 1 : 0
+                      )
+                    }
+                    onMovePrev={() =>
+                      setActiveSearchProjectIndex((prev) =>
+                        (prev - 1 + projects.length) % projects.length
+                      )
+                    }
                   />
                 </Box>
               </AccordionItem>
