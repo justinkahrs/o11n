@@ -1,6 +1,7 @@
 import { Box, TextField, IconButton, InputAdornment } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useState, useEffect, useRef } from "react";
+import useShortcut from "../utils/useShortcut";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 
@@ -8,7 +9,7 @@ export function PlanInput() {
   const { mode, plan, setErrorReports, setFileSuccesses, setMode, setPlan } =
     useAppContext();
   const { formatOutput } = useUserContext();
-const [inputValue, setInputValue] = useState(plan);
+  const [inputValue, setInputValue] = useState(plan);
   const inputRef = useRef<HTMLInputElement>(null);
   const doMode = mode === "do";
 
@@ -21,16 +22,29 @@ const [inputValue, setInputValue] = useState(plan);
   }, [formatOutput, setMode]);
 
   useEffect(() => {
-  if (doMode && inputRef.current) {
-    inputRef.current.focus();
-  }
-}, [doMode]);
-const clearPlan = () => {
+    if (doMode && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [doMode]);
+  const clearPlan = () => {
     setInputValue("");
     setPlan("");
     setErrorReports([]);
     setFileSuccesses([]);
   };
+  useShortcut(
+    "N",
+    () => {
+      clearPlan();
+      setMode("plan");
+    },
+    {
+      ctrlKey: true,
+      metaKey: true,
+      shiftKey: true,
+      targetSelector: "#plan-input",
+    }
+  );
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
     setPlan(e.target.value);
@@ -39,7 +53,7 @@ const clearPlan = () => {
   return (
     doMode && (
       <Box sx={{ p: 2 }}>
-<TextField
+        <TextField
           id="plan-input"
           inputRef={inputRef}
           variant="outlined"

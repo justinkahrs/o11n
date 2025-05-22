@@ -1,5 +1,5 @@
 import { Box, TextField } from "@mui/material";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import useShortcut from "../utils/useShortcut";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
@@ -23,7 +23,17 @@ export function InstructionsInput() {
       metaKey: true,
     }
   );
-  const label = formatOutput
+  useShortcut("N", () => setInstructions(""), {
+    ctrlKey: true,
+    metaKey: true,
+    shiftKey: true,
+  });
+  useEffect(() => {
+  if (mode === "plan" && inputRef.current) {
+    inputRef.current.focus();
+  }
+}, [mode]);
+const label = formatOutput
     ? "Describe what you want to change."
     : "Talk about what you want to change";
   return (

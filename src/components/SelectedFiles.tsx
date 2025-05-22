@@ -5,6 +5,7 @@ import { FileCard } from "./FileCard";
 import { useAppContext } from "../context/AppContext";
 import type { FileNode } from "../types";
 import { useEffect, useState } from "react";
+import useShortcut from "../utils/useShortcut";
 import { invoke } from "@tauri-apps/api/core";
 import { useUserContext } from "../context/UserContext";
 
@@ -12,6 +13,11 @@ export function SelectedFiles() {
   const { mode, selectedFiles, setSelectedFiles } = useAppContext();
   const { countTokens } = useUserContext();
   const doMode = mode === "do";
+  useShortcut("N", () => setSelectedFiles([]), {
+    ctrlKey: true,
+    metaKey: true,
+    shiftKey: true,
+  });
   const totalSize = selectedFiles.reduce((sum, f) => sum + (f.size ?? 0), 0);
   const [allExpanded, setAllExpanded] = useState<boolean>(true);
 
@@ -42,9 +48,7 @@ export function SelectedFiles() {
 
   const groupedFiles = selectedFiles.reduce(
     (acc: { [folder: string]: FileNode[] }, file) => {
-      const lastSlash = file.path ? file.path.lastIndexOf("/") : -1;
-      const folder =
-        lastSlash !== -1 ? file.path.substring(0, lastSlash) : "Root";
+      const folder = file.projectRoot ?? "Root";
       if (!acc[folder]) {
         acc[folder] = [];
       }
@@ -60,12 +64,7 @@ export function SelectedFiles() {
 
   function handleRemoveFolder(folderPath: string) {
     setSelectedFiles((prev) =>
-      prev.filter((file) => {
-        const lastSlash = file.path.lastIndexOf("/");
-        const fileFolder =
-          lastSlash !== -1 ? file.path.substring(0, lastSlash) : "Root";
-        return fileFolder !== folderPath;
-      })
+      prev.filter((file) => file.projectRoot !== folderPath)
     );
   }
 

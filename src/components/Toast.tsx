@@ -15,7 +15,7 @@ const Toast: React.FC<ToastProps> = ({ open, message, onClose }) => {
       message={message}
       autoHideDuration={1000}
       onClose={onClose}
-      ContentProps={{
+ContentProps={{
         sx: {
           background: isDark
             ? theme.palette.common.white
@@ -24,6 +24,7 @@ const Toast: React.FC<ToastProps> = ({ open, message, onClose }) => {
             ? theme.palette.common.black
             : theme.palette.common.white,
           maxWidth: "300px",
+          fontFamily: theme.typography.fontFamily,
         },
       }}
     />
