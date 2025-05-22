@@ -35,7 +35,7 @@ export default function DirectoryView({
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
   const [hits, setHits] = useState<TreeItemData[]>([]);
-  const [selectedHitIndex, setSelectedHitIndex] = useState(0);
+  const [selectedHitIndex, setSelectedHitIndex] = useState(-1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { countTokens } = useUserContext();
   const { search } = useFS();
@@ -147,10 +147,10 @@ export default function DirectoryView({
     }
   }, [node.loadedChildren]);
   useEffect(() => {
-    if (searchQuery && hits.length > 0) {
-      setSelectedHitIndex(0);
+    if (searchQuery) {
+      setSelectedHitIndex(-1);
     }
-  }, [searchQuery, hits]);
+  }, [searchQuery]);
   useShortcut(
     "ArrowDown",
     (_e) => {
@@ -164,7 +164,9 @@ export default function DirectoryView({
     "ArrowUp",
     (_e) => {
       if (searchQuery && hits.length > 0) {
-        setSelectedHitIndex((idx) => (idx - 1 + hits.length) % hits.length);
+        setSelectedHitIndex((idx) =>
+          idx === -1 ? hits.length - 1 : (idx - 1 + hits.length) % hits.length
+        );
       }
     },
     { targetSelector: ".search-files" }
@@ -172,7 +174,7 @@ export default function DirectoryView({
   useShortcut(
     "Enter",
     (_e) => {
-      if (searchQuery && hits.length > 0) {
+      if (searchQuery && hits.length > 0 && selectedHitIndex !== -1) {
         handleSearchNodeSelect(
           {} as React.SyntheticEvent,
           hits[selectedHitIndex].id
@@ -193,7 +195,11 @@ export default function DirectoryView({
         aria-label="search results"
         defaultCollapseIcon={<ExpandMore />}
         defaultExpandIcon={<ChevronRight />}
-        selected={hits.length > 0 ? [hits[selectedHitIndex].id] : []}
+        selected={
+          selectedHitIndex !== -1 && hits.length > 0
+            ? [hits[selectedHitIndex].id]
+            : []
+        }
         onNodeSelect={(event: React.SyntheticEvent, nodeIds: string[]) => {
           const nodeId = Array.isArray(nodeIds) ? nodeIds[0] : nodeIds;
           handleSearchNodeSelect(event, nodeId);

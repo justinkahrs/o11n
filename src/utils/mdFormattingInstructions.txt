@@ -48,3 +48,4 @@ Below is a description of the exact format our Rust backend parser expects. Foll
    - For appending at the end of a file, include the existing end snippet in the Search block (no placeholders), then repeat it plus new content in the Content block.
    - To apply multiple edits in the same file, include multiple #### Change sections under a single File/Action pair.
    - Do not create any scheduled tasks
+   - Ensure syntactic correctness: after applying each Search/Content replacement, the resulting file must be a valid, well-formed source in its target language. Any opening braces (`{}`), brackets (`[]`), parentheses (`()`), XML/HTML tags, or other structural delimiters present in the original or introduced by the Content block must remain properly balanced and closed.
