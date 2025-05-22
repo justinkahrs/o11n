@@ -22,14 +22,8 @@ export default function FileExplorer() {
   const theme = useTheme();
   const { getChildren, watch } = useFS();
   const { showDotfiles, showLogo } = useUserContext();
-  const {
-    mode,
-    handleFileSelect,
-    handleFilePreviewClick,
-    projects,
-    setProjects,
-  } = useAppContext();
-  const doMode = mode === "do";
+  const { handleFileSelect, handleFilePreviewClick, projects, setProjects } =
+    useAppContext();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState("");
   // Helper to create a new project node
@@ -189,8 +183,6 @@ export default function FileExplorer() {
                 border: "1px solid #ccc",
                 borderRadius: 1,
                 overflow: "hidden",
-                pointerEvents: doMode ? "none" : "auto",
-                opacity: doMode ? 0.5 : 1,
               }}
             >
               {/* Header with project name on left and drag icon + delete on right */}
@@ -253,7 +245,7 @@ export default function FileExplorer() {
                 <Box
                   sx={{
                     p: 1,
-                    maxHeight: 400,
+                    // maxHeight: 400,
                     overflowY: "auto",
                   }}
                 >

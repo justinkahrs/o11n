@@ -48,7 +48,6 @@ export function FolderGroup({
       style={{
         border: "1px solid #ccc",
         borderRadius: "4px",
-        overflow: "hidden",
         marginBottom: "8px",
       }}
     >
@@ -77,8 +76,9 @@ export function FolderGroup({
             style={{
               display: "flex",
               alignItems: "center",
-
-              wordBreak: "break-all",
+              wordBreak: "keep-all",
+              textOverflow: "ellipsis",
+              overflowX: "hidden",
             }}
           >
             <Folder style={{ marginRight: ".5rem" }} />

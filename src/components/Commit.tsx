@@ -21,7 +21,6 @@ const Commit = () => {
   const isPlanValid = () => {
     return (
       plan.trim() !== "" &&
-      plan.includes("# Plan") &&
       plan.includes("### File") &&
       plan.includes("### Action")
     );

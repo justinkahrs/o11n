@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
+import useShortcut from "../utils/useShortcut";
 import { Box, Card, CardContent, CardHeader, Modal, Grid } from "@mui/material";
 import * as monaco from "monaco-editor";
 import "./FilePreview.css";
@@ -42,7 +43,7 @@ function FilePreview({ file }: FilePreviewProps) {
   const [isDirty, setIsDirty] = useState(false);
   const { themeMode } = useUserContext();
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const saveToFile = async () => {
+  const saveToFile = useCallback(async () => {
     if (editorRef.current) {
       try {
         const content = editorRef.current.getValue();
@@ -54,7 +55,8 @@ function FilePreview({ file }: FilePreviewProps) {
         console.error("Save failed:", err);
       }
     }
-  };
+  }, [file.path]);
+
   const { handleFileSelect, setSelectedFile, selectedFiles } = useAppContext();
   const isSelected = selectedFiles.some(
     (selected) => selected.path === file.path
@@ -128,6 +130,11 @@ function FilePreview({ file }: FilePreviewProps) {
       isMounted = false;
     };
   }, [file, themeMode]);
+  const closePreview = () => {
+    setSelectedFile(null);
+  };
+  useShortcut("Escape", closePreview);
+  useShortcut("s", saveToFile, { ctrlKey: true, metaKey: true });
   return (
     <Card
       className="file-preview-card"
@@ -145,11 +152,11 @@ function FilePreview({ file }: FilePreviewProps) {
             </Grid>
             <Grid item>
               <RetroButton
-                onClick={() => setSelectedFile(null)}
+                onClick={closePreview}
                 sx={{ height: 40, minWidth: 40 }}
                 variant="outlined"
               >
-                Close
+                Close (Esc)
               </RetroButton>
             </Grid>
             <Grid item xs={12}>
@@ -167,7 +174,7 @@ function FilePreview({ file }: FilePreviewProps) {
                 disabled={!isDirty}
                 sx={{ height: 30, m: 1 }}
               >
-                Save
+                Save (cmd + s)
               </RetroButton>
             </Grid>
           </Grid>
