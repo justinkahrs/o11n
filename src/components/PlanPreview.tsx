@@ -236,20 +236,6 @@ export function PlanPreview() {
                           >
                             {desc}
                           </Typography>
-                          <Tooltip title="View diff" arrow>
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                const { original, modified } = getChangeBlock(
-                                  fileChange.file,
-                                  idx
-                                );
-                                setOpenDiff({ original, modified });
-                              }}
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
                         </ListItem>
                       );
                     })}
