@@ -48,7 +48,6 @@ export function FolderGroup({
       style={{
         border: "1px solid #ccc",
         borderRadius: "4px",
-        overflow: "hidden",
         marginBottom: "8px",
       }}
     >

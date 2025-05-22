@@ -127,7 +127,9 @@
     "fs:scope-template-recursive",
     {
       "identifier": "fs:scope",
-      "allow": ["**/*"]
+      "allow": [
+        "**/*"
+      ]
     },
     "log:default",
     "clipboard-manager:default",
@@ -135,7 +137,10 @@
     "store:default",
     "deep-link:default",
     "updater:default",
-    "process:default"
+    "process:default",
+    "os:default"
   ],
-  "windows": ["main"]
+  "windows": [
+    "main"
+  ]
 }

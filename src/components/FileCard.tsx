@@ -21,7 +21,7 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
       container
       item
       xs={12}
-      sm={4}
+      sm={5}
       md={3}
       sx={{
         position: "relative",
@@ -85,27 +85,41 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
             </Tooltip>
           </Typography>
         </Grid>
-<Grid container display="flex" flexDirection="column" sx={{ gap: 0 }}>
-          <Grid item>
+        <Grid container>
+          <Grid item sx={{ minWidth: 0 }} zeroMinWidth>
             <Typography
               variant="subtitle2"
               sx={{
-                overflowX: "hidden",
+                width: "100%",
+                overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
-                maxWidth: "100%",
               }}
             >
               {file.name}
             </Typography>
           </Grid>
-          <Grid item>
+          <Grid
+            item
+            sx={{
+              overflowX: "hidden",
+              textOverflow: "ellipsis",
+              wordWrap: "nowrap",
+            }}
+          >
             <Typography variant="caption">
               {formatFileSize(file.size)} ({percentage}%)
             </Typography>
           </Grid>
           {countTokens && (
-            <Grid item>
+            <Grid
+              item
+              sx={{
+                overflowX: "hidden",
+                textOverflow: "ellipsis",
+                wordWrap: "nowrap",
+              }}
+            >
               <Typography variant="caption">{file.tokenSize} tokens</Typography>
             </Grid>
           )}

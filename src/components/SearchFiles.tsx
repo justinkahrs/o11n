@@ -1,21 +1,53 @@
 import type React from "react";
-import { TextField, IconButton, InputAdornment } from "@mui/material";
+import { useRef } from "react";
+import { TextField, IconButton, InputAdornment, Grid } from "@mui/material";
+import useShortcut from "../utils/useShortcut";
 import CloseIcon from "@mui/icons-material/Close";
-import { useAppContext } from "../context/AppContext";
+import { platform } from "@tauri-apps/plugin-os";
+import { KeyboardCommandKey } from "@mui/icons-material";
 interface SearchFilesProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
 }
+
 const SearchFiles: React.FC<SearchFilesProps> = ({
   searchQuery,
   setSearchQuery,
 }) => {
-  const { mode } = useAppContext();
-  const doMode = mode === "do";
+  const inputRef = useRef<HTMLInputElement>(null);
+  const labelText =
+    platform() !== "macos" ? (
+      <Grid container spacing={1}>
+        <Grid item>Search files</Grid>
+        <Grid item direction="row">
+          (
+          <KeyboardCommandKey
+            sx={{
+              fontSize: "14px",
+            }}
+          />
+          + F)
+        </Grid>
+      </Grid>
+    ) : (
+      <>Search files (Ctrl + F)</>
+    );
+  useShortcut(
+    "f",
+    () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        if (inputRef.current.value) {
+          inputRef.current.select();
+        }
+      }
+    },
+    { ctrlKey: true, metaKey: true }
+  );
   return (
     <TextField
-      disabled={doMode}
-      label="Search files"
+      inputRef={inputRef}
+      label={labelText}
       variant="outlined"
       size="small"
       value={searchQuery}
