@@ -143,13 +143,16 @@ export function PlanPreview() {
         <Box sx={{ overflowY: "auto", overflowX: "auto", p: 2 }}>
           {doMode && plan && (
             <>
-              <Typography color="secondary" variant="h1" gutterBottom>
-                Plan Overview
-              </Typography>
-              <Typography variant="body1" gutterBottom>
-                {planDescription ||
-                  "No plan found, check that the formating starts with ."}
-              </Typography>
+              {planDescription && (
+                <>
+                  <Typography color="secondary" variant="h1" gutterBottom>
+                    Plan Overview
+                  </Typography>
+                  <Typography variant="body1" gutterBottom>
+                    {planDescription}
+                  </Typography>
+                </>
+              )}
               {fileChanges.length > 0 && (
                 <>
                   <Typography color="secondary" variant="h2">

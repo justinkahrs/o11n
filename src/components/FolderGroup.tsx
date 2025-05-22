@@ -77,8 +77,9 @@ export function FolderGroup({
             style={{
               display: "flex",
               alignItems: "center",
-
-              wordBreak: "break-all",
+              wordBreak: "keep-all",
+              textOverflow: "ellipsis",
+              overflowX: "hidden",
             }}
           >
             <Folder style={{ marginRight: ".5rem" }} />

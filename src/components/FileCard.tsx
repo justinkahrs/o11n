@@ -1,36 +1,38 @@
-import { Box, Typography, IconButton, Tooltip } from "@mui/material";
+import { Grid, Typography, IconButton, Tooltip } from "@mui/material";
+import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import InsertDriveFile from "@mui/icons-material/InsertDriveFile";
-
 import { formatFileSize } from "../utils/formatFileSize";
 import { useAppContext } from "../context/AppContext";
 import type { FileNode } from "../types";
 import { useUserContext } from "../context/UserContext";
-
 interface FileCardProps {
   file: FileNode;
   percentage: string;
   onRemoveFile: (fileId: string) => void;
 }
-
 export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
-  const { mode, handleFilePreviewClick } = useAppContext();
+  const { handleFilePreviewClick } = useAppContext();
   const { countTokens } = useUserContext();
-  const doMode = mode === "do";
-
+  const [isHovered, setIsHovered] = useState(false);
+  const [isDeleteHovered, setIsDeleteHovered] = useState(false);
   return (
-    <Box
+    <Grid
+      container
+      item
+      xs={12}
+      sm={4}
+      md={3}
       sx={{
         position: "relative",
         borderRadius: "4px",
         border: "1px solid lightgrey",
+        cursor: "pointer",
         padding: 2,
-        margin: 0,
-        minWidth: doMode ? "100%" : "20%",
-        maxWidth: "50%",
-        boxSizing: "border-box",
-        overflow: "hidden",
       }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={(e) => handleFilePreviewClick(e, file)}
     >
       <Tooltip
         arrow
@@ -41,54 +43,74 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
       >
         <IconButton
           aria-label="delete"
-          onClick={() => onRemoveFile(file.id)}
-          sx={{
-            position: "absolute",
-            top: 4,
-            right: 4,
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemoveFile(file.id);
           }}
+          onMouseEnter={(e) => {
+            e.stopPropagation();
+            setIsDeleteHovered(true);
+          }}
+          onMouseLeave={() => setIsDeleteHovered(false)}
+          sx={{ position: "absolute", top: 8, right: 8 }}
         >
-          <DeleteIcon sx={{ fontSize: "18px" }} />
+          <DeleteIcon
+            sx={{
+              fontSize: "18px",
+            }}
+          />
         </IconButton>
       </Tooltip>
-      <Box
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          wordWrap: "break-word",
-          whiteSpace: "normal",
-          paddingRight: "40px",
-        }}
-      >
-        <Typography
-          variant="subtitle2"
-          onClick={(e) => handleFilePreviewClick(e, file)}
-          sx={{
-            cursor: "pointer",
-            display: "inline-flex",
-            "&:hover .file-icon": { color: "primary.main" },
-          }}
-        >
-          <Tooltip
-            arrow
-            disableInteractive
-            enterDelay={500}
-            title="Preview"
-            placement="right"
-          >
-            <InsertDriveFile className="file-icon" color="secondary" />
-          </Tooltip>
-        </Typography>
-        <Typography variant="subtitle2">{file.name}</Typography>
-        <Typography variant="caption" sx={{ m: 0, p: 0 }}>
-          {formatFileSize(file.size)} ({percentage}%)
-        </Typography>
-        {countTokens && (
-          <Typography variant="caption" sx={{ m: 0, p: 0 }}>
-            {file.tokenSize} tokens
+      <Grid container direction="column">
+        <Grid item>
+          <Typography variant="subtitle2">
+            <Tooltip
+              arrow
+              disableInteractive
+              enterDelay={500}
+              title="Preview"
+              placement="right"
+            >
+              <InsertDriveFile
+                className="file-icon"
+                color="secondary"
+                sx={{
+                  color: isDeleteHovered
+                    ? "secondary.main"
+                    : isHovered
+                    ? "primary.main"
+                    : "secondary.main",
+                }}
+              />
+            </Tooltip>
           </Typography>
-        )}
-      </Box>
-    </Box>
+        </Grid>
+<Grid container display="flex" flexDirection="column" sx={{ gap: 0 }}>
+          <Grid item>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                overflowX: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                maxWidth: "100%",
+              }}
+            >
+              {file.name}
+            </Typography>
+          </Grid>
+          <Grid item>
+            <Typography variant="caption">
+              {formatFileSize(file.size)} ({percentage}%)
+            </Typography>
+          </Grid>
+          {countTokens && (
+            <Grid item>
+              <Typography variant="caption">{file.tokenSize} tokens</Typography>
+            </Grid>
+          )}
+        </Grid>
+      </Grid>
+    </Grid>
   );
 }
