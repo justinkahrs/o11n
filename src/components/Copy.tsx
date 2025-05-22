@@ -168,7 +168,7 @@ export default function Copy() {
     promptTokenCount !== null
       ? promptTokenCount >= 1000
         ? `~${Math.round(promptTokenCount / 1000)}k tokens`
-        : promptTokenCount.toString()
+        : `${promptTokenCount.toString()} tokens`
       : "";
   const cmd =
     platform() === "macos" ? (

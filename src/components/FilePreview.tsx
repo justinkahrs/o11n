@@ -1,7 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import useShortcut from "../utils/useShortcut";
 import { Box, Card, CardContent, CardHeader, Modal, Grid } from "@mui/material";
-import * as monaco from "monaco-editor";
 import "./FilePreview.css";
 import {
   BaseDirectory,
@@ -12,7 +11,7 @@ import { useAppContext } from "../context/AppContext";
 import { getImageMime, isImage, loadImageDataUrl } from "../utils/image";
 import RetroButton from "./RetroButton";
 import { useUserContext } from "../context/UserContext";
-
+import MonacoEditor from "./MonacoEditor";
 interface FilePreviewProps {
   file: {
     id: string;
@@ -31,105 +30,61 @@ const getLanguage = (fileName: string): string => {
     case "json":
       return "json";
     case "html":
-      return "xml";
     case "xml":
       return "xml";
     default:
       return "plaintext";
   }
 };
-
 function FilePreview({ file }: FilePreviewProps) {
+  const [text, setText] = useState<string>("");
   const [isDirty, setIsDirty] = useState(false);
+  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const { themeMode } = useUserContext();
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const language = getLanguage(file.name);
   const saveToFile = useCallback(async () => {
-    if (editorRef.current) {
-      try {
-        const content = editorRef.current.getValue();
-        await writeTextFile(file.path, content, {
-          baseDir: BaseDirectory.Home,
-        });
-        setIsDirty(false);
-      } catch (err) {
-        console.error("Save failed:", err);
-      }
+    try {
+      await writeTextFile(file.path, text, {
+        baseDir: BaseDirectory.Home,
+      });
+      setIsDirty(false);
+    } catch (err) {
+      console.error("Save failed:", err);
     }
-  }, [file.path]);
-
+  }, [file.path, text]);
   const { handleFileSelect, setSelectedFile, selectedFiles } = useAppContext();
   const isSelected = selectedFiles.some(
     (selected) => selected.path === file.path
   );
-  const monacoEl = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let isMounted = true;
-
     if (isImage(file.name)) {
       loadImageDataUrl(file.path, getImageMime(file.name))
         .then((dataUrl) => {
-          if (isMounted) {
-            if (monacoEl.current) {
-              monacoEl.current.innerHTML = "";
-              monacoEl.current.style.display = "flex";
-              monacoEl.current.style.justifyContent = "center";
-              monacoEl.current.style.alignItems = "center";
-              const img = document.createElement("img");
-              img.src = dataUrl as string;
-              img.style.objectFit = "scale-down";
-              img.style.objectPosition = "center";
-              monacoEl.current.appendChild(img);
-            }
-          }
+          if (isMounted) setImageDataUrl(dataUrl as string);
         })
         .catch((error) => {
           console.error("Error loading image", error);
         });
     } else {
       readTextFile(file.path)
-        .then((text) => {
-          if (isMounted && monacoEl.current) {
-            const editor = monaco.editor.create(monacoEl.current, {
-              value: text,
-              language: getLanguage(file.name),
-              readOnly: false,
-              automaticLayout: true,
-              defaultColorDecorators: true,
-              minimap: { enabled: false },
-              quickSuggestions: false,
-              theme: themeMode === "dark" ? "vs-dark" : "vs",
-            });
-            editorRef.current = editor;
-            editor.onDidChangeModelContent(() => {
-              setIsDirty(true);
-            });
+        .then((content) => {
+          if (isMounted) {
+            setText(content);
             setIsDirty(false);
-            monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions(
-              {
-                noSyntaxValidation: true,
-                noSemanticValidation: true,
-              }
-            );
           }
         })
         .catch((error) => {
           console.error(error);
-          if (isMounted && monacoEl.current) {
-            monaco.editor.create(monacoEl.current, {
-              value: "Error loading file.",
-              language: "plaintext",
-              readOnly: true,
-              automaticLayout: true,
-              minimap: { enabled: false },
-            });
+          if (isMounted) {
+            setText("Error loading file.");
           }
         });
     }
-
     return () => {
       isMounted = false;
     };
-  }, [file, themeMode]);
+  }, [file]);
   const closePreview = () => {
     setSelectedFile(null);
   };
@@ -161,9 +116,7 @@ function FilePreview({ file }: FilePreviewProps) {
             </Grid>
             <Grid item xs={12}>
               <RetroButton
-                onClick={() => {
-                  handleFileSelect(file);
-                }}
+                onClick={() => handleFileSelect(file)}
                 sx={{ height: 30, m: 1 }}
                 variant="outlined"
               >
@@ -187,7 +140,41 @@ function FilePreview({ file }: FilePreviewProps) {
         }}
       />
       <CardContent sx={{ margin: 0, padding: 0 }}>
-        <div ref={monacoEl} style={{ height: "80vh", width: "100%" }} />
+        {isImage(file.name) ? (
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              height: "80vh",
+              width: "100%",
+            }}
+          >
+            {imageDataUrl && (
+              <img
+                alt="preview"
+                src={imageDataUrl}
+                style={{
+                  objectFit: "contain",
+                  objectPosition: "center",
+                  maxWidth: "100%",
+                  maxHeight: "100%",
+                }}
+              />
+            )}
+          </Box>
+        ) : (
+          <Box sx={{ height: "80vh", width: "100%" }}>
+            <MonacoEditor
+              value={text}
+              language={language}
+              onChange={(value) => {
+                setText(value);
+                setIsDirty(true);
+              }}
+            />
+          </Box>
+        )}
       </CardContent>
     </Card>
   );

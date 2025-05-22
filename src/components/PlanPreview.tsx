@@ -1,6 +1,4 @@
 import React from "react";
-import hljs from "highlight.js";
-import "highlight.js/styles/github.css";
 import {
   Box,
   Typography,
@@ -19,6 +17,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useAppContext } from "../context/AppContext";
 import RetroButton from "./RetroButton";
 import { Check } from "@mui/icons-material";
+import MonacoEditor from "./MonacoEditor";
 
 export function PlanPreview() {
   const {
@@ -31,9 +30,10 @@ export function PlanPreview() {
   } = useAppContext();
   const doMode = mode === "do";
   const [openDiff, setOpenDiff] = React.useState<{
-    file: string;
-    idx: number;
+    original: string;
+    modified: string;
   } | null>(null);
+
   const { planDescription } = React.useMemo(() => {
     const planDescriptionMatch = plan.match(/# Plan\s*([\s\S]*?)\n## Files/);
     const planDescription = planDescriptionMatch
@@ -41,86 +41,55 @@ export function PlanPreview() {
       : "";
     return { planDescription };
   }, [plan]);
-  // Extract the raw change block for a given file and change index
-  const getRawChangeBlock = (file: string, idx: number): string => {
-    // Escape regex‐special characters in the file path
-    const escapedFile = file.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
 
-    // Grab that file’s section from the full plan
+  // Extract original and modified code for a file change
+  const getChangeBlock = (
+    file: string,
+    idx: number
+  ): { original: string; modified: string } => {
+    const escapedFile = file.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
     const fileSectionRegex = new RegExp(
       `### File\\s+${escapedFile}[\\s\\S]*?(?=### File|$)`
     );
     const sectionMatch = plan.match(fileSectionRegex);
-    if (!sectionMatch) return "";
-
+    if (!sectionMatch) {
+      return { original: "", modified: "" };
+    }
     const fileSection = sectionMatch[0];
-
-    // Find each “#### Change” block
     const changeBlocks =
       fileSection.match(/#### Change[\s\S]*?(?=#### Change|### File|$)/g) || [];
     const rawBlock = (changeBlocks[idx] || "").trim();
-
-    // Regexes that ignore any language tag (e.g. "json") after the backticks
     const searchMatch = rawBlock.match(
       /\*\*Search\*\*:[\s\S]*?```(?:[^\n]*\n)?([\s\S]*?)```/
     );
     const contentMatch = rawBlock.match(
       /\*\*Content\*\*:[\s\S]*?```(?:[^\n]*\n)?([\s\S]*?)```/
     );
-    // Handle create or rewrite blocks without search (new files)
     if (!searchMatch && contentMatch) {
       const newLines = contentMatch[1].trimEnd().split("\n");
-      const diffLines = newLines.map((line) => `+ ${line}`);
-      return diffLines.join("\n");
+      return { original: "", modified: newLines.join("\n") };
     }
-
     if (searchMatch && contentMatch) {
       const oldLines = searchMatch[1].trimEnd().split("\n");
       const newLines = contentMatch[1].trimEnd().split("\n");
-
-      // Prefix removed lines with "-" and added lines with "+"
-      const diffLines = [
-        ...oldLines.map((line) => `- ${line}`),
-        ...newLines.map((line) => `+ ${line}`),
-      ];
-
-      // Return just the lines themselves—no fences, no "diff" or language tag
-      return diffLines.join("\n");
+      return { original: oldLines.join("\n"), modified: newLines.join("\n") };
     }
-
-    // Fallback to raw markdown if parsing fails
-    return rawBlock;
+    return { original: "", modified: rawBlock };
   };
-  // Compute syntax-highlighted diff HTML
-  // biome-ignore lint/correctness/useExhaustiveDependencies: we need it for some reason
-  const highlightedDiff = React.useMemo(() => {
-    if (!openDiff) return "";
-    const raw = getRawChangeBlock(openDiff.file, openDiff.idx);
-    try {
-      return hljs.highlight(raw, { language: "diff" }).value;
-    } catch (error) {
-      console.error("Error highlighting diff", error);
-      return raw
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-    }
-  }, [openDiff, plan]);
 
+  // Parse file changes and descriptions
   const fileChanges = React.useMemo(() => {
-    const files = [];
+    const files: { file: string; descriptions: string[] }[] = [];
     const fileRegex = /### File\s+(.+?)\n([\s\S]*?)(?=### File\s+|$)/g;
     let match: RegExpExecArray | null = fileRegex.exec(plan);
-    while (match !== null) {
+    while (match) {
       const filePath = match[1].trim();
       const fileBlock = match[2];
       const descriptions: string[] = [];
       const descRegex = /\*\*Description\*\*:\s*(.*)/g;
       let descMatch: RegExpExecArray | null = descRegex.exec(fileBlock);
-      while (descMatch !== null) {
-        if (descMatch[1]) {
-          descriptions.push(descMatch[1].trim());
-        }
+      while (descMatch) {
+        if (descMatch[1]) descriptions.push(descMatch[1].trim());
         descMatch = descRegex.exec(fileBlock);
       }
       files.push({ file: filePath, descriptions });
@@ -128,198 +97,194 @@ export function PlanPreview() {
     }
     return files;
   }, [plan]);
-  // Initialize each file's description selection (all checked by default)
+
+  // Initialize selection state
   React.useEffect(() => {
-    const initSelections: Record<string, boolean[]> = {};
+    const init: Record<string, boolean[]> = {};
     for (const fc of fileChanges) {
-      initSelections[fc.file] = fc.descriptions.map(() => true);
+      init[fc.file] = fc.descriptions.map(() => true);
     }
-    setSelectedDescriptions(initSelections);
+    setSelectedDescriptions(init);
   }, [fileChanges, setSelectedDescriptions]);
 
+  if (!doMode) return null;
+
   return (
-    doMode && (
-      <>
-        <Box
-          sx={{
-            overflowY: "auto",
-            overflowX: "auto",
-            p: 2,
-            width: "100%",
-          }}
-        >
-          {doMode && plan && (
-            <>
-              {planDescription && (
-                <>
-                  <Typography color="secondary" variant="h1" gutterBottom>
-                    Plan Overview
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {planDescription}
-                  </Typography>
-                </>
-              )}
-              {fileChanges.length > 0 && (
-                <>
-                  <Typography color="secondary" variant="h2">
-                    Change Descriptions
-                  </Typography>
-                  <List dense>
-                    {fileChanges.map((fileChange) => {
-                      const fileSel =
-                        selectedDescriptions[fileChange.file] || [];
-                      const allChecked = fileSel.every(Boolean);
-                      const fileError = errorReports.find(
-                        (r) => r.path === fileChange.file
-                      );
-                      const fileSuccess = fileSuccesses.find(
-                        (r) => r.path === fileChange.file
-                      );
-                      return (
-                        <React.Fragment key={fileChange.file}>
-                          <ListItem disableGutters>
-                            <Checkbox
-                              checked={allChecked}
-                              onChange={() => {
-                                const newChecks = fileSel.map(
-                                  () => !allChecked
-                                );
-                                setSelectedDescriptions({
-                                  ...selectedDescriptions,
-                                  [fileChange.file]: newChecks,
-                                });
-                              }}
-                              size="small"
-                              sx={{ mr: 1, p: 0 }}
-                            />
-                            <Typography
-                              variant="body1"
-                              color="primary"
-                              sx={{
-                                width: "100%",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {fileChange.file}
-                            </Typography>
-                            {fileError && (
-                              <Tooltip
-                                title={fileError.messages?.join("\n")}
-                                arrow
-                              >
-                                <CloseIcon
-                                  color="error"
-                                  fontSize="small"
-                                  sx={{ ml: 1 }}
-                                />
-                              </Tooltip>
-                            )}
-                            {fileSuccess && (
-                              <Tooltip
-                                title={fileSuccess.messages?.join("\n")}
-                                arrow
-                              >
-                                <Check
-                                  color="success"
-                                  fontSize="small"
-                                  sx={{ ml: 1 }}
-                                />
-                              </Tooltip>
-                            )}
-                          </ListItem>
-                          {fileChange.descriptions.map((desc, idx) => {
-                            const checked =
-                              selectedDescriptions[fileChange.file]?.[idx] ??
-                              true;
-                            return (
-                              <ListItem
-                                disableGutters
-                                key={`${fileChange.file}-${idx}`}
-                                sx={{ ml: 2 }}
-                              >
-                                <Checkbox
-                                  checked={checked}
-                                  onChange={() => {
-                                    const fileSelInner =
-                                      selectedDescriptions[fileChange.file] ||
-                                      [];
-                                    const newFileSelInner = [...fileSelInner];
-                                    newFileSelInner[idx] =
-                                      !newFileSelInner[idx];
-                                    setSelectedDescriptions({
-                                      ...selectedDescriptions,
-                                      [fileChange.file]: newFileSelInner,
-                                    });
-                                  }}
-                                  size="small"
-                                  sx={{ mr: 1, p: 0 }}
-                                /><Typography
-        variant="body2"
-        component="span"
-        onClick={() => setOpenDiff({ file: fileChange.file, idx })}
+    <>
+      <Box
         sx={{
-          cursor: "pointer",
-          textDecoration: checked
-            ? "none"
-            : "line-through",
-          "&:hover": {
-            textDecoration: "underline",
-          },
-          flex: 1,
-          wordBreak: "break-word",
-          overflowWrap: "anywhere",
+          overflowY: "auto",
+          overflowX: "auto",
+          p: 2,
+          width: "100%",
         }}
       >
-        {desc}
-      </Typography></ListItem>
-                            );
-                          })}
-                        </React.Fragment>
+        {planDescription && (
+          <>
+            <Typography color="secondary" variant="h1" gutterBottom>
+              Plan Overview
+            </Typography>
+            <Typography variant="body1" gutterBottom>
+              {planDescription}
+            </Typography>
+          </>
+        )}
+        {fileChanges.length > 0 && (
+          <>
+            <Typography color="secondary" variant="h2">
+              Change Descriptions
+            </Typography>
+            <List dense>
+              {fileChanges.map((fileChange) => {
+                const fileSel = selectedDescriptions[fileChange.file] || [];
+                const allChecked = fileSel.every(Boolean);
+                const fileError = errorReports.find(
+                  (r) => r.path === fileChange.file
+                );
+                const fileSuccess = fileSuccesses.find(
+                  (r) => r.path === fileChange.file
+                );
+                return (
+                  <React.Fragment key={fileChange.file}>
+                    <ListItem disableGutters>
+                      <Checkbox
+                        checked={allChecked}
+                        onChange={() => {
+                          const toggled = fileSel.map(() => !allChecked);
+                          setSelectedDescriptions({
+                            ...selectedDescriptions,
+                            [fileChange.file]: toggled,
+                          });
+                        }}
+                        size="small"
+                        sx={{ mr: 1, p: 0 }}
+                      />
+                      <Typography
+                        variant="body1"
+                        color="primary"
+                        sx={{
+                          width: "100%",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {fileChange.file}
+                      </Typography>
+                      {fileError && (
+                        <Tooltip title={fileError.messages?.join("\n")} arrow>
+                          <CloseIcon
+                            color="error"
+                            fontSize="small"
+                            sx={{ ml: 1 }}
+                          />
+                        </Tooltip>
+                      )}
+                      {fileSuccess && (
+                        <Tooltip title={fileSuccess.messages?.join("\n")} arrow>
+                          <Check
+                            color="success"
+                            fontSize="small"
+                            sx={{ ml: 1 }}
+                          />
+                        </Tooltip>
+                      )}
+                    </ListItem>
+                    {fileChange.descriptions.map((desc, idx) => {
+                      const checked =
+                        selectedDescriptions[fileChange.file]?.[idx] ?? true;
+                      return (
+                        <ListItem
+                          disableGutters
+                          key={`${fileChange.file}-${idx}`}
+                          sx={{ ml: 2 }}
+                        >
+                          <Checkbox
+                            checked={checked}
+                            onChange={() => {
+                              const inner = [
+                                ...(selectedDescriptions[fileChange.file] ||
+                                  []),
+                              ];
+                              inner[idx] = !inner[idx];
+                              setSelectedDescriptions({
+                                ...selectedDescriptions,
+                                [fileChange.file]: inner,
+                              });
+                            }}
+                            size="small"
+                            sx={{ mr: 1, p: 0 }}
+                          />
+                          <Typography
+                            variant="body2"
+                            component="span"
+                            onClick={() => {
+                              const { original, modified } = getChangeBlock(
+                                fileChange.file,
+                                idx
+                              );
+                              setOpenDiff({ original, modified });
+                            }}
+                            sx={{
+                              cursor: "pointer",
+                              textDecoration: checked ? "none" : "line-through",
+                              "&:hover": { textDecoration: "underline" },
+                              flex: 1,
+                              wordBreak: "break-word",
+                              overflowWrap: "anywhere",
+                            }}
+                          >
+                            {desc}
+                          </Typography>
+                          <Tooltip title="View diff" arrow>
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                const { original, modified } = getChangeBlock(
+                                  fileChange.file,
+                                  idx
+                                );
+                                setOpenDiff({ original, modified });
+                              }}
+                            >
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </ListItem>
                       );
                     })}
-                  </List>
-                </>
-              )}
-            </>
-          )}
-        </Box>
-        <Dialog
-          open={Boolean(openDiff)}
-          onClose={() => setOpenDiff(null)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogTitle>Change Details</DialogTitle>
-          <DialogContent dividers sx={{ userSelect: "all !important" }}>
-            <Box
-              component="pre"
-              sx={{
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                p: 1,
-                backgroundColor: "white",
-                borderRadius: 1,
-                overflowX: "auto",
-                userSelect: "all !important",
-              }}
-              // biome-ignore lint/security/noDangerouslySetInnerHtml: required for syntax highlighting
-              dangerouslySetInnerHTML={{ __html: highlightedDiff }}
-            />
-          </DialogContent>
-          <DialogActions>
-            <RetroButton
-              onClick={() => setOpenDiff(null)}
-              sx={{ height: 40, m: 1 }}
-              variant="outlined"
-            >
-              Close
-            </RetroButton>
-          </DialogActions>
-        </Dialog>
-      </>
-    )
+                  </React.Fragment>
+                );
+              })}
+            </List>
+          </>
+        )}
+      </Box>
+      <Dialog
+        open={Boolean(openDiff)}
+        onClose={() => setOpenDiff(null)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Change Details</DialogTitle>
+        <DialogContent dividers sx={{ height: "60vh", p: 0 }}>
+          <MonacoEditor
+            isDiff
+            language="diff"
+            originalValue={openDiff?.original || ""}
+            value={openDiff?.modified || ""}
+          />
+        </DialogContent>
+        <DialogActions>
+          <RetroButton
+            onClick={() => setOpenDiff(null)}
+            sx={{ height: 40, m: 1 }}
+            variant="outlined"
+          >
+            Close
+          </RetroButton>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 }
