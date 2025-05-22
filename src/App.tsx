@@ -52,6 +52,7 @@ function App() {
             flexDirection: "column",
             flexGrow: 1,
             height: "100%",
+            minWidth: 0,
           }}
           justifyContent="flex-start"
         >

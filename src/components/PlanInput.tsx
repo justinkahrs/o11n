@@ -52,7 +52,7 @@ export function PlanInput() {
 
   return (
     doMode && (
-      <Box sx={{ p: 2 }}>
+      <Box sx={{ p: 2, width: "100%" }}>
         <TextField
           id="plan-input"
           inputRef={inputRef}

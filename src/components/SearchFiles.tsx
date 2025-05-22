@@ -33,7 +33,7 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
     ) : (
       <>Search files (Ctrl + F)</>
     );
-useShortcut(
+  useShortcut(
     "f",
     () => {
       if (inputRef.current) {
@@ -45,11 +45,11 @@ useShortcut(
     },
     { ctrlKey: true, metaKey: true }
   );
-  useShortcut(
-    "N",
-    () => setSearchQuery(""),
-    { ctrlKey: true, metaKey: true, shiftKey: true }
-  );
+  useShortcut("N", () => setSearchQuery(""), {
+    ctrlKey: true,
+    metaKey: true,
+    shiftKey: true,
+  });
   return (
     <TextField
       className="search-files"

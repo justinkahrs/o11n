@@ -140,7 +140,14 @@ export function PlanPreview() {
   return (
     doMode && (
       <>
-        <Box sx={{ overflowY: "auto", overflowX: "auto", p: 2 }}>
+        <Box
+          sx={{
+            overflowY: "auto",
+            overflowX: "auto",
+            p: 2,
+            width: "100%",
+          }}
+        >
           {doMode && plan && (
             <>
               {planDescription && (
@@ -171,13 +178,7 @@ export function PlanPreview() {
                       );
                       return (
                         <React.Fragment key={fileChange.file}>
-                          <ListItem
-                            disableGutters
-                            sx={{
-                              display: "flex",
-                              alignItems: "center",
-                            }}
-                          >
+                          <ListItem disableGutters>
                             <Checkbox
                               checked={allChecked}
                               onChange={() => {
@@ -192,7 +193,16 @@ export function PlanPreview() {
                               size="small"
                               sx={{ mr: 1, p: 0 }}
                             />
-                            <Typography variant="body1" color="primary">
+                            <Typography
+                              variant="body1"
+                              color="primary"
+                              sx={{
+                                width: "100%",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                              }}
+                            >
                               {fileChange.file}
                             </Typography>
                             {fileError && (
@@ -228,7 +238,7 @@ export function PlanPreview() {
                               <ListItem
                                 disableGutters
                                 key={`${fileChange.file}-${idx}`}
-                                sx={{ pl: 2 }}
+                                sx={{ ml: 2 }}
                               >
                                 <Checkbox
                                   checked={checked}
@@ -246,40 +256,25 @@ export function PlanPreview() {
                                   }}
                                   size="small"
                                   sx={{ mr: 1, p: 0 }}
-                                />
-                                <Typography
-                                  variant="body2"
-                                  component="span"
-                                  sx={{
-                                    textDecoration: checked
-                                      ? "none"
-                                      : "line-through",
-                                    flex: 1,
-                                  }}
-                                >
-                                  {desc}
-                                </Typography>
-                                <Tooltip
-                                  arrow
-                                  disableInteractive
-                                  enterDelay={500}
-                                  placement="left"
-                                  title="Preview change"
-                                >
-                                  <IconButton
-                                    size="small"
-                                    onClick={() =>
-                                      setOpenDiff({
-                                        file: fileChange.file,
-                                        idx,
-                                      })
-                                    }
-                                    sx={{ ml: 1 }}
-                                  >
-                                    <VisibilityIcon fontSize="small" />
-                                  </IconButton>
-                                </Tooltip>
-                              </ListItem>
+                                /><Typography
+        variant="body2"
+        component="span"
+        onClick={() => setOpenDiff({ file: fileChange.file, idx })}
+        sx={{
+          cursor: "pointer",
+          textDecoration: checked
+            ? "none"
+            : "line-through",
+          "&:hover": {
+            textDecoration: "underline",
+          },
+          flex: 1,
+          wordBreak: "break-word",
+          overflowWrap: "anywhere",
+        }}
+      >
+        {desc}
+      </Typography></ListItem>
                             );
                           })}
                         </React.Fragment>

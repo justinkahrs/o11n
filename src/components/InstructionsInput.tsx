@@ -29,13 +29,14 @@ export function InstructionsInput() {
     shiftKey: true,
   });
   useEffect(() => {
-  if (mode === "plan" && inputRef.current) {
-    inputRef.current.focus();
-  }
-}, [mode]);
-const label = formatOutput
+    if (mode === "plan" && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [mode]);
+  const label = formatOutput
     ? "Describe what you want to change."
     : "Talk about what you want to change";
+
   return (
     mode !== "do" && (
       <Box sx={{ px: 2, py: 2 }}>
