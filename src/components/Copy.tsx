@@ -9,13 +9,13 @@ import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
 import { platform } from "@tauri-apps/plugin-os";
-import { Box, CircularProgress } from "@mui/material";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import useShortcut from "../utils/useShortcut";
 import RetroButton from "./RetroButton";
 import Toast from "./Toast";
 
 export default function Copy() {
-const { instructions, selectedFiles, customTemplates, projects, setPlan } =
+  const { instructions, selectedFiles, customTemplates, projects, setPlan } =
     useAppContext();
   const { countTokens, formatOutput, includeFileTree } = useUserContext();
 
@@ -152,7 +152,7 @@ const { instructions, selectedFiles, customTemplates, projects, setPlan } =
     setCopying(true);
     const promptText = await buildPromptText();
     await writeText(promptText);
-setCopying(false);
+    setCopying(false);
     setPlan("");
     setPromptCopied(true);
     setTimeout(() => {
@@ -167,7 +167,7 @@ setCopying(false);
   const formattedTokenCount =
     promptTokenCount !== null
       ? promptTokenCount >= 1000
-        ? `${Math.round(promptTokenCount / 1000)}k`
+        ? `~${Math.round(promptTokenCount / 1000)}k tokens`
         : promptTokenCount.toString()
       : "";
   const cmd =
@@ -201,6 +201,7 @@ setCopying(false);
       >
         {copying ? "Processing..." : "Copy Prompt"} {cmd}
       </RetroButton>
+      <Typography sx={{ m: 2 }}>{formattedTokenCount}</Typography>
       <Toast
         open={promptCopied}
         message="Prompt Copied"

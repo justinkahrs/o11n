@@ -12,14 +12,18 @@ import { useUserContext } from "../context/UserContext";
 import useShortcut from "../utils/useShortcut";
 
 export default function SettingsMenu() {
-  const settingsButtonRef = useRef<HTMLElement>(null);
-useShortcut(",", (e) => {
-    if (anchorEl) {
-      setAnchorEl(null);
-    } else if (settingsButtonRef.current) {
-      setAnchorEl(settingsButtonRef.current);
-    }
-  }, { metaKey: true, ctrlKey: true });
+  const settingsButtonRef = useRef<HTMLButtonElement>(null);
+  useShortcut(
+    ",",
+    () => {
+      if (anchorEl) {
+        setAnchorEl(null);
+      } else if (settingsButtonRef.current) {
+        setAnchorEl(settingsButtonRef.current);
+      }
+    },
+    { metaKey: true, ctrlKey: true }
+  );
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const {
@@ -28,7 +32,7 @@ useShortcut(",", (e) => {
     onThemeChange,
     setCountTokens,
     setFormatOutput,
-setShowDotfiles,
+    setShowDotfiles,
     showDotfiles,
     useIgnoreFiles,
     setUseIgnoreFiles,
@@ -46,7 +50,7 @@ setShowDotfiles,
 
   return (
     <>
-<IconButton ref={settingsButtonRef} onClick={handleSettingsOpen}>
+      <IconButton ref={settingsButtonRef} onClick={handleSettingsOpen}>
         <Settings />
       </IconButton>
       <Menu
@@ -84,7 +88,7 @@ setShowDotfiles,
             label="Include file tree"
           />
         </MenuItem>
-<MenuItem>
+        <MenuItem>
           <FormControlLabel
             control={
               <Checkbox

@@ -87,7 +87,7 @@ export default function DirectoryView({
     setSelectedIds([hit.id]);
     onFileSelect(file);
   };
-const handleNodeSelect = async (
+  const handleNodeSelect = async (
     _event: React.SyntheticEvent,
     nodeIds: string | string[]
   ) => {
