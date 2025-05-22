@@ -87,12 +87,12 @@ export default function DirectoryView({
     setSelectedIds([hit.id]);
     onFileSelect(file);
   };
-  const handleNodeSelect = async (
+const handleNodeSelect = async (
     _event: React.SyntheticEvent,
-    nodeIds: string[]
+    nodeIds: string | string[]
   ) => {
     _event.stopPropagation();
-    const nodeId = nodeIds[0];
+    const nodeId = Array.isArray(nodeIds) ? nodeIds[0] : nodeIds;
     setSelectedIds([nodeId]);
     const child = node.children.find((c) => c.id === nodeId);
     if (!child) return;
