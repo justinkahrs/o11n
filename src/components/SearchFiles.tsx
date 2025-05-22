@@ -16,13 +16,14 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const labelText =
-    platform() !== "macos" ? (
+    platform() === "macos" ? (
       <Grid container spacing={1}>
         <Grid item>Search files</Grid>
-        <Grid item direction="row">
+        <Grid item>
           (
           <KeyboardCommandKey
             sx={{
+              paddingTop: "2px",
               fontSize: "14px",
             }}
           />
@@ -46,6 +47,7 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
   );
   return (
     <TextField
+      className="search-files"
       inputRef={inputRef}
       label={labelText}
       variant="outlined"

@@ -1,6 +1,6 @@
 import { Box, TextField, IconButton, InputAdornment } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 
@@ -8,7 +8,8 @@ export function PlanInput() {
   const { mode, plan, setErrorReports, setFileSuccesses, setMode, setPlan } =
     useAppContext();
   const { formatOutput } = useUserContext();
-  const [inputValue, setInputValue] = useState(plan);
+const [inputValue, setInputValue] = useState(plan);
+  const inputRef = useRef<HTMLInputElement>(null);
   const doMode = mode === "do";
 
   useEffect(() => {
@@ -19,7 +20,12 @@ export function PlanInput() {
     if (!formatOutput) setMode("plan");
   }, [formatOutput, setMode]);
 
-  const clearPlan = () => {
+  useEffect(() => {
+  if (doMode && inputRef.current) {
+    inputRef.current.focus();
+  }
+}, [doMode]);
+const clearPlan = () => {
     setInputValue("");
     setPlan("");
     setErrorReports([]);
@@ -33,7 +39,9 @@ export function PlanInput() {
   return (
     doMode && (
       <Box sx={{ p: 2 }}>
-        <TextField
+<TextField
+          id="plan-input"
+          inputRef={inputRef}
           variant="outlined"
           fullWidth
           label="Paste plan here"

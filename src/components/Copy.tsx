@@ -4,15 +4,18 @@ import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { generateFileMap } from "../utils/generateFileMap";
 import formattingInstructions from "../utils/mdFormattingInstructions.txt?raw";
 import { getMarkdownLanguage } from "../utils/markdownLanguages";
-import { ContentCopy } from "@mui/icons-material";
+import { ContentCopy, KeyboardCommandKey } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
-import { CircularProgress, Tooltip } from "@mui/material";
+import { platform } from "@tauri-apps/plugin-os";
+import { Box, CircularProgress } from "@mui/material";
+import useShortcut from "../utils/useShortcut";
 import RetroButton from "./RetroButton";
+import Toast from "./Toast";
 
 export default function Copy() {
-  const { instructions, selectedFiles, customTemplates, projects } =
+const { instructions, selectedFiles, customTemplates, projects, setPlan } =
     useAppContext();
   const { countTokens, formatOutput, includeFileTree } = useUserContext();
 
@@ -149,23 +152,42 @@ export default function Copy() {
     setCopying(true);
     const promptText = await buildPromptText();
     await writeText(promptText);
-    setCopying(false);
+setCopying(false);
+    setPlan("");
     setPromptCopied(true);
     setTimeout(() => {
       setPromptCopied(false);
     }, 3000);
   }
+  useShortcut("c", handleCopy, {
+    metaKey: true,
+    ctrlKey: true,
+    shiftKey: true,
+  });
   const formattedTokenCount =
     promptTokenCount !== null
       ? promptTokenCount >= 1000
         ? `${Math.round(promptTokenCount / 1000)}k`
         : promptTokenCount.toString()
       : "";
-
-  if (!countTokens) {
-    return (
+  const cmd =
+    platform() === "macos" ? (
+      <Box>
+        (
+        <KeyboardCommandKey
+          sx={{
+            paddingTop: "2px",
+            fontSize: "14px",
+          }}
+        />
+        +↑+C)
+      </Box>
+    ) : (
+      "Ctrl"
+    );
+  return (
+    <span>
       <RetroButton
-        disabled={copying || instructions.trim() === ""}
         onClick={handleCopy}
         startIcon={
           copying ? (
@@ -174,49 +196,16 @@ export default function Copy() {
             <ContentCopy />
           )
         }
+        disabled={copying || instructions.trim() === ""}
+        sx={{ mx: 2 }}
       >
-        {copying
-          ? "Processing..."
-          : promptCopied
-          ? "Prompt Copied!"
-          : formattedTokenCount
-          ? `Copy Prompt (~${formattedTokenCount} tokens)`
-          : "Copy Prompt"}
+        {copying ? "Processing..." : "Copy Prompt"} {cmd}
       </RetroButton>
-    );
-  }
-  return (
-    <Tooltip
-      arrow
-      disableInteractive
-      enterDelay={1000}
-      title={`${
-        promptTokenCount !== null ? promptTokenCount : "calculating..."
-      } tokens`}
-      placement="right"
-    >
-      <span>
-        <RetroButton
-          onClick={handleCopy}
-          startIcon={
-            copying ? (
-              <CircularProgress size={20} color="inherit" />
-            ) : (
-              <ContentCopy />
-            )
-          }
-          disabled={copying || instructions.trim() === ""}
-          sx={{ mx: 2 }}
-        >
-          {copying
-            ? "Processing..."
-            : promptCopied
-            ? "Prompt Copied!"
-            : formattedTokenCount
-            ? `Copy Prompt (~${formattedTokenCount} tokens)`
-            : "Copy Prompt"}
-        </RetroButton>
-      </span>
-    </Tooltip>
+      <Toast
+        open={promptCopied}
+        message="Prompt Copied"
+        onClose={() => setPromptCopied(false)}
+      />
+    </span>
   );
 }

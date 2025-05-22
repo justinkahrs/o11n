@@ -36,6 +36,7 @@ export default function DirectoryView({
   const [expanded, setExpanded] = useState<string[]>([]);
   const [hits, setHits] = useState<TreeItemData[]>([]);
   const [selectedHitIndex, setSelectedHitIndex] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { countTokens } = useUserContext();
   const { search } = useFS();
   const { mode, setMode } = useAppContext();
@@ -83,17 +84,16 @@ export default function DirectoryView({
     if (mode === "do") {
       setMode("plan");
     }
+    setSelectedIds([hit.id]);
     onFileSelect(file);
   };
   const handleNodeSelect = async (
     _event: React.SyntheticEvent,
-    nodeId: string
+    nodeIds: string[]
   ) => {
     _event.stopPropagation();
-    // Ignore selection on a dummy node.
-    if (nodeId === `${node.id}-dummy`) {
-      return;
-    }
+    const nodeId = nodeIds[0];
+    setSelectedIds([nodeId]);
     const child = node.children.find((c) => c.id === nodeId);
     if (!child) return;
     if (child.isDirectory && !child.loadedChildren) {
@@ -151,22 +151,36 @@ export default function DirectoryView({
       setSelectedHitIndex(0);
     }
   }, [searchQuery, hits]);
-  useShortcut("ArrowDown", (_e) => {
-    if (searchQuery && hits.length > 0) {
-      setSelectedHitIndex((idx) => (idx + 1) % hits.length);
-    }
-  });
-  useShortcut("ArrowUp", (_e) => {
-    if (searchQuery && hits.length > 0) {
-      setSelectedHitIndex((idx) => (idx - 1 + hits.length) % hits.length);
-    }
-  });
-  useShortcut("Enter", (_e) => {
-    if (searchQuery && hits.length > 0) {
-      handleSearchNodeSelect({} as any, hits[selectedHitIndex].id);
-      setSearchQuery("");
-    }
-  });
+  useShortcut(
+    "ArrowDown",
+    (_e) => {
+      if (searchQuery && hits.length > 0) {
+        setSelectedHitIndex((idx) => (idx + 1) % hits.length);
+      }
+    },
+    { targetSelector: ".search-files" }
+  );
+  useShortcut(
+    "ArrowUp",
+    (_e) => {
+      if (searchQuery && hits.length > 0) {
+        setSelectedHitIndex((idx) => (idx - 1 + hits.length) % hits.length);
+      }
+    },
+    { targetSelector: ".search-files" }
+  );
+  useShortcut(
+    "Enter",
+    (_e) => {
+      if (searchQuery && hits.length > 0) {
+        handleSearchNodeSelect(
+          {} as React.SyntheticEvent,
+          hits[selectedHitIndex].id
+        );
+      }
+    },
+    { targetSelector: ".search-files" }
+  );
 
   return searchQuery ? (
     hits.length === 0 ? (
@@ -175,11 +189,15 @@ export default function DirectoryView({
       </Typography>
     ) : (
       <TreeView
+        className="directory-view"
         aria-label="search results"
         defaultCollapseIcon={<ExpandMore />}
         defaultExpandIcon={<ChevronRight />}
         selected={hits.length > 0 ? [hits[selectedHitIndex].id] : []}
-        onNodeSelect={handleSearchNodeSelect}
+        onNodeSelect={(event: React.SyntheticEvent, nodeIds: string[]) => {
+          const nodeId = Array.isArray(nodeIds) ? nodeIds[0] : nodeIds;
+          handleSearchNodeSelect(event, nodeId);
+        }}
         sx={{ marginLeft: 1, wordBreak: "keep-all" }}
       >
         {hits.map((hit) => (
@@ -199,10 +217,12 @@ export default function DirectoryView({
     )
   ) : (
     <TreeView
+      className="directory-view"
       aria-label="directory tree"
       defaultCollapseIcon={<ExpandMore />}
       defaultExpandIcon={<ChevronRight />}
       expanded={expanded}
+      selected={selectedIds}
       onNodeToggle={handleToggle}
       onNodeSelect={handleNodeSelect}
       sx={{ marginLeft: 1, wordBreak: "keep-all" }}

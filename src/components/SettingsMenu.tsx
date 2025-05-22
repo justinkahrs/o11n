@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   IconButton,
   Menu,
@@ -9,8 +9,17 @@ import {
 import { Palette, Settings } from "@mui/icons-material";
 import ThemeModal from "./ThemeModal";
 import { useUserContext } from "../context/UserContext";
+import useShortcut from "../utils/useShortcut";
 
 export default function SettingsMenu() {
+  const settingsButtonRef = useRef<HTMLElement>(null);
+useShortcut(",", (e) => {
+    if (anchorEl) {
+      setAnchorEl(null);
+    } else if (settingsButtonRef.current) {
+      setAnchorEl(settingsButtonRef.current);
+    }
+  }, { metaKey: true, ctrlKey: true });
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
   const {
@@ -37,7 +46,7 @@ setShowDotfiles,
 
   return (
     <>
-      <IconButton onClick={handleSettingsOpen}>
+<IconButton ref={settingsButtonRef} onClick={handleSettingsOpen}>
         <Settings />
       </IconButton>
       <Menu

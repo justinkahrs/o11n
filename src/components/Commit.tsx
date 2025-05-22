@@ -5,13 +5,20 @@ import { CircularProgress, Grid } from "@mui/material";
 import { Create } from "@mui/icons-material";
 import RetroButton from "./RetroButton";
 import type { ErrorReport, FileNode, SuccessReport } from "../types";
+import useShortcut from "../utils/useShortcut";
+import Toast from "./Toast";
 
 const Commit = () => {
   const [committing, setCommitting] = useState(false);
   const [commitFailed, setCommitFailed] = useState(false);
+  const [toastOpen, setToastOpen] = useState(false);
+  const handleToastClose = () => {
+    setToastOpen(false);
+  };
   const {
     plan,
     selectedFiles,
+    // setPlan,
     setSelectedFiles,
     setProjects,
     selectedDescriptions,
@@ -106,35 +113,43 @@ const Commit = () => {
       }
     }
     if (!commitError) {
-      // setMode("plan");
       // setPlan("");
-      // console.log("no commit error: ", errorReports);
+      setToastOpen(true);
     } else {
       setCommitFailed(true);
       setTimeout(() => setCommitFailed(false), 3000);
     }
   };
+
+  useShortcut("Enter", handleCommit, { targetSelector: "#plan-input" });
   return (
-    <Grid container spacing={1} direction="column">
-      <RetroButton
-        disabled={committing || !isPlanValid()}
-        onClick={handleCommit}
-        startIcon={
-          committing ? (
-            <CircularProgress size={20} color="inherit" />
-          ) : (
-            <Create />
-          )
-        }
-        sx={{ mx: 2, width: "220px" }}
-      >
-        {committing
-          ? "Processing..."
-          : commitFailed
-          ? "Commit Failed!"
-          : "Commit Changes"}
-      </RetroButton>
-    </Grid>
+    <>
+      <Grid container spacing={1} direction="column">
+        <RetroButton
+          disabled={committing || !isPlanValid()}
+          onClick={handleCommit}
+          startIcon={
+            committing ? (
+              <CircularProgress size={20} color="inherit" />
+            ) : (
+              <Create />
+            )
+          }
+          sx={{ mx: 2, width: "220px" }}
+        >
+          {committing
+            ? "Processing..."
+            : commitFailed
+            ? "Commit Failed!"
+            : "Commit Changes"}
+        </RetroButton>
+      </Grid>
+      <Toast
+        open={toastOpen}
+        message="Changes applied successfully!"
+        onClose={handleToastClose}
+      />
+    </>
   );
 };
 export default Commit;

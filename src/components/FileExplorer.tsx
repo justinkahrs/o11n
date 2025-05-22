@@ -257,6 +257,7 @@ export default function FileExplorer() {
                     }
                     loadChildren={loadChildren}
                     searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
                   />
                 </Box>
               </AccordionItem>
