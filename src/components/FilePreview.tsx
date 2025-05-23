@@ -12,6 +12,7 @@ import { getImageMime, isImage, loadImageDataUrl } from "../utils/image";
 import RetroButton from "./RetroButton";
 import { KeyboardCommandKey } from "@mui/icons-material";
 import { platform } from "@tauri-apps/plugin-os";
+import { useUserContext } from "../context/UserContext";
 import MonacoEditor from "./MonacoEditor";
 interface FilePreviewProps {
   file: {
@@ -53,6 +54,7 @@ function FilePreview({ file }: FilePreviewProps) {
     }
   }, [file.path, text]);
   const { handleFileSelect, setSelectedFile, selectedFiles } = useAppContext();
+  const { showShortcuts } = useUserContext();
   const isSelected = selectedFiles.some(
     (selected) => selected.path === file.path
   );
@@ -126,7 +128,7 @@ function FilePreview({ file }: FilePreviewProps) {
                 sx={{ height: 40, minWidth: 40 }}
                 variant="outlined"
               >
-                Close (Esc)
+                Close {showShortcuts && "(Esc)"}
               </RetroButton>
             </Grid>
             <Grid item xs={12}>
@@ -142,7 +144,7 @@ function FilePreview({ file }: FilePreviewProps) {
                 disabled={!isDirty}
                 sx={{ height: 30, m: 1 }}
               >
-                Save {cmd}
+                Save{showShortcuts && <> {cmd}</>}
               </RetroButton>
             </Grid>
           </Grid>

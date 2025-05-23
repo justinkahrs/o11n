@@ -9,19 +9,28 @@ import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
 import { platform } from "@tauri-apps/plugin-os";
-import { Box, CircularProgress, Typography } from "@mui/material";
+import { Box, CircularProgress } from "@mui/material";
 import useShortcut from "../utils/useShortcut";
 import RetroButton from "./RetroButton";
 import Toast from "./Toast";
 
 export default function Copy() {
-  const { instructions, selectedFiles, customTemplates, projects, setPlan } =
-    useAppContext();
-  const { countTokens, formatOutput, includeFileTree } = useUserContext();
+  const {
+    instructions,
+    selectedFiles,
+    customTemplates,
+    projects,
+    setPlan,
+    setTotalTokenCount,
+  } = useAppContext();
+  const { countTokens, formatOutput, includeFileTree, showShortcuts } =
+    useUserContext();
 
   const [copying, setCopying] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
-  const [promptTokenCount, setPromptTokenCount] = useState<number | null>(null);
+  const [_promptTokenCount, setPromptTokenCount] = useState<number | null>(
+    null
+  );
 
   const lastBuildTimeRef = useRef<number>(0);
   const cachedPromptTextRef = useRef<string | null>(null);
@@ -139,14 +148,16 @@ export default function Copy() {
         const promptText = await buildPromptText();
         try {
           const tokens = await invoke("count_tokens", { content: promptText });
-          setPromptTokenCount(tokens as number);
+          const count = tokens as number;
+          setPromptTokenCount(count);
+          setTotalTokenCount(count);
         } catch (e) {
           console.log({ e });
         }
       })();
     }, 1000); // debounce delay of 1000ms
     return () => clearTimeout(handler);
-  }, [buildPromptText, countTokens]);
+  }, [buildPromptText, countTokens, setTotalTokenCount]);
 
   async function handleCopy() {
     setCopying(true);
@@ -164,12 +175,6 @@ export default function Copy() {
     ctrlKey: true,
     shiftKey: true,
   });
-  const formattedTokenCount =
-    promptTokenCount !== null
-      ? promptTokenCount >= 1000
-        ? `~${Math.round(promptTokenCount / 1000)}k tokens`
-        : `${promptTokenCount.toString()} tokens`
-      : "";
   const cmd =
     platform() === "macos" ? (
       <Box>
@@ -199,16 +204,7 @@ export default function Copy() {
         disabled={copying || instructions.trim() === ""}
         sx={{ mx: 2 }}
       >
-        {copying ? "Processing..." : "Copy Prompt"} {cmd}
-        <br />
-        {formattedTokenCount && (
-          <Typography
-            variant="caption"
-            sx={{ display: "block", ml: 1, mt: 0.5 }}
-          >
-            {formattedTokenCount}
-          </Typography>
-        )}
+        {copying ? "Processing..." : "Copy Prompt"} {showShortcuts && cmd}
       </RetroButton>
       <Toast
         open={promptCopied}

@@ -5,6 +5,7 @@ import useShortcut from "../utils/useShortcut";
 import CloseIcon from "@mui/icons-material/Close";
 import { platform } from "@tauri-apps/plugin-os";
 import { KeyboardCommandKey } from "@mui/icons-material";
+import { useUserContext } from "../context/UserContext";
 interface SearchFilesProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
@@ -15,7 +16,8 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
   setSearchQuery,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const labelText =
+  const { showShortcuts } = useUserContext();
+  const labelText = showShortcuts ? (
     platform() === "macos" ? (
       <Grid container spacing={1}>
         <Grid item>Search files</Grid>
@@ -32,7 +34,10 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
       </Grid>
     ) : (
       <>Search files (Ctrl + F)</>
-    );
+    )
+  ) : (
+    "Search files"
+  );
   useShortcut(
     "f",
     () => {

@@ -48,6 +48,8 @@ export function PlanInput() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
     setPlan(e.target.value);
+    setErrorReports([]);
+    setFileSuccesses([]);
   };
 
   return (

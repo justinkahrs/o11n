@@ -1,4 +1,4 @@
-import { Box, IconButton, Tooltip } from "@mui/material";
+import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { FolderGroup } from "./FolderGroup";
 import { FileCard } from "./FileCard";
@@ -10,7 +10,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { useUserContext } from "../context/UserContext";
 
 export function SelectedFiles() {
-  const { mode, selectedFiles, setSelectedFiles } = useAppContext();
+  const { mode, selectedFiles, setSelectedFiles, totalTokenCount } =
+    useAppContext();
   const { countTokens } = useUserContext();
   const doMode = mode === "do";
   useShortcut("N", () => setSelectedFiles([]), {
@@ -78,10 +79,19 @@ export function SelectedFiles() {
               top: 0,
               zIndex: 1,
               display: "flex",
-              justifyContent: "flex-end",
+              justifyContent: countTokens ? "space-between" : "flex-end",
               backgroundColor: "background.paper", // Added solid background color
             }}
           >
+            {countTokens && (
+              <Typography
+                alignContent="flex-end"
+                variant="body1"
+                sx={{ mb: 1 }}
+              >
+                Total tokens: {totalTokenCount}
+              </Typography>
+            )}
             <IconButton
               onClick={() => setAllExpanded((prev) => !prev)}
               sx={{

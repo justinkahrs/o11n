@@ -34,6 +34,8 @@ interface AppContextType {
   >;
   fileSuccesses: { path: string; messages: string[] }[];
   setFileSuccesses: React.Dispatch<React.SetStateAction<SuccessReport[]>>;
+  totalTokenCount: number;
+  setTotalTokenCount: React.Dispatch<React.SetStateAction<number>>;
   errorReports: ErrorReport[];
   setErrorReports: React.Dispatch<React.SetStateAction<ErrorReport[]>>;
 }
@@ -53,6 +55,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   >({});
   const [errorReports, setErrorReports] = useState<ErrorReport[]>([]);
   const [fileSuccesses, setFileSuccesses] = useState<SuccessReport[]>([]);
+  const [totalTokenCount, setTotalTokenCount] = useState<number>(0);
   const handleFilePreviewClick = (
     _event: React.SyntheticEvent,
     file: FileNode
@@ -98,6 +101,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setErrorReports,
         fileSuccesses,
         setFileSuccesses,
+        totalTokenCount,
+        setTotalTokenCount,
       }}
     >
       {children}

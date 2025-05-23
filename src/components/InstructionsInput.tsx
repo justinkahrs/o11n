@@ -8,7 +8,7 @@ import { useUserContext } from "../context/UserContext";
 
 export function InstructionsInput() {
   const { instructions, mode, setInstructions } = useAppContext();
-  const { formatOutput } = useUserContext();
+  const { formatOutput, showShortcuts } = useUserContext();
   const inputRef = useRef<HTMLInputElement>(null);
   useShortcut(
     "i",
@@ -51,7 +51,7 @@ export function InstructionsInput() {
       "Ctrl + I"
     );
   const label = formatOutput ? (
-    <>Describe the change. {cmd}</>
+    <>Describe the change.{showShortcuts && <> {cmd}</>}</>
   ) : (
     "Talk about what you want to change"
   );

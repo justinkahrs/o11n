@@ -36,6 +36,8 @@ export default function SettingsMenu() {
     showDotfiles,
     useIgnoreFiles,
     setUseIgnoreFiles,
+    showShortcuts,
+    setShowShortcuts,
     includeFileTree,
     setIncludeFileTree,
   } = useUserContext();
@@ -74,7 +76,7 @@ export default function SettingsMenu() {
                 onChange={(e) => setFormatOutput(e.target.checked)}
               />
             }
-            label="Vibe mode"
+            label="Full orchestration"
           />
         </MenuItem>
         <MenuItem>
@@ -119,6 +121,17 @@ export default function SettingsMenu() {
               />
             }
             label="Show token counts"
+          />
+        </MenuItem>
+        <MenuItem>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={showShortcuts}
+                onChange={(e) => setShowShortcuts(e.target.checked)}
+              />
+            }
+            label="Show shortcuts"
           />
         </MenuItem>
         <MenuItem
