@@ -27,7 +27,7 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
               fontSize: "14px",
             }}
           />
-          + F)
+          + f )
         </Grid>
       </Grid>
     ) : (

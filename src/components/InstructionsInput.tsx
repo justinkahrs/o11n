@@ -1,4 +1,6 @@
 import { Box, TextField } from "@mui/material";
+import { KeyboardCommandKey } from "@mui/icons-material";
+import { platform } from "@tauri-apps/plugin-os";
 import { useRef, useEffect } from "react";
 import useShortcut from "../utils/useShortcut";
 import { useAppContext } from "../context/AppContext";
@@ -33,9 +35,26 @@ export function InstructionsInput() {
       inputRef.current.focus();
     }
   }, [mode]);
-  const label = formatOutput
-    ? "Describe what you want to change."
-    : "Talk about what you want to change";
+  const cmd =
+    platform() === "macos" ? (
+      <>
+        (
+        <KeyboardCommandKey
+          sx={{
+            paddingTop: "2px",
+            fontSize: "14px",
+          }}
+        />
+        + i )
+      </>
+    ) : (
+      "Ctrl + I"
+    );
+  const label = formatOutput ? (
+    <>Describe the change. {cmd}</>
+  ) : (
+    "Talk about what you want to change"
+  );
 
   return (
     mode !== "do" && (

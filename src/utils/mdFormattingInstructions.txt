@@ -1,51 +1,58 @@
 Below is a description of the exact format our Rust backend parser expects. Follow these rules precisely to ensure we are able to effortlessly replace code snippets.
 
 1. Overall Wrapper
-   - Wrap the entire Markdown payload in a single pair of HTML <pre> tags:
-     <pre>
-     ... Markdown content here ...
-     </pre>
-   - Do not add extra backticks or other formatting around the <pre> tags.
-   - Do not add |oai:code-citation|
+  - Wrap the entire Markdown payload in a single pair of HTML <pre> tags:
+    <pre>
+    ... Markdown content here ...
+    </pre>
+  - Do not add extra backticks or other formatting around the <pre> tags.
+  - Do not add |oai:code-citation|
 
 2. Document Structure
-   # Plan
-     - A free-form explanation of your approach. Ignored by the parser.
-   ## Files
-     - Introduces the list of file operations. Ignored by the parser.
-   ### File <path>
-     - Starts at column 0 with exactly three '#' characters, a space, then the full file path.
-   ### Action <action>
-     - Starts at column 0 with exactly three '#' characters, a space, then one of: modify, rewrite, create, delete.
-   #### Change
-     - Starts at column 0 with exactly four '#' characters, a space, then the word "Change". Begins a new change block.
+  # Plan
+    - A free-form explanation of your approach. Ignored by the parser.
+  ## Files
+    - Introduces the list of file operations. Ignored by the parser.
+  ### File <path>
+    - Starts at column 0 with exactly three ‘#’ characters, a space, then the full file path.
+  ### Action <action>
+    - Starts at column 0 with exactly three ‘#’ characters, a space, then one of: **modify**, **rewrite**, **create**, **delete**.
+  #### Change
+    - Starts at column 0 with exactly four ‘#’ characters, a space, then the word **Change**. Begins a new change block.
+    - All section headers above **and every field marker (`**Description**:`, `**Search**:`, `**Content**:`) must begin at column 0 with no leading spaces.**
+    - A single `### Action modify` may contain **multiple `#### Change` blocks**, but each block must target a **disjoint** code span. If two edits overlap, merge them into one change.
+    - Blank lines and lines that consist solely of `---` outside code fences are ignored by the parser.
+    - **Do not create scheduled tasks** inside this plan; they are unrelated to the code-editing format.
 
 3. Change Block Fields
-   **Description**:
-     - Must start at column 0 with two '*' around "Description", followed by a colon.
-     - Text may continue on the same line or subsequent lines until the next field marker.
-   **Search**: (REQUIRED for ALL modify changes)
-     - Must start at column 0 with two '*' around "Search", followed by a colon.
-     - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
-     - Do NOT use placeholders in Search block (examples: `...`, `// rest of the code here`, `/* other code goes here */`)
-     - Inside, include the exact code snippet to find (match whitespace and punctuation exactly).
-     - Close the fence with three backticks.
-     - NO COMMENTS IN THE CODE
-   **Content**: (for modify, rewrite, create)
-     - Must start at column 0 with two '*' around "Content", followed by a colon.
-     - Immediately after, open a code fence with exactly three backticks (```), optionally with a language tag.
-     - Inside, include only the exact replacement code snippet (for modify) or the full new file contents (for rewrite/create).
-     - Do NOT include any plus/minus symbols to indicate changes.
-     - Close the fence with three backticks.
-     - NO COMMENTS IN THE CODE
-   - For delete actions, omit Search and Content sections.
+  **Description**:
+    - Must start at column 0 with two `*` around **Description**, followed by a colon.
+    - Text may continue on the same line or subsequent lines until the next field marker.
+  **Search**: (REQUIRED for all *modify* changes)
+    - Must start at column 0 with two `*` around **Search**, followed by a colon.
+    - Immediately after, open a code fence with **exactly three backticks (````)** — never tildes — optionally followed by a language tag.
+    - Inside, place the exact code snippet to find (match whitespace and punctuation exactly; no placeholders such as `...`).
+    - Close the fence with three backticks.
+  **Content**: (for *modify*, *rewrite*, *create*)
+    - Must start at column 0 with two `*` around **Content**, followed by a colon.
+    - Immediately after, open a code fence with exactly three backticks, optionally with a language tag.
+    - Inside, include only the exact replacement code snippet (**modify**) or the full new file contents (**rewrite/create**). No `+`/`–` diff markers.
+    - Close the fence with three backticks.
+  - **Appending at EOF:** to add content to the end of a file, include the file’s existing ending snippet in **Search** and repeat that snippet *plus* the new content in **Content** (no placeholders).
+  - For **delete** actions, omit both **Search** and **Content** sections.
+  - **After each replacement, the resulting file must compile/lint cleanly:** all braces `{}`, brackets `[]`, parentheses `()`, and tags must remain balanced.
 
-4. Additional Rules
-   - All headers (### File, ### Action, #### Change) and field markers (**Description**:, **Search**:, **Content**:) must begin at the first column with no leading spaces.
-   - Use exactly three backticks for fences (```), no tildes.
-   - Blank lines and lines equal to `---` (horizontal rules) outside code fences are ignored by the parser.
-   -  or CDATA blocks.
-   - For appending at the end of a file, include the existing end snippet in the Search block (no placeholders), then repeat it plus new content in the Content block.
-   - To apply multiple edits in the same file, include multiple #### Change sections under a single File/Action pair.
-   - Do not create any scheduled tasks
-   - Ensure syntactic correctness: after applying each Search/Content replacement, the resulting file must be a valid, well-formed source in its target language. Any opening braces (`{}`), brackets (`[]`), parentheses (`()`), XML/HTML tags, or other structural delimiters present in the original or introduced by the Content block must remain properly balanced and closed.
+4. Clarifications & Best Practices
+   - **Search / Content pairing**
+     - *Uniqueness is mandatory.* The **Search** snippet must match **exactly one** location in the file; extend it with context lines if necessary.
+     - *Whole-region replacement.* When restructuring a block, capture the entire original block in **Search** and provide the complete updated block in **Content** to avoid duplicates.
+   - **Pure deletion**
+     - When you only need to remove code, prefer  
+       `### Action delete`  
+       *without* `Search` or `Content` blocks.
+   - **Whitespace & JSX**
+     - JSX is whitespace-sensitive. Adding `<br />` or similar often requires deleting the original inline text; ensure the superseded code is removed.
+   - **Post-edit sanity check**
+     1. Confirm every **Search** string occurs once—and only once—in the original file.
+     2. Verify that all intended removals are gone.
+     3. Build or lint the modified file to catch any syntax errors (e.g., stray props).

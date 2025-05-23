@@ -183,7 +183,7 @@ export default function Copy() {
         +↑+C)
       </Box>
     ) : (
-      "Ctrl"
+      "Ctrl+Shift+C"
     );
   return (
     <span>
@@ -200,8 +200,16 @@ export default function Copy() {
         sx={{ mx: 2 }}
       >
         {copying ? "Processing..." : "Copy Prompt"} {cmd}
+        <br />
+        {formattedTokenCount && (
+          <Typography
+            variant="caption"
+            sx={{ display: "block", ml: 1, mt: 0.5 }}
+          >
+            {formattedTokenCount}
+          </Typography>
+        )}
       </RetroButton>
-      <Typography sx={{ m: 2 }}>{formattedTokenCount}</Typography>
       <Toast
         open={promptCopied}
         message="Prompt Copied"

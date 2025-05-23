@@ -10,6 +10,8 @@ import {
 import { useAppContext } from "../context/AppContext";
 import { getImageMime, isImage, loadImageDataUrl } from "../utils/image";
 import RetroButton from "./RetroButton";
+import { KeyboardCommandKey } from "@mui/icons-material";
+import { platform } from "@tauri-apps/plugin-os";
 import MonacoEditor from "./MonacoEditor";
 interface FilePreviewProps {
   file: {
@@ -88,6 +90,21 @@ function FilePreview({ file }: FilePreviewProps) {
   };
   useShortcut("Escape", closePreview);
   useShortcut("s", saveToFile, { ctrlKey: true, metaKey: true });
+  const cmd =
+    platform() === "macos" ? (
+      <Box>
+        (
+        <KeyboardCommandKey
+          sx={{
+            paddingTop: "2px",
+            fontSize: "14px",
+          }}
+        />
+        +S)
+      </Box>
+    ) : (
+      "(Ctrl+S)"
+    );
   return (
     <Card
       className="file-preview-card"
@@ -125,7 +142,7 @@ function FilePreview({ file }: FilePreviewProps) {
                 disabled={!isDirty}
                 sx={{ height: 30, m: 1 }}
               >
-                Save (cmd + s)
+                Save {cmd}
               </RetroButton>
             </Grid>
           </Grid>
