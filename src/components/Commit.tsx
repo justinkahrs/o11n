@@ -8,6 +8,7 @@ import RetroButton from "./RetroButton";
 import type { ErrorReport, FileNode, SuccessReport } from "../types";
 import useShortcut from "../utils/useShortcut";
 import Toast from "./Toast";
+import { formatWithPrettier } from "../utils/formatWithPrettier";
 
 const Commit = () => {
   const [committing, setCommitting] = useState(false);
@@ -17,11 +18,12 @@ const Commit = () => {
     setToastOpen(false);
   };
   const {
+    configFiles,
     plan,
     selectedFiles,
-    // setPlan,
     setSelectedFiles,
     setProjects,
+    projects,
     selectedDescriptions,
     setErrorReports,
     setFileSuccesses,
@@ -52,8 +54,11 @@ const Commit = () => {
         // collect change blocks
         const changeRegex = /#### Change[\s\S]*?(?=#### Change|$)/g;
         const blocks = fileBlock.match(changeRegex) || [];
-        // biome-ignore lint/suspicious/noExplicitAny: idgaf right now
-        const kept = blocks.filter((_b: any, idx: number) => selections[idx]);
+        const kept =
+          Array.isArray(selections) && selections.length > 0
+            ? // biome-ignore lint/suspicious/noExplicitAny: idgaf right now
+              blocks.filter((_b: any, idx: number) => selections[idx])
+            : blocks;
         return `### File ${filePath}\n${preamble}${kept.join("")}`;
       });
     } catch (e) {
@@ -62,12 +67,35 @@ const Commit = () => {
     }
     let commitError = false;
     try {
+      // Gather changed file paths for formatting
+      const changedFilePaths: string[] = [];
+      // Start of Selection
+      const filePathRegex = /### File\s+(.+?)\n/g;
+      for (const fileMatch of planToApply.matchAll(filePathRegex)) {
+        changedFilePaths.push(fileMatch[1].trim());
+      }
       const { errors, success } = await invoke<{
         errors: ErrorReport[];
         success: SuccessReport[];
       }>("apply_protocol", {
         xmlInput: planToApply,
       });
+      // Format all successful files using Prettier
+      for (const file of success) {
+        try {
+          const fileContent = await invoke<string>("read_file", {
+            path: file.path,
+          });
+          const formatted = await formatWithPrettier(
+            fileContent,
+            file.path,
+            configFiles
+          );
+          await invoke("write_file", { path: file.path, content: formatted });
+        } catch (e) {
+          console.error("Prettier format failed for", file.path, e);
+        }
+      }
       setFileSuccesses(success);
       setErrorReports(errors);
     } catch (error) {
@@ -102,7 +130,15 @@ const Commit = () => {
           const size = sizeInBytes / (1024 * 1024);
           const parts = filePath.split("/");
           const fileName = parts[parts.length - 1] || "New File";
-          newFiles.push({ id: filePath, name: fileName, path: filePath, size });
+          const project = projects.find((p) => filePath.startsWith(p.path));
+          const projectRoot = project ? project.path : "";
+          newFiles.push({
+            id: filePath,
+            name: fileName,
+            path: filePath,
+            size,
+            projectRoot,
+          });
         }
         if (newFiles.length > 0) {
           setSelectedFiles((prev) => [...prev, ...newFiles]);
@@ -115,7 +151,6 @@ const Commit = () => {
       }
     }
     if (!commitError) {
-      // setPlan("");
       setToastOpen(true);
     } else {
       setCommitFailed(true);

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { open as openDialog } from "@tauri-apps/plugin-dialog";
+import { open } from "@tauri-apps/plugin-dialog";
 import { Box, IconButton, Typography, useTheme, Tooltip } from "@mui/material";
 import {
   Folder,
@@ -72,23 +72,26 @@ export default function FileExplorer() {
       }
     },
     [getChildren, showDotfiles, useIgnoreFiles, setProjects]
-  );
-
-  // Called when we want to open a single file
-  const openFile = async () => {
-    const selected = await openDialog({
+  ); // Called when we want to create a new file
+  const newFile = async () => {
+    const defaultDir = projects[0]?.path;
+    const selected = await open({
+      defaultPath: defaultDir,
       multiple: false,
       directory: false,
     });
     if (selected && typeof selected === "string") {
       const path = selected;
       const name = path.split("/").pop() || path;
-      handleFileSelect({ id: name, name, path });
+      const file = { id: name, name, path };
+      // Add the new file to the selected files list
+      handleFileSelect({ ...file, projectRoot: projects[0]?.path });
+      // Immediately open the preview modal for editing
+      handleFilePreviewClick(undefined as any, file);
     }
-  };
-  // Called when we want to add a new project
+  }; // Called when we want to add a new project
   const openProject = async () => {
-    const selected = await openDialog({
+    const selected = await open({
       directory: true,
       multiple: false,
     });
@@ -201,7 +204,7 @@ export default function FileExplorer() {
         </RetroButton>
         <RetroButton
           fullWidth
-          onClick={openFile}
+          onClick={newFile} // to-do actually make a new file
           startIcon={<InsertDriveFile />}
           sx={{ height: 40, mt: 1 }}
           variant="outlined"
@@ -278,6 +281,7 @@ export default function FileExplorer() {
                         removeProject(project.path);
                       }}
                       size="small"
+                      disabled={!!searchQuery}
                     >
                       <Delete fontSize="inherit" />
                     </IconButton>

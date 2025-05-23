@@ -29,6 +29,10 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
         border: "1px solid lightgrey",
         cursor: "pointer",
         padding: 2,
+        minWidth: 0,
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -78,48 +82,31 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
                   color: isDeleteHovered
                     ? "secondary.main"
                     : isHovered
-                    ? "primary.main"
-                    : "secondary.main",
+                      ? "primary.main"
+                      : "secondary.main",
                 }}
               />
             </Tooltip>
           </Typography>
         </Grid>
-<Grid container direction="column">
-          <Grid item sx={{ minWidth: 0 }} zeroMinWidth>
+        <Grid container direction="column">
+          <Grid item>
             <Typography
               variant="subtitle2"
               sx={{
-                width: "100%",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                overflowX: "hidden",
               }}
             >
               {file.name}
             </Typography>
           </Grid>
-          <Grid
-            item
-            sx={{
-              overflowX: "hidden",
-              textOverflow: "ellipsis",
-              wordWrap: "nowrap",
-            }}
-          >
+          <Grid item>
             <Typography variant="caption">
               {formatFileSize(file.size)} ({percentage}%)
             </Typography>
           </Grid>
           {countTokens && (
-            <Grid
-              item
-              sx={{
-                overflowX: "hidden",
-                textOverflow: "ellipsis",
-                wordWrap: "nowrap",
-              }}
-            >
+            <Grid item>
               <Typography variant="caption">{file.tokenSize} tokens</Typography>
             </Grid>
           )}
