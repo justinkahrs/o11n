@@ -14,10 +14,12 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
   language = "javascript",
   onChange,
   isDiff = false,
-  originalValue = ""
+  originalValue = "",
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | monaco.editor.IDiffEditor>();
+  const editorRef = useRef<
+    monaco.editor.IStandaloneCodeEditor | monaco.editor.IDiffEditor
+  >();
   const originalModelRef = useRef<monaco.editor.ITextModel | null>(null);
   const modifiedModelRef = useRef<monaco.editor.ITextModel | null>(null);
   // Initialize editor or diff editor only when language or mode changes
@@ -25,7 +27,8 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
     if (!containerRef.current) return;
     if (isDiff) {
       const diffEditor = monaco.editor.createDiffEditor(containerRef.current, {
-        automaticLayout: true
+        automaticLayout: true,
+        minimap: { enabled: false },
       });
       const originalModel = monaco.editor.createModel(originalValue, language);
       const modifiedModel = monaco.editor.createModel(value, language);
@@ -46,7 +49,8 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       const editor = monaco.editor.create(containerRef.current, {
         value,
         language,
-        automaticLayout: true
+        automaticLayout: true,
+        minimap: { enabled: false },
       });
       editorRef.current = editor;
       const disposable = editor.onDidChangeModelContent(() => {
