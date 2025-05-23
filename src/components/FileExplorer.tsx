@@ -123,7 +123,7 @@ export default function FileExplorer() {
       }
       // Attach the file to the correct (or newly-created) project
       handleFileSelect({ ...fileNode, projectRoot: matchingRoot }); // Immediately open the preview modal for editing
-      handleFilePreviewClick(undefined as any, file);
+      handleFilePreviewClick(undefined as any, fileNode);
     }
   }; // Called when we want to add a new project
   const openProject = async () => {
