@@ -21,11 +21,15 @@ import { platform } from "@tauri-apps/plugin-os";
 import { KeyboardCommandKey } from "@mui/icons-material";
 import { Grid } from "@mui/material";
 import { useFS } from "../api/fs";
+// Add imports for file metadata and token counting
+import { stat, BaseDirectory } from "@tauri-apps/plugin-fs";
+import { invoke } from "@tauri-apps/api/core";
+import { isImage } from "../utils/image";
 
 export default function FileExplorer() {
   const theme = useTheme();
   const { getChildren, watch, searchConfigFiles } = useFS();
-  const { showDotfiles, showLogo, showShortcuts, useIgnoreFiles } =
+  const { showDotfiles, showLogo, showShortcuts, useIgnoreFiles, countTokens } =
     useUserContext();
   useShortcut("o", () => openProject(), { ctrlKey: true, metaKey: true });
   const {
@@ -81,12 +85,44 @@ export default function FileExplorer() {
       directory: false,
     });
     if (selected && typeof selected === "string") {
-      const path = selected;
-      const name = path.split("/").pop() || path;
-      const file = { id: name, name, path };
-      // Add the new file to the selected files list
-      handleFileSelect({ ...file, projectRoot: projects[0]?.path });
-      // Immediately open the preview modal for editing
+      // Normalise for reliable prefix checks on every OS
+      const normalizePath = (p: string) => p.replaceAll("\\", "/");
+      const normalizedSelected = normalizePath(selected);
+      // Try to locate an existing project that contains this file
+      let matchingRoot = projects.find((proj) => {
+        const projPath = normalizePath(proj.path);
+        return (
+          normalizedSelected === projPath ||
+          normalizedSelected.startsWith(`${projPath}/`)
+        );
+      })?.path;
+      // If no project matches, create a new one rooted at the file's directory
+      if (!matchingRoot) {
+        const dir = normalizedSelected.substring(
+          0,
+          normalizedSelected.lastIndexOf("/")
+        );
+        const newRoot = createRootNode(dir);
+        setProjects((prev) => [...prev, newRoot]);
+        setExpanded((prev) => ({ ...prev, [newRoot.path]: true }));
+        await watch(dir);
+        const configs = await searchConfigFiles(dir);
+        setConfigFiles(configs);
+        matchingRoot = dir;
+      }
+      const name = normalizedSelected.split("/").pop() || normalizedSelected; // Compute file size in MB
+      const metadata = await stat(selected, { baseDir: BaseDirectory.Home });
+      const size = metadata.size / (1024 * 1024);
+      const fileNode: any = { id: name, name, path: selected, size };
+      // Compute token size if applicable
+      if (countTokens && !isImage(name)) {
+        const tokenCount = await invoke("count_tokens_path", {
+          path: selected,
+        });
+        fileNode.tokenSize = Number(tokenCount);
+      }
+      // Attach the file to the correct (or newly-created) project
+      handleFileSelect({ ...fileNode, projectRoot: matchingRoot }); // Immediately open the preview modal for editing
       handleFilePreviewClick(undefined as any, file);
     }
   }; // Called when we want to add a new project
