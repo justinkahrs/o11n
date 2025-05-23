@@ -4,7 +4,7 @@ import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { generateFileMap } from "../utils/generateFileMap";
 import formattingInstructions from "../utils/mdFormattingInstructions.txt?raw";
 import { getMarkdownLanguage } from "../utils/markdownLanguages";
-import { ContentCopy, KeyboardCommandKey } from "@mui/icons-material";
+import { Clear, ContentCopy, KeyboardCommandKey } from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
@@ -22,6 +22,8 @@ export default function Copy() {
     projects,
     setPlan,
     setTotalTokenCount,
+    setSelectedFiles,
+    setInstructions,
   } = useAppContext();
   const { countTokens, formatOutput, includeFileTree, showShortcuts } =
     useUserContext();
@@ -170,9 +172,18 @@ export default function Copy() {
       setPromptCopied(false);
     }, 3000);
   }
+  function handleRefresh() {
+    setInstructions("");
+    setSelectedFiles([]);
+  }
   useShortcut("c", handleCopy, {
     metaKey: true,
     ctrlKey: true,
+    shiftKey: true,
+  });
+  useShortcut("N", handleRefresh, {
+    ctrlKey: true,
+    metaKey: true,
     shiftKey: true,
   });
   const cmd =
@@ -188,7 +199,22 @@ export default function Copy() {
         +↑+C)
       </Box>
     ) : (
-      "Ctrl+Shift+C"
+      "(Ctrl+Shift+C)"
+    );
+  const refreshCmd =
+    platform() !== "macos" ? (
+      <Box>
+        (
+        <KeyboardCommandKey
+          sx={{
+            paddingTop: "2px",
+            fontSize: "14px",
+          }}
+        />
+        +↑+N)
+      </Box>
+    ) : (
+      "(Ctrl+Shift+N)"
     );
   return (
     <span>
@@ -202,9 +228,20 @@ export default function Copy() {
           )
         }
         disabled={copying || instructions.trim() === ""}
-        sx={{ mx: 2 }}
+        sx={{ m: 2 }}
       >
         {copying ? "Processing..." : "Copy Prompt"} {showShortcuts && cmd}
+      </RetroButton>
+      <RetroButton
+        disabled={
+          copying || (instructions.trim() === "" && selectedFiles.length === 0)
+        }
+        startIcon={<Clear />}
+        variant="outlined"
+        onClick={handleRefresh}
+        sx={{ mx: 2 }}
+      >
+        Clear Prompt {showShortcuts && refreshCmd}
       </RetroButton>
       <Toast
         open={promptCopied}

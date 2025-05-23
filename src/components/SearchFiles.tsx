@@ -1,6 +1,12 @@
 import type React from "react";
 import { useRef } from "react";
-import { TextField, IconButton, InputAdornment, Grid, Tooltip } from "@mui/material";
+import {
+  TextField,
+  IconButton,
+  InputAdornment,
+  Grid,
+  Tooltip,
+} from "@mui/material";
 import useShortcut from "../utils/useShortcut";
 import CloseIcon from "@mui/icons-material/Close";
 import { platform } from "@tauri-apps/plugin-os";
@@ -16,7 +22,7 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
   setSearchQuery,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-const { showShortcuts, useIgnoreFiles } = useUserContext();
+  const { showShortcuts, useIgnoreFiles } = useUserContext();
   const isSearchDisabled = !useIgnoreFiles;
   const labelText = showShortcuts ? (
     platform() === "macos" ? (
@@ -51,12 +57,7 @@ const { showShortcuts, useIgnoreFiles } = useUserContext();
     },
     { ctrlKey: true, metaKey: true }
   );
-  useShortcut("N", () => setSearchQuery(""), {
-    ctrlKey: true,
-    metaKey: true,
-    shiftKey: true,
-  });
-return (
+  return (
     <>
       {isSearchDisabled ? (
         <Tooltip title="Search is disabled when .gitignore is disabled. Enable 'Use .gitignore' in settings to search files.">

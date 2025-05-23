@@ -5,7 +5,6 @@ import { FileCard } from "./FileCard";
 import { useAppContext } from "../context/AppContext";
 import type { FileNode } from "../types";
 import { useEffect, useState } from "react";
-import useShortcut from "../utils/useShortcut";
 import { invoke } from "@tauri-apps/api/core";
 import { useUserContext } from "../context/UserContext";
 
@@ -14,11 +13,6 @@ export function SelectedFiles() {
     useAppContext();
   const { countTokens } = useUserContext();
   const doMode = mode === "do";
-  useShortcut("N", () => setSelectedFiles([]), {
-    ctrlKey: true,
-    metaKey: true,
-    shiftKey: true,
-  });
   const totalSize = selectedFiles.reduce((sum, f) => sum + (f.size ?? 0), 0);
   const [allExpanded, setAllExpanded] = useState<boolean>(true);
 

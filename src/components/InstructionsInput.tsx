@@ -25,11 +25,6 @@ export function InstructionsInput() {
       metaKey: true,
     }
   );
-  useShortcut("N", () => setInstructions(""), {
-    ctrlKey: true,
-    metaKey: true,
-    shiftKey: true,
-  });
   useEffect(() => {
     if (mode === "plan" && inputRef.current) {
       inputRef.current.focus();
