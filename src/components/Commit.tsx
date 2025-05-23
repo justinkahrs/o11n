@@ -1,5 +1,10 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import {
+  BaseDirectory,
+  readTextFile,
+  writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 import { CircularProgress, Grid } from "@mui/material";
@@ -80,18 +85,18 @@ const Commit = () => {
       }>("apply_protocol", {
         xmlInput: planToApply,
       });
-      // Format all successful files using Prettier
       for (const file of success) {
         try {
-          const fileContent = await invoke<string>("read_file", {
-            path: file.path,
-          });
+          const fileContent = await readTextFile(file.path);
           const formatted = await formatWithPrettier(
             fileContent,
             file.path,
-            configFiles
+            configFiles,
           );
-          await invoke("write_file", { path: file.path, content: formatted });
+
+          await writeTextFile(file.path, formatted, {
+            baseDir: BaseDirectory.Home,
+          });
         } catch (e) {
           console.error("Prettier format failed for", file.path, e);
         }
@@ -105,7 +110,7 @@ const Commit = () => {
       setCommitting(false);
     }
     setProjects((prev) =>
-      prev.map((proj) => ({ ...proj, loadedChildren: false }))
+      prev.map((proj) => ({ ...proj, loadedChildren: false })),
     );
     if (
       planToApply.includes("### File") &&
@@ -146,7 +151,7 @@ const Commit = () => {
       } catch (e) {
         console.error(
           "Error parsing new file creation instructions from markdown",
-          e
+          e,
         );
       }
     }
