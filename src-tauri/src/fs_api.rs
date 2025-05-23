@@ -104,3 +104,42 @@ pub fn start_watch(path: String, window: tauri::Window) -> Result<(), String> {
     });
     Ok(())
 }
+#[tauri::command]
+pub fn search_config_files(root: String) -> Result<Vec<TreeItemData>, String> {
+    let mut walker = WalkBuilder::new(&root);
+    walker.max_depth(Some(3)); // don’t go deeper than 3 levels
+    walker.hidden(true);
+    let mut configs = Vec::new();
+    let want = [
+        ".eslintrc.js",
+        ".eslintrc.cjs",
+        ".eslintrc.json",
+        ".eslintrc.yml",
+        "eslint.config.js",
+        ".prettierrc",
+        ".prettierrc.js",
+        ".prettierrc.json",
+        ".prettierrc.yml",
+        "prettier.config.js",
+        "tsconfig.json",
+    ];
+    for dent in walker.build() {
+        let dent = dent.map_err(|e| e.to_string())?;
+        if dent.file_type().map_or(false, |ft| ft.is_file()) {
+            if let Some(name) = dent.file_name().to_str() {
+                if want.iter().any(|w| *w == name) {
+                    let path = dent.path().to_string_lossy().to_string();
+                    configs.push(TreeItemData {
+                        id: path.clone(),
+                        name: name.to_string(),
+                        path,
+                        is_directory: false,
+                        children: Vec::new(),
+                        loaded_children: true,
+                    });
+                }
+            }
+        }
+    }
+    Ok(configs)
+}

@@ -4,7 +4,7 @@ mod change_types;
 mod fs_api;
 mod parse_change_protocol;
 mod token_utils;
-use fs_api::{list_directory, search_files, start_watch};
+use fs_api::{list_directory, search_config_files, search_files, start_watch};
 
 use serde_json::{json, Value};
 
@@ -44,6 +44,7 @@ pub fn run() {
             token_utils::count_tokens,
             token_utils::count_tokens_path,
             list_directory,
+            search_config_files,
             search_files,
             start_watch
         ])

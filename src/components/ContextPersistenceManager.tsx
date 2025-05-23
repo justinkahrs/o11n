@@ -12,6 +12,8 @@ const ContextPersistenceManager = () => {
     projects,
     selectedFile,
     selectedFiles,
+    configFiles,
+    setConfigFiles,
     setMode,
     setInstructions,
     setCustomTemplates,
@@ -57,6 +59,7 @@ const ContextPersistenceManager = () => {
             setProjects(contextObj.appContext.projects);
             setSelectedFiles(contextObj.appContext.selectedFiles);
             setSelectedFile(contextObj.appContext.selectedFile);
+            setConfigFiles(contextObj.appContext.configFiles);
           }
           if (contextObj.userContext) {
             setShowDotfiles(contextObj.userContext.showDotfiles);
@@ -79,6 +82,7 @@ const ContextPersistenceManager = () => {
     };
     loadContext();
   }, [
+    setConfigFiles,
     setMode,
     setInstructions,
     setCustomTemplates,
@@ -106,6 +110,7 @@ const ContextPersistenceManager = () => {
             projects,
             selectedFile,
             selectedFiles,
+            configFiles,
           },
           userContext: {
             showDotfiles,
@@ -133,6 +138,7 @@ const ContextPersistenceManager = () => {
       window.removeEventListener("beforeunload", saveContext);
     };
   }, [
+    configFiles,
     mode,
     instructions,
     customTemplates,

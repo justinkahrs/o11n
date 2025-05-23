@@ -16,17 +16,27 @@ import SearchFiles from "./SearchFiles";
 import RetroButton from "./RetroButton";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
+import useShortcut from "../utils/useShortcut";
+import { platform } from "@tauri-apps/plugin-os";
+import { KeyboardCommandKey } from "@mui/icons-material";
+import { Grid } from "@mui/material";
 import { useFS } from "../api/fs";
 
 export default function FileExplorer() {
   const theme = useTheme();
-  const { getChildren, watch } = useFS();
-  const { showDotfiles, showLogo } = useUserContext();
-  const { handleFileSelect, handleFilePreviewClick, projects, setProjects } =
-    useAppContext();
+  const { getChildren, watch, searchConfigFiles } = useFS();
+  const { showDotfiles, showLogo, showShortcuts } = useUserContext();
+  useShortcut("o", () => openProject(), { ctrlKey: true, metaKey: true });
+  const {
+    handleFileSelect,
+    handleFilePreviewClick,
+    projects,
+    setProjects,
+    setConfigFiles,
+  } = useAppContext();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState("");
-const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
+  const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
   // Helper to create a new project node
   function createRootNode(dirPath: string): TreeItemData {
     const parts = dirPath.split(/[\\/]/);
@@ -87,6 +97,8 @@ const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
       // default expanded state is true
       setExpanded((prev) => ({ ...prev, [newRoot.path]: true }));
       await watch(selected);
+      const configs = await searchConfigFiles(selected);
+      setConfigFiles(configs);
     }
   };
 
@@ -100,7 +112,7 @@ const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
     });
   }
 
-// Reset active search project when the query changes
+  // Reset active search project when the query changes
   useEffect(() => {
     if (searchQuery) {
       setActiveSearchProjectIndex(0);
@@ -140,8 +152,31 @@ const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
       unlistenPromise.then((unlisten) => unlisten());
     };
   }, [setProjects]);
+  useEffect(() => {
+    (async () => {
+      const allConfigs = await Promise.all(
+        projects.map((proj) => searchConfigFiles(proj.path))
+      );
+      setConfigFiles(allConfigs.flat());
+    })();
+  }, [projects, setConfigFiles, searchConfigFiles]);
 
-  const buttonLabel = "Load Project";
+  const buttonLabel = showShortcuts ? (
+    platform() === "macos" ? (
+      <Grid container spacing={1}>
+        <Grid item>Load Project</Grid>
+        <Grid item>
+          (
+          <KeyboardCommandKey sx={{ paddingTop: "2px", fontSize: "14px" }} /> +
+          o )
+        </Grid>
+      </Grid>
+    ) : (
+      <>Load Project (Ctrl + O)</>
+    )
+  ) : (
+    "Load Project"
+  );
 
   return (
     <Box
@@ -181,7 +216,7 @@ const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
           <Typography color="primary" variant="body1">
             Load a project and select files to add context to your prompt.
           </Typography>
-) : (
+        ) : (
           projects.map((project, index) => (
             <Box
               key={project.path}
@@ -256,7 +291,7 @@ const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
                     overflowY: "auto",
                   }}
                 >
-<DirectoryView
+                  <DirectoryView
                     node={project}
                     onPreviewFile={handleFilePreviewClick}
                     onFileSelect={(file) =>
@@ -265,15 +300,17 @@ const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
                     loadChildren={loadChildren}
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
-                    isActive={searchQuery ? index === activeSearchProjectIndex : false}
+                    isActive={
+                      searchQuery ? index === activeSearchProjectIndex : false
+                    }
                     onMoveNext={() =>
                       setActiveSearchProjectIndex((prev) =>
                         prev + 1 < projects.length ? prev + 1 : 0
                       )
                     }
                     onMovePrev={() =>
-                      setActiveSearchProjectIndex((prev) =>
-                        (prev - 1 + projects.length) % projects.length
+                      setActiveSearchProjectIndex(
+                        (prev) => (prev - 1 + projects.length) % projects.length
                       )
                     }
                   />

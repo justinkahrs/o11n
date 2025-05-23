@@ -26,5 +26,9 @@ export const useFS = () => {
     async (root: string) => invoke("start_watch", { path: root }),
     []
   );
-  return { getChildren, search, watch };
+  const searchConfigFiles = useCallback(
+    (root: string) => invoke<TreeItemData[]>("search_config_files", { root }),
+    []
+  );
+  return { getChildren, search, watch, searchConfigFiles };
 };

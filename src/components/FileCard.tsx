@@ -85,7 +85,7 @@ export function FileCard({ file, percentage, onRemoveFile }: FileCardProps) {
             </Tooltip>
           </Typography>
         </Grid>
-        <Grid container>
+<Grid container direction="column">
           <Grid item sx={{ minWidth: 0 }} zeroMinWidth>
             <Typography
               variant="subtitle2"

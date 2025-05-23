@@ -14,6 +14,7 @@ import { KeyboardCommandKey } from "@mui/icons-material";
 import { platform } from "@tauri-apps/plugin-os";
 import { useUserContext } from "../context/UserContext";
 import MonacoEditor from "./MonacoEditor";
+import { formatWithPrettier } from "../utils/formatWithPrettier";
 interface FilePreviewProps {
   file: {
     id: string;
@@ -39,24 +40,30 @@ const getLanguage = (fileName: string): string => {
   }
 };
 function FilePreview({ file }: FilePreviewProps) {
+  const { handleFileSelect, setSelectedFile, selectedFiles, configFiles } =
+    useAppContext();
+  const { showShortcuts } = useUserContext();
   const [text, setText] = useState<string>("");
   const [isDirty, setIsDirty] = useState(false);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const language = getLanguage(file.name);
   const saveToFile = useCallback(async () => {
     try {
-      await writeTextFile(file.path, text, {
+      const contentToSave = await formatWithPrettier(
+        text,
+        file.name,
+        configFiles,
+      );
+      await writeTextFile(file.path, contentToSave, {
         baseDir: BaseDirectory.Home,
       });
+      setText(contentToSave);
       setIsDirty(false);
-    } catch (err) {
-      console.error("Save failed:", err);
-    }
-  }, [file.path, text]);
-  const { handleFileSelect, setSelectedFile, selectedFiles } = useAppContext();
-  const { showShortcuts } = useUserContext();
+    } catch (_err) {}
+  }, [file, text, configFiles]);
+
   const isSelected = selectedFiles.some(
-    (selected) => selected.path === file.path
+    (selected) => selected.path === file.path,
   );
   useEffect(() => {
     let isMounted = true;

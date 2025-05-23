@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppContext } from "../context/AppContext";
+import { useUserContext } from "../context/UserContext";
 import { CircularProgress, Grid } from "@mui/material";
 import { Create } from "@mui/icons-material";
 import RetroButton from "./RetroButton";
@@ -25,6 +26,7 @@ const Commit = () => {
     setErrorReports,
     setFileSuccesses,
   } = useAppContext();
+  const { showShortcuts } = useUserContext();
   const isPlanValid = () => {
     return (
       plan.trim() !== "" &&
@@ -137,11 +139,15 @@ const Commit = () => {
           }
           sx={{ mx: 2, width: "220px" }}
         >
-          {committing
-            ? "Processing..."
-            : commitFailed
-            ? "Commit Failed!"
-            : "Commit Changes"}
+          {committing ? (
+            "Processing..."
+          ) : commitFailed ? (
+            "Commit Failed!"
+          ) : showShortcuts ? (
+            <>Commit Changes (Enter)</>
+          ) : (
+            "Commit Changes"
+          )}
         </RetroButton>
       </Grid>
       <Toast
