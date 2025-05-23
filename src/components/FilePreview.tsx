@@ -10,7 +10,6 @@ import {
 import { useAppContext } from "../context/AppContext";
 import { getImageMime, isImage, loadImageDataUrl } from "../utils/image";
 import RetroButton from "./RetroButton";
-import { useUserContext } from "../context/UserContext";
 import MonacoEditor from "./MonacoEditor";
 interface FilePreviewProps {
   file: {
@@ -40,7 +39,6 @@ function FilePreview({ file }: FilePreviewProps) {
   const [text, setText] = useState<string>("");
   const [isDirty, setIsDirty] = useState(false);
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
-  const { themeMode } = useUserContext();
   const language = getLanguage(file.name);
   const saveToFile = useCallback(async () => {
     try {

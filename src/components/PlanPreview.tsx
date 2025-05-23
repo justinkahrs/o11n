@@ -5,14 +5,12 @@ import {
   List,
   ListItem,
   Checkbox,
-  IconButton,
   Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import VisibilityIcon from "@mui/icons-material/Visibility";
 import CloseIcon from "@mui/icons-material/Close";
 import { useAppContext } from "../context/AppContext";
 import RetroButton from "./RetroButton";
