@@ -83,9 +83,18 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
   // Load tsconfig compilerOptions from context into Monaco
   useEffect(() => {
     const tsConfigFile = configFiles?.find((c) => c.name === "tsconfig.json");
-    console.log({ configFiles });
-    console.log({ tsConfigFile });
-    if (!tsConfigFile) return;
+    if (!tsConfigFile) {
+      // Disable JS/TS syntax and error highlighting when no tsconfig is present
+      monaco.languages.typescript.typescriptDefaults.setDiagnosticsOptions({
+        noSyntaxValidation: true,
+        noSemanticValidation: true,
+      });
+      monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
+        noSyntaxValidation: true,
+        noSemanticValidation: true,
+      });
+      return;
+    }
     readTextFile(tsConfigFile.path)
       .then((file) => {
         // Handle response which might be a string or an object with a 'text' property

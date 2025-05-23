@@ -25,7 +25,8 @@ import { useFS } from "../api/fs";
 export default function FileExplorer() {
   const theme = useTheme();
   const { getChildren, watch, searchConfigFiles } = useFS();
-  const { showDotfiles, showLogo, showShortcuts } = useUserContext();
+  const { showDotfiles, showLogo, showShortcuts, useIgnoreFiles } =
+    useUserContext();
   useShortcut("o", () => openProject(), { ctrlKey: true, metaKey: true });
   const {
     handleFileSelect,
@@ -52,6 +53,7 @@ export default function FileExplorer() {
   }
 
   // Load the children for a directory node if not already loaded
+  // biome-ignore lint/correctness/useExhaustiveDependencies: need this so it refreshes on flag changes
   const loadChildren = useCallback(
     async (node: TreeItemData) => {
       if (!node.isDirectory) return;
@@ -69,7 +71,7 @@ export default function FileExplorer() {
         return;
       }
     },
-    [getChildren, showDotfiles, setProjects]
+    [getChildren, showDotfiles, useIgnoreFiles, setProjects]
   );
 
   // Called when we want to open a single file
@@ -128,7 +130,7 @@ export default function FileExplorer() {
         loadedChildren: false,
       }))
     );
-  }, [showDotfiles, setProjects]);
+  }, [showDotfiles, useIgnoreFiles, setProjects]);
 
   // If a root hasn't loaded children, load them
   useEffect(() => {
@@ -168,7 +170,7 @@ export default function FileExplorer() {
         <Grid item>
           (
           <KeyboardCommandKey sx={{ paddingTop: "2px", fontSize: "14px" }} /> +
-          o )
+          o)
         </Grid>
       </Grid>
     ) : (

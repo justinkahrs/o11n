@@ -1,6 +1,6 @@
 import type React from "react";
 import { useRef } from "react";
-import { TextField, IconButton, InputAdornment, Grid } from "@mui/material";
+import { TextField, IconButton, InputAdornment, Grid, Tooltip } from "@mui/material";
 import useShortcut from "../utils/useShortcut";
 import CloseIcon from "@mui/icons-material/Close";
 import { platform } from "@tauri-apps/plugin-os";
@@ -16,7 +16,8 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
   setSearchQuery,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const { showShortcuts } = useUserContext();
+const { showShortcuts, useIgnoreFiles } = useUserContext();
+  const isSearchDisabled = !useIgnoreFiles;
   const labelText = showShortcuts ? (
     platform() === "macos" ? (
       <Grid container spacing={1}>
@@ -55,32 +56,67 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
     metaKey: true,
     shiftKey: true,
   });
-  return (
-    <TextField
-      className="search-files"
-      inputRef={inputRef}
-      label={labelText}
-      variant="outlined"
-      size="small"
-      value={searchQuery}
-      onChange={(e) => setSearchQuery(e.target.value)}
-      fullWidth
-      sx={{ mt: 2 }}
-      inputProps={{ style: { resize: "none" } }}
-      InputProps={{
-        endAdornment: searchQuery ? (
-          <InputAdornment position="end">
-            <IconButton
-              color="primary"
+return (
+    <>
+      {isSearchDisabled ? (
+        <Tooltip title="Search is disabled when .gitignore is disabled. Enable 'Use .gitignore' in settings to search files.">
+          <div>
+            <TextField
+              className="search-files"
+              inputRef={inputRef}
+              label={labelText}
+              variant="outlined"
               size="small"
-              onClick={() => setSearchQuery("")}
-            >
-              <CloseIcon />
-            </IconButton>
-          </InputAdornment>
-        ) : null,
-      }}
-    />
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              fullWidth
+              disabled
+              sx={{ mt: 2 }}
+              inputProps={{ style: { resize: "none" } }}
+              InputProps={{
+                endAdornment: searchQuery ? (
+                  <InputAdornment position="end">
+                    <IconButton
+                      color="primary"
+                      size="small"
+                      onClick={() => setSearchQuery("")}
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ) : null,
+              }}
+            />
+          </div>
+        </Tooltip>
+      ) : (
+        <TextField
+          className="search-files"
+          inputRef={inputRef}
+          label={labelText}
+          variant="outlined"
+          size="small"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          fullWidth
+          sx={{ mt: 2 }}
+          inputProps={{ style: { resize: "none" } }}
+          InputProps={{
+            endAdornment: searchQuery ? (
+              <InputAdornment position="end">
+                <IconButton
+                  color="primary"
+                  size="small"
+                  onClick={() => setSearchQuery("")}
+                >
+                  <CloseIcon />
+                </IconButton>
+              </InputAdornment>
+            ) : null,
+          }}
+        />
+      )}
+    </>
   );
 };
 export default SearchFiles;

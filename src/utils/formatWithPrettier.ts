@@ -3,6 +3,7 @@ import * as parserBabel from "prettier/parser-babel";
 import prettierPluginEstree from "prettier/plugins/estree";
 import * as parserTypescript from "prettier/parser-typescript";
 import * as parserHtml from "prettier/parser-html";
+import * as pluginRust from "prettier-plugin-rust";
 import { invoke } from "@tauri-apps/api/core";
 
 export interface PrettierConfigFile {
@@ -33,6 +34,9 @@ export async function formatWithPrettier(
     case "xml":
       parserName = "html";
       break;
+    case "rs":
+      parserName = "rust";
+      break;
   }
 
   // Load Prettier config if present
@@ -55,6 +59,12 @@ export async function formatWithPrettier(
   return prettier.format(text, {
     ...config,
     parser: parserName,
-    plugins: [parserBabel, parserTypescript, parserHtml, prettierPluginEstree],
+    plugins: [
+      parserBabel,
+      parserTypescript,
+      parserHtml,
+      prettierPluginEstree,
+      pluginRust,
+    ],
   });
 }

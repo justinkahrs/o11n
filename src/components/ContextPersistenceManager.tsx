@@ -43,7 +43,6 @@ const ContextPersistenceManager = () => {
     const loadContext = async () => {
       try {
         const store = await Store.load("settings.json", { autoSave: false });
-        console.log({ store });
         const storedContext = await store.get("context");
         if (storedContext) {
           // If storedContext is a string, parse it; otherwise assume it's an object.

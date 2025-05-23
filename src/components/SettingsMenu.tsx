@@ -109,7 +109,7 @@ export default function SettingsMenu() {
                 onChange={(e) => setUseIgnoreFiles(e.target.checked)}
               />
             }
-            label="Respect .gitignore"
+            label="Use .gitignore"
           />
         </MenuItem>
         <MenuItem>

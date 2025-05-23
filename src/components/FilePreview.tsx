@@ -32,9 +32,11 @@ const getLanguage = (fileName: string): string => {
       return "javascript";
     case "json":
       return "json";
-    case "html":
+case "html":
     case "xml":
       return "xml";
+    case "rs":
+      return "rust";
     default:
       return "plaintext";
   }
@@ -48,22 +50,28 @@ function FilePreview({ file }: FilePreviewProps) {
   const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
   const language = getLanguage(file.name);
   const saveToFile = useCallback(async () => {
+    // Default to raw text
+    let contentToSave = text;
+    // Try formatting with Prettier; on failure, log and continue with raw text
     try {
-      const contentToSave = await formatWithPrettier(
-        text,
-        file.name,
-        configFiles,
-      );
+      contentToSave = await formatWithPrettier(text, file.name, configFiles);
+    } catch (formatError) {
+      console.error("Prettier formatting failed, saving raw text", formatError);
+    }
+    // Attempt to write the (formatted or raw) content
+    try {
       await writeTextFile(file.path, contentToSave, {
         baseDir: BaseDirectory.Home,
       });
       setText(contentToSave);
       setIsDirty(false);
-    } catch (_err) {}
+    } catch (writeError) {
+      console.error("Error writing file", writeError);
+    }
   }, [file, text, configFiles]);
 
   const isSelected = selectedFiles.some(
-    (selected) => selected.path === file.path,
+    (selected) => selected.path === file.path
   );
   useEffect(() => {
     let isMounted = true;
@@ -114,13 +122,11 @@ function FilePreview({ file }: FilePreviewProps) {
     ) : (
       "(Ctrl+S)"
     );
-  return (
-    <Card
+  return (<Card
       className="file-preview-card"
       variant="outlined"
-      sx={{ maxHeight: "80vh", width: "100%", overflow: "auto" }}
-    >
-      <CardHeader
+      sx={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", overflow: "auto" }}
+><CardHeader
         title={
           <Grid container alignItems="center" justifyContent="space-between">
             <Grid item>
@@ -163,14 +169,14 @@ function FilePreview({ file }: FilePreviewProps) {
           zIndex: 1,
         }}
       />
-      <CardContent sx={{ margin: 0, padding: 0 }}>
+      <CardContent sx={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", flexGrow: 1 }}>
         {isImage(file.name) ? (
           <Box
             sx={{
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              height: "80vh",
+              height: "100%",
               width: "100%",
             }}
           >
@@ -188,7 +194,7 @@ function FilePreview({ file }: FilePreviewProps) {
             )}
           </Box>
         ) : (
-          <Box sx={{ height: "80vh", width: "100%" }}>
+          <Box sx={{ height: "100%", width: "100%", flexGrow: 1 }}>
             <MonacoEditor
               value={text}
               language={language}
@@ -213,7 +219,8 @@ const FilePreviewModal = () => {
           top: "50%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          minWidth: "80%",
+          width: "80vw",
+          height: "80vh",
         }}
       >
         {selectedFile && <FilePreview file={selectedFile} />}
