@@ -17,7 +17,7 @@
     "@mui/lab": "^5.0.0-alpha.127",
     "@mui/material": "^5.16.14",
     "@mui/x-tree-view": "^7.26.0",
-    "@sentry/react": "^9.13.0",
+    "@sentry/react": "^10.5.0",
     "@sentry/vite-plugin": "^3.3.1",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-clipboard-manager": "^2.2.2",
