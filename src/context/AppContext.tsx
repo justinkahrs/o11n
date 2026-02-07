@@ -18,6 +18,7 @@ interface AppContextType {
   plan: string;
   projects: TreeItemData[];
   selectedFile: FileNode | null | undefined;
+  highlightedPath: string | null;
   selectedFiles: FileNode[];
   setCustomTemplates: React.Dispatch<React.SetStateAction<CustomTemplate[]>>;
   setInstructions: React.Dispatch<React.SetStateAction<string>>;
@@ -27,6 +28,7 @@ interface AppContextType {
   setSelectedFile: React.Dispatch<
     React.SetStateAction<FileNode | null | undefined>
   >;
+  setHighlightedPath: React.Dispatch<React.SetStateAction<string | null>>;
   setSelectedFiles: React.Dispatch<React.SetStateAction<FileNode[]>>;
   selectedDescriptions: Record<string, boolean[]>;
   setSelectedDescriptions: React.Dispatch<
@@ -66,6 +68,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [plan, setPlan] = useState("");
   const [selectedFiles, setSelectedFiles] = useState<FileNode[]>([]);
   const [selectedFile, setSelectedFile] = useState<FileNode | null>();
+  const [highlightedPath, setHighlightedPath] = useState<string | null>(null);
   const [projects, setProjects] = useState<TreeItemData[]>([]);
   // State for tracking which change descriptions are selected per file
   const [selectedDescriptions, setSelectedDescriptions] = useState<
@@ -112,6 +115,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setProjects,
         selectedFile,
         setSelectedFile,
+        highlightedPath,
+        setHighlightedPath,
         selectedFiles,
         setSelectedFiles,
         plan,

@@ -7,8 +7,9 @@ import {
   ExpandMore,
   ChevronRight,
   Folder as FolderIcon,
+  Delete,
 } from "@mui/icons-material";
-import { Box, Typography } from "@mui/material";
+import { Box, Typography, Tooltip } from "@mui/material";
 import { useUserContext } from "../context/UserContext";
 import { useAppContext } from "../context/AppContext";
 import type { FileNode, TreeItemData } from "../types";
@@ -23,6 +24,12 @@ export interface DirectoryViewProps {
   isActive: boolean;
   onMoveNext: () => void;
   onMovePrev: () => void;
+  onDelete: (
+    event: React.SyntheticEvent,
+    type: "file" | "folder",
+    path: string,
+    name: string,
+  ) => void;
 }
 import FileItemWithHover from "./FileItemWithHover";
 import { isImage } from "../utils/image";
@@ -38,14 +45,15 @@ export default function DirectoryView({
   isActive,
   onMoveNext,
   onMovePrev,
+  onDelete,
 }: DirectoryViewProps) {
   const [expanded, setExpanded] = useState<string[]>([]);
   const [hits, setHits] = useState<TreeItemData[]>([]);
   const [selectedHitIndex, setSelectedHitIndex] = useState(-1);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const { countTokens } = useUserContext();
   const { search } = useFS();
-  const { mode, setMode } = useAppContext();
+  const { mode, setMode, highlightedPath, setHighlightedPath } =
+    useAppContext();
 
   const handleToggle = async (
     _event: React.SyntheticEvent,
@@ -90,7 +98,7 @@ export default function DirectoryView({
     if (mode === "do") {
       setMode("plan");
     }
-    setSelectedIds([hit.id]);
+    setHighlightedPath(hit.path);
     onFileSelect(file);
   };
   const handleNodeSelect = async (
@@ -99,7 +107,7 @@ export default function DirectoryView({
   ) => {
     _event.stopPropagation();
     const nodeId = Array.isArray(nodeIds) ? nodeIds[0] : nodeIds;
-    setSelectedIds([nodeId]);
+    setHighlightedPath(nodeId);
     const child = node.children.find((c) => c.id === nodeId);
     if (!child) return;
     if (child.isDirectory && !child.loadedChildren) {
@@ -146,12 +154,6 @@ export default function DirectoryView({
     };
   }, [search, searchQuery, node.path]);
 
-  // Reset expansion when children are unloaded, to collapse the arrow indicator.
-  useEffect(() => {
-    if (!node.loadedChildren) {
-      setExpanded([]);
-    }
-  }, [node.loadedChildren]);
   useEffect(() => {
     if (searchQuery) {
       setSelectedHitIndex(-1);
@@ -241,7 +243,9 @@ export default function DirectoryView({
         selected={
           isActive && selectedHitIndex !== -1 && hits.length > 0
             ? [hits[selectedHitIndex].id]
-            : []
+            : highlightedPath
+              ? [highlightedPath]
+              : []
         }
         onNodeSelect={(event: React.SyntheticEvent, nodeIds: string[]) => {
           const nodeId = Array.isArray(nodeIds) ? nodeIds[0] : nodeIds;
@@ -260,6 +264,7 @@ export default function DirectoryView({
             }}
             nodeId={hit.id}
             onPreviewFile={onPreviewFile}
+            onDelete={(e, file) => onDelete(e, "file", file.path, file.name)}
           />
         ))}
       </TreeView>
@@ -271,61 +276,94 @@ export default function DirectoryView({
       defaultCollapseIcon={<ExpandMore />}
       defaultExpandIcon={<ChevronRight />}
       expanded={expanded}
-      selected={selectedIds}
+      selected={highlightedPath ? [highlightedPath] : []}
       onNodeToggle={handleToggle}
       onNodeSelect={handleNodeSelect}
       sx={{ marginLeft: 1, wordBreak: "keep-all" }}
     >
-      {node.loadedChildren
-        ? node.children.map((child) => {
-            if (child.isDirectory) {
-              return (
-                <TreeItem
-                  key={child.path}
-                  nodeId={child.path}
-                  label={
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 1,
-                        "&:hover .file-icon": { color: "primary.main" },
-                      }}
-                    >
-                      <FolderIcon className="file-icon" fontSize="small" />
-                      <span>{child.name}/</span>
-                    </Box>
-                  }
+      {node.children.map((child) => {
+        if (child.isDirectory) {
+          return (
+            <TreeItem
+              key={child.path}
+              nodeId={child.path}
+              label={
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    "&:hover .file-icon": { color: "primary.main" },
+                  }}
                 >
-                  <DirectoryView
-                    onPreviewFile={onPreviewFile}
-                    node={child}
-                    onFileSelect={onFileSelect}
-                    loadChildren={loadChildren}
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    isActive={isActive}
-                    onMoveNext={onMoveNext}
-                    onMovePrev={onMovePrev}
-                  />
-                </TreeItem>
-              );
-            }
-            return (
-              <FileItemWithHover
-                key={child.path}
-                file={{
-                  id: child.path,
-                  name: child.name,
-                  path: child.path,
-                  size: 0,
-                }}
-                nodeId={child.path}
+                  <FolderIcon className="file-icon" fontSize="small" />
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                      flexGrow: 1,
+                      justifyContent: "space-between",
+                      "& .delete-icon": { visibility: "hidden" },
+                      "&:hover .delete-icon": { visibility: "visible" },
+                    }}
+                  >
+                    <span>{child.name}/</span>
+                    <Tooltip
+                      arrow
+                      disableInteractive
+                      enterDelay={500}
+                      title="Delete folder"
+                    >
+                      <Delete
+                        className="delete-icon"
+                        sx={{
+                          fontSize: "1rem",
+                          color: "text.secondary",
+                          "&:hover": { color: "error.main" },
+                          ml: "auto",
+                          mr: 1,
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDelete(e, "folder", child.path, child.name);
+                        }}
+                      />
+                    </Tooltip>
+                  </Box>
+                </Box>
+              }
+            >
+              <DirectoryView
                 onPreviewFile={onPreviewFile}
+                node={child}
+                onFileSelect={onFileSelect}
+                loadChildren={loadChildren}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                isActive={isActive}
+                onMoveNext={onMoveNext}
+                onMovePrev={onMovePrev}
+                onDelete={onDelete}
               />
-            );
-          })
-        : null}
+            </TreeItem>
+          );
+        }
+        return (
+          <FileItemWithHover
+            key={child.path}
+            file={{
+              id: child.path,
+              name: child.name,
+              path: child.path,
+              size: 0,
+            }}
+            nodeId={child.path}
+            onPreviewFile={onPreviewFile}
+            onDelete={(e, file) => onDelete(e, "file", file.path, file.name)}
+          />
+        );
+      })}
     </TreeView>
   );
 }

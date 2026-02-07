@@ -7,6 +7,8 @@ import {
   FolderSpecial,
   Delete,
   InsertDriveFile,
+  NoteAdd,
+  CreateNewFolder,
 } from "@mui/icons-material";
 import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
@@ -25,6 +27,9 @@ import { useFS } from "../api/fs";
 import { stat, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { invoke } from "@tauri-apps/api/core";
 import { isImage } from "../utils/image";
+import CreateItemModal from "./CreateItemModal";
+import DeleteConfirmModal from "./DeleteConfirmModal";
+import { writeTextFile, mkdir, remove } from "@tauri-apps/plugin-fs";
 
 export default function FileExplorer() {
   const theme = useTheme();
@@ -38,10 +43,32 @@ export default function FileExplorer() {
     projects,
     setProjects,
     setConfigFiles,
+    setSelectedFiles,
+    setSelectedFile,
   } = useAppContext();
   const [expanded, setExpanded] = useState<{ [key: string]: boolean }>({});
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearchProjectIndex, setActiveSearchProjectIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"file" | "folder">("file");
+  const [newFileProjectBase, setNewFileProjectBase] = useState<string | null>(
+    null,
+  );
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    type: "file" | "folder";
+    path: string;
+    name: string;
+    projectPath: string;
+  }>({
+    open: false,
+    type: "file",
+    path: "",
+    name: "",
+    projectPath: "",
+  });
+
+  const { highlightedPath } = useAppContext();
   // Helper to create a new project node
   function createRootNode(dirPath: string): TreeItemData {
     const parts = dirPath.split(/[\\/]/);
@@ -57,26 +84,41 @@ export default function FileExplorer() {
   }
 
   // Load the children for a directory node if not already loaded
-  // biome-ignore lint/correctness/useExhaustiveDependencies: need this so it refreshes on flag changes
   const loadChildren = useCallback(
     async (node: TreeItemData) => {
       if (!node.isDirectory) return;
       try {
         const entries = await getChildren(node.path, showDotfiles);
-        node.children = entries.sort((a, b) => {
+        const sortedEntries = entries.sort((a, b) => {
           if (a.isDirectory && !b.isDirectory) return -1;
           if (!a.isDirectory && b.isDirectory) return 1;
           return a.name.localeCompare(b.name);
-        }) as TreeItemData[]; // TO-DO sort on backend
-        node.loadedChildren = true;
-        setProjects((prev) => [...prev]);
+        }) as TreeItemData[];
+
+        const updateNodeInTree = (nodes: TreeItemData[]): TreeItemData[] => {
+          return nodes.map((n) => {
+            if (n.path === node.path) {
+              return { ...n, children: sortedEntries, loadedChildren: true };
+            }
+            if (n.children && n.children.length > 0) {
+              const updatedChildren = updateNodeInTree(n.children);
+              // Only return a new object if children actually changed
+              if (updatedChildren !== n.children) {
+                return { ...n, children: updatedChildren };
+              }
+            }
+            return n;
+          });
+        };
+
+        setProjects((prev) => updateNodeInTree(prev));
       } catch (error) {
         console.error("Failed to read directory", node.path, error);
-        return;
       }
     },
-    [getChildren, showDotfiles, useIgnoreFiles, setProjects]
-  ); // Called when we want to create a new file
+    [getChildren, showDotfiles, setProjects],
+  );
+  // Called when we want to create a new file
   const newFile = async () => {
     const defaultDir = projects[0]?.path;
     const selected = await open({
@@ -100,7 +142,7 @@ export default function FileExplorer() {
       if (!matchingRoot) {
         const dir = normalizedSelected.substring(
           0,
-          normalizedSelected.lastIndexOf("/")
+          normalizedSelected.lastIndexOf("/"),
         );
         const newRoot = createRootNode(dir);
         setProjects((prev) => [...prev, newRoot]);
@@ -143,6 +185,165 @@ export default function FileExplorer() {
     }
   };
 
+  const handleNewItemOpen = (projectPath: string, type: "file" | "folder") => {
+    setNewFileProjectBase(projectPath);
+    setModalType(type);
+    setIsModalOpen(true);
+  };
+
+  const handleCreateFile = async (filename: string) => {
+    if (!newFileProjectBase) return;
+
+    let targetDir = newFileProjectBase;
+    if (highlightedPath && highlightedPath.startsWith(newFileProjectBase)) {
+      // Check if highlightedPath is a directory or file
+      // If it's a file, get its parent. If it's a directory, use it.
+      try {
+        const metadata = await stat(highlightedPath, {
+          baseDir: BaseDirectory.Home,
+        });
+        if (metadata.isDirectory) {
+          targetDir = highlightedPath;
+        } else {
+          targetDir = highlightedPath.substring(
+            0,
+            highlightedPath.lastIndexOf("/"),
+          );
+        }
+      } catch (e) {
+        console.error("Error checking highlighted path", e);
+      }
+    }
+
+    const fullPath = `${targetDir}/${filename}`;
+    try {
+      await writeTextFile(fullPath, "", {
+        baseDir: BaseDirectory.Home,
+      });
+
+      // Force a manual refresh of the project root to ensure the new file shows up.
+      // We set loadedChildren to false recursively but keep the children array
+      // so that DirectoryView instances stay mounted and preserve their expanded state.
+      const invalidateTree = (nodes: TreeItemData[]): TreeItemData[] =>
+        nodes.map((n) => ({
+          ...n,
+          loadedChildren: false,
+          children: n.children ? invalidateTree(n.children) : [],
+        }));
+
+      setProjects((prev) =>
+        prev.map((proj) =>
+          proj.path === newFileProjectBase
+            ? {
+                ...proj,
+                loadedChildren: false,
+                children: invalidateTree(proj.children),
+              }
+            : proj,
+        ),
+      );
+
+      const name = filename;
+      const fileNode: any = { id: fullPath, name, path: fullPath, size: 0 };
+
+      // Auto-select and open preview
+      handleFileSelect({ ...fileNode, projectRoot: newFileProjectBase });
+      handleFilePreviewClick(undefined as any, fileNode);
+    } catch (error) {
+      console.error("Failed to create file", error);
+    }
+  };
+
+  const handleCreateFolder = async (foldername: string) => {
+    if (!newFileProjectBase) return;
+
+    let targetDir = newFileProjectBase;
+    if (highlightedPath && highlightedPath.startsWith(newFileProjectBase)) {
+      try {
+        const metadata = await stat(highlightedPath, {
+          baseDir: BaseDirectory.Home,
+        });
+        if (metadata.isDirectory) {
+          targetDir = highlightedPath;
+        } else {
+          targetDir = highlightedPath.substring(
+            0,
+            highlightedPath.lastIndexOf("/"),
+          );
+        }
+      } catch (e) {
+        console.error("Error checking highlighted path", e);
+      }
+    }
+
+    const fullPath = `${targetDir}/${foldername}`;
+    try {
+      await mkdir(fullPath, {
+        baseDir: BaseDirectory.Home,
+      });
+
+      const invalidateTree = (nodes: TreeItemData[]): TreeItemData[] =>
+        nodes.map((n) => ({
+          ...n,
+          loadedChildren: false,
+          children: n.children ? invalidateTree(n.children) : [],
+        }));
+
+      setProjects((prev) =>
+        prev.map((proj) =>
+          proj.path === newFileProjectBase
+            ? {
+                ...proj,
+                loadedChildren: false,
+                children: invalidateTree(proj.children),
+              }
+            : proj,
+        ),
+      );
+    } catch (error) {
+      console.error("Failed to create folder", error);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    const { path, type, projectPath } = deleteModal;
+    try {
+      await remove(path, {
+        baseDir: BaseDirectory.Home,
+        recursive: type === "folder",
+      });
+
+      // Update selectedFiles in AppContext if necessary
+      setSelectedFiles((prev) => prev.filter((f) => f.path !== path));
+      if (setSelectedFile) {
+        setSelectedFile((prev) => (prev?.path === path ? null : prev));
+      }
+
+      const invalidateTree = (nodes: TreeItemData[]): TreeItemData[] =>
+        nodes.map((n) => ({
+          ...n,
+          loadedChildren: false,
+          children: n.children ? invalidateTree(n.children) : [],
+        }));
+
+      setProjects((prev) =>
+        prev.map((proj) =>
+          proj.path === projectPath
+            ? {
+                ...proj,
+                loadedChildren: false,
+                children: invalidateTree(proj.children),
+              }
+            : proj,
+        ),
+      );
+    } catch (error) {
+      console.error(`Failed to delete ${type}`, error);
+    } finally {
+      setDeleteModal((prev) => ({ ...prev, open: false }));
+    }
+  };
+
   // Remove a project by path
   function removeProject(path: string) {
     setProjects((prev) => prev.filter((proj) => proj.path !== path));
@@ -167,7 +368,7 @@ export default function FileExplorer() {
         ...root,
         children: [],
         loadedChildren: false,
-      }))
+      })),
     );
   }, [showDotfiles, useIgnoreFiles, setProjects]);
 
@@ -184,9 +385,20 @@ export default function FileExplorer() {
 
   // Watch for filesystem updates emitted by Rust
   useEffect(() => {
+    const invalidateTree = (nodes: TreeItemData[]): TreeItemData[] =>
+      nodes.map((n) => ({
+        ...n,
+        loadedChildren: false,
+        children: n.children ? invalidateTree(n.children) : [],
+      }));
+
     const unlistenPromise = listen<string[]>("fs_change", () => {
       setProjects((prev) =>
-        prev.map((proj) => ({ ...proj, children: [], loadedChildren: false }))
+        prev.map((proj) => ({
+          ...proj,
+          loadedChildren: false,
+          children: invalidateTree(proj.children),
+        })),
       );
     });
     return () => {
@@ -196,7 +408,7 @@ export default function FileExplorer() {
   useEffect(() => {
     (async () => {
       const allConfigs = await Promise.all(
-        projects.map((proj) => searchConfigFiles(proj.path))
+        projects.map((proj) => searchConfigFiles(proj.path)),
       );
       setConfigFiles(allConfigs.flat());
     })();
@@ -304,7 +516,39 @@ export default function FileExplorer() {
 
                   {project.name}
                 </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Tooltip
+                    arrow
+                    disableInteractive
+                    enterDelay={500}
+                    title="New folder"
+                  >
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNewItemOpen(project.path, "folder");
+                      }}
+                      size="small"
+                    >
+                      <CreateNewFolder fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip
+                    arrow
+                    disableInteractive
+                    enterDelay={500}
+                    title="New file"
+                  >
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleNewItemOpen(project.path, "file");
+                      }}
+                      size="small"
+                    >
+                      <NoteAdd fontSize="inherit" />
+                    </IconButton>
+                  </Tooltip>
                   <Tooltip
                     arrow
                     disableInteractive
@@ -347,13 +591,23 @@ export default function FileExplorer() {
                     }
                     onMoveNext={() =>
                       setActiveSearchProjectIndex((prev) =>
-                        prev + 1 < projects.length ? prev + 1 : 0
+                        prev + 1 < projects.length ? prev + 1 : 0,
                       )
                     }
                     onMovePrev={() =>
                       setActiveSearchProjectIndex(
-                        (prev) => (prev - 1 + projects.length) % projects.length
+                        (prev) =>
+                          (prev - 1 + projects.length) % projects.length,
                       )
+                    }
+                    onDelete={(_e, type, path, name) =>
+                      setDeleteModal({
+                        open: true,
+                        type,
+                        path,
+                        name,
+                        projectPath: project.path,
+                      })
                     }
                   />
                 </Box>
@@ -362,6 +616,26 @@ export default function FileExplorer() {
           ))
         )}
       </Box>
+      <CreateItemModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onCreate={modalType === "file" ? handleCreateFile : handleCreateFolder}
+        type={modalType}
+        initialDirectory={
+          highlightedPath &&
+          newFileProjectBase &&
+          highlightedPath.startsWith(newFileProjectBase)
+            ? highlightedPath
+            : newFileProjectBase || ""
+        }
+      />
+      <DeleteConfirmModal
+        open={deleteModal.open}
+        onClose={() => setDeleteModal((prev) => ({ ...prev, open: false }))}
+        onConfirm={handleDeleteConfirm}
+        itemName={deleteModal.name}
+        itemType={deleteModal.type}
+      />
     </Box>
   );
 }

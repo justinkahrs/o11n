@@ -69,7 +69,7 @@ function AppContent() {
           }}
           justifyContent="flex-start"
         >
-          {!isChatMode && <ModeButtons />}
+          {formatOutput && <ModeButtons />}
           {!isChatMode && <PlanInput />}
 
           {showSelectedFiles && (
