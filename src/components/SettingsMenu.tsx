@@ -6,8 +6,9 @@ import {
   Checkbox,
   FormControlLabel,
 } from "@mui/material";
-import { Palette, Settings } from "@mui/icons-material";
+import { Palette, Settings, Key } from "@mui/icons-material";
 import ThemeModal from "./ThemeModal";
+import ApiKeysModal from "./ApiKeysModal";
 import { useUserContext } from "../context/UserContext";
 import useShortcut from "../utils/useShortcut";
 
@@ -22,10 +23,11 @@ export default function SettingsMenu() {
         setAnchorEl(settingsButtonRef.current);
       }
     },
-    { metaKey: true, ctrlKey: true }
+    { metaKey: true, ctrlKey: true },
   );
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [themeModalOpen, setThemeModalOpen] = useState(false);
+  const [apiKeysModalOpen, setApiKeysModalOpen] = useState(false);
   const {
     countTokens,
     formatOutput,
@@ -143,6 +145,15 @@ export default function SettingsMenu() {
           <Palette sx={{ mr: 1 }} />
           Configure theme
         </MenuItem>
+        <MenuItem
+          onClick={() => {
+            setApiKeysModalOpen(true);
+            handleSettingsClose();
+          }}
+        >
+          <Key sx={{ mr: 1 }} />
+          API Keys
+        </MenuItem>
       </Menu>
       <ThemeModal
         open={themeModalOpen}
@@ -151,6 +162,10 @@ export default function SettingsMenu() {
           onThemeChange(primary, secondary, mode);
           // setThemeModalOpen(false);
         }}
+      />
+      <ApiKeysModal
+        open={apiKeysModalOpen}
+        onClose={() => setApiKeysModalOpen(false)}
       />
     </>
   );

@@ -36,6 +36,8 @@ const ContextPersistenceManager = () => {
     primaryColor,
     secondaryColor,
     themeMode,
+    apiKey,
+    setApiKey,
     onThemeChange,
   } = useUserContext();
   // On application startup, load the saved context and update both contexts.
@@ -69,8 +71,9 @@ const ContextPersistenceManager = () => {
             onThemeChange(
               contextObj.userContext.primaryColor,
               contextObj.userContext.secondaryColor,
-              contextObj.userContext.themeMode
+              contextObj.userContext.themeMode,
             );
+            setApiKey(contextObj.userContext.apiKey || "");
           }
         }
       } catch (err) {
@@ -95,6 +98,7 @@ const ContextPersistenceManager = () => {
     setFormatOutput,
     setLoading,
     onThemeChange,
+    setApiKey,
   ]);
   // Save context on app exit using the beforeunload event.
   useEffect(() => {
@@ -120,6 +124,7 @@ const ContextPersistenceManager = () => {
             primaryColor,
             secondaryColor,
             themeMode,
+            apiKey,
           },
         };
         const store = await Store.load("settings.json", { autoSave: false });
@@ -153,6 +158,7 @@ const ContextPersistenceManager = () => {
     primaryColor,
     secondaryColor,
     themeMode,
+    apiKey,
   ]);
   return null;
 };

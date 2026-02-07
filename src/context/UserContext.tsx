@@ -16,7 +16,7 @@ interface UserContextType {
   onThemeChange: (
     primary: string,
     secondary: string,
-    mode: "light" | "dark"
+    mode: "light" | "dark",
   ) => void;
   primaryColor: string;
   secondaryColor: string;
@@ -36,6 +36,8 @@ interface UserContextType {
   setThemeMode: React.Dispatch<React.SetStateAction<"light" | "dark">>;
   showLogo: boolean;
   setShowLogo: React.Dispatch<React.SetStateAction<boolean>>;
+  apiKey: string;
+  setApiKey: React.Dispatch<React.SetStateAction<string>>;
 }
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -47,11 +49,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [themeMode, setThemeMode] = useState<"light" | "dark">("dark");
   const [primaryColor, setPrimaryColor] = useState(theme.palette.primary.main);
   const [secondaryColor, setSecondaryColor] = useState(
-    theme.palette.secondary.main
+    theme.palette.secondary.main,
   );
   const [countTokens, setCountTokens] = useState(true);
   const [formatOutput, setFormatOutput] = useState(true);
   const [includeFileTree, setIncludeFileTree] = useState(true);
+  const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(false);
   const onThemeChange = useCallback(
     (primary: string, secondary: string, mode: "light" | "dark") => {
@@ -66,10 +69,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
             primary: { main: primary },
             secondary: { main: secondary },
           },
-        })
+        }),
       );
     },
-    []
+    [],
   );
 
   return (
@@ -98,6 +101,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setUseIgnoreFiles,
         showShortcuts,
         setShowShortcuts,
+        apiKey,
+        setApiKey,
       }}
     >
       <ThemeProvider theme={currentTheme}>{children}</ThemeProvider>
