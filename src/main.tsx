@@ -12,5 +12,5 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <Sentry.ErrorBoundary fallback={<p>welp, someone dun goofed.</p>}>
       <App />
     </Sentry.ErrorBoundary>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

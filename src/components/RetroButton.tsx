@@ -6,17 +6,20 @@ type RetroButtonProps = ButtonProps;
 const RetroButton = styled(Button, {
   shouldForwardProp: (prop) => prop !== "ownerState",
 })<RetroButtonProps>(({ theme, ...ownerState }) => {
-  const shadowColor = darken(theme.palette.primary.main, 0.5);
+  const colorProp =
+    ownerState.color === "inherit" ? "primary" : ownerState.color || "primary";
+  // @ts-ignore
+  const colorMain =
+    theme.palette[colorProp]?.main || theme.palette.primary.main;
+  const shadowColor = darken(colorMain, 0.5);
   const isOutlined = ownerState.variant === "outlined";
 
   return {
     boxShadow: `4px 4px 0 ${shadowColor}`,
 
-    backgroundColor: isOutlined ? "transparent" : theme.palette.primary.main,
-    color: isOutlined
-      ? theme.palette.primary.main
-      : theme.palette.getContrastText(theme.palette.primary.main),
-    border: isOutlined ? `2px solid ${theme.palette.primary.main}` : "none",
+    backgroundColor: isOutlined ? "transparent" : colorMain,
+    color: isOutlined ? colorMain : theme.palette.getContrastText(colorMain),
+    border: isOutlined ? `2px solid ${colorMain}` : "none",
     borderTopLeftRadius: "4px",
     borderTopRightRadius: "0px",
     borderBottomRightRadius: "4px",
@@ -31,8 +34,8 @@ const RetroButton = styled(Button, {
     transition: "transform 0.1s ease-in-out, box-shadow 0.1s ease-in-out",
 
     "&:hover": {
-      backgroundColor: isOutlined ? "transparent" : theme.palette.primary.main,
-      border: isOutlined ? `2px solid ${theme.palette.primary.main}` : "none",
+      backgroundColor: isOutlined ? "transparent" : colorMain,
+      border: isOutlined ? `2px solid ${colorMain}` : "none",
     },
 
     "&:active": {

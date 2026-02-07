@@ -18,6 +18,15 @@ import { Box, CircularProgress } from "@mui/material";
 import useShortcut from "../utils/useShortcut";
 import RetroButton from "./RetroButton";
 import Toast from "./Toast";
+import { callZai, callOpenAi } from "../api/llm";
+
+const getPlatform = () => {
+  try {
+    return platform();
+  } catch (e) {
+    return "unknown";
+  }
+};
 
 export default function Copy() {
   const {
@@ -30,6 +39,8 @@ export default function Copy() {
     setSelectedFiles,
     setInstructions,
     setMode,
+    chatMessages,
+    setChatMessages,
   } = useAppContext();
   const {
     countTokens,
@@ -37,7 +48,9 @@ export default function Copy() {
     includeFileTree,
     showShortcuts,
     apiMode,
-    apiKey,
+    activeProvider,
+    zaiApiKey,
+    openAiApiKey,
   } = useUserContext();
 
   const [copying, setCopying] = useState(false);
@@ -178,37 +191,57 @@ export default function Copy() {
     const promptText = await buildPromptText();
 
     if (apiMode) {
-      if (!apiKey) {
-        alert("Please set an API Key in Settings first.");
+      if (activeProvider === "zai" && !zaiApiKey) {
+        alert("Please set a Z.AI API Key in Settings first.");
+        setCopying(false);
+        return;
+      }
+      if (activeProvider === "openai" && !openAiApiKey) {
+        alert("Please set an OpenAI API Key in Settings first.");
         setCopying(false);
         return;
       }
 
       try {
-        const url = "https://api.z.ai/api/coding/paas/v4/chat/completions";
-        const response = await fetch(url, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "Accept-Language": "en-US,en",
-          },
-          body: JSON.stringify({
-            model: "glm-4.7-Flash",
-            messages: [{ role: "user", content: promptText }],
-            temperature: 1.0,
-          }),
-        });
+        let content = "";
 
-        if (!response.ok) {
-          throw new Error(`API call failed: ${response.status}`);
+        if (!formatOutput) {
+          // Chat Mode
+          const newUserMessage = {
+            role: "user" as const,
+            content: promptText,
+            displayContent: instructions || "context evaluation",
+            selectedFiles: selectedFiles,
+          };
+
+          setChatMessages((prev) => [...prev, newUserMessage]);
+          setInstructions(""); // Clear input after sending
+
+          const messagesToSend = [...chatMessages, newUserMessage].map((m) => ({
+            role: m.role,
+            content: m.content,
+          }));
+
+          if (activeProvider === "zai") {
+            content = await callZai(messagesToSend, zaiApiKey);
+          } else if (activeProvider === "openai") {
+            content = await callOpenAi(messagesToSend, openAiApiKey);
+          }
+
+          setChatMessages((prev) => [...prev, { role: "assistant", content }]);
+        } else {
+          // Plan Mode (One-off)
+          const messagesToSend = [
+            { role: "user" as const, content: promptText },
+          ];
+          if (activeProvider === "zai") {
+            content = await callZai(messagesToSend, zaiApiKey);
+          } else if (activeProvider === "openai") {
+            content = await callOpenAi(messagesToSend, openAiApiKey);
+          }
+          setMode("plan");
+          setPlan(content);
         }
-
-        const result = await response.json();
-        const content =
-          result.choices[0]?.message?.content || "No content received.";
-        setMode("plan");
-        setPlan(content);
       } catch (error: any) {
         console.error("API Error:", error);
         alert(`Error: ${error.message}`);
@@ -235,14 +268,20 @@ export default function Copy() {
     ctrlKey: true,
     shiftKey: true,
   });
+  useShortcut("Enter", handleCopy, {
+    ctrlKey: true,
+    metaKey: true,
+  });
   useShortcut("N", handleRefresh, {
     ctrlKey: true,
     metaKey: true,
     shiftKey: true,
   });
+  const currentPlatform = getPlatform();
+
   const cmd =
-    platform() === "macos" ? (
-      <Box>
+    currentPlatform === "macos" ? (
+      <Box component="span">
         (
         <KeyboardCommandKey
           sx={{
@@ -255,9 +294,25 @@ export default function Copy() {
     ) : (
       "(Ctrl+Shift+C)"
     );
+
+  const enterCmd =
+    currentPlatform === "macos" ? (
+      <Box component="span">
+        (
+        <KeyboardCommandKey
+          sx={{
+            paddingTop: "2px",
+            fontSize: "14px",
+          }}
+        />
+        +↵)
+      </Box>
+    ) : (
+      "(Ctrl+Enter)"
+    );
   const refreshCmd =
-    platform() !== "macos" ? (
-      <Box>
+    currentPlatform !== "macos" ? (
+      <Box component="span">
         (
         <KeyboardCommandKey
           sx={{
@@ -286,8 +341,14 @@ export default function Copy() {
         disabled={copying || instructions.trim() === ""}
         sx={{ m: 2 }}
       >
-        {copying ? "Processing..." : apiMode ? "Run Prompt" : "Copy Prompt"}{" "}
-        {showShortcuts && cmd}
+        {copying
+          ? "Processing..."
+          : apiMode
+            ? formatOutput
+              ? "Run Prompt"
+              : "Chat"
+            : "Copy Prompt"}{" "}
+        {showShortcuts && (apiMode && !formatOutput ? enterCmd : cmd)}
       </RetroButton>
       <RetroButton
         disabled={

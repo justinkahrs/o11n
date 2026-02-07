@@ -40,6 +40,12 @@ interface UserContextType {
   setApiKey: React.Dispatch<React.SetStateAction<string>>;
   apiMode: boolean;
   setApiMode: React.Dispatch<React.SetStateAction<boolean>>;
+  zaiApiKey: string;
+  setZaiApiKey: React.Dispatch<React.SetStateAction<string>>;
+  openAiApiKey: string;
+  setOpenAiApiKey: React.Dispatch<React.SetStateAction<string>>;
+  activeProvider: "zai" | "openai";
+  setActiveProvider: React.Dispatch<React.SetStateAction<"zai" | "openai">>;
 }
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -57,6 +63,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [formatOutput, setFormatOutput] = useState(true);
   const [includeFileTree, setIncludeFileTree] = useState(true);
   const [apiKey, setApiKey] = useState("");
+  const [zaiApiKey, setZaiApiKey] = useState("");
+  const [openAiApiKey, setOpenAiApiKey] = useState("");
+  const [activeProvider, setActiveProvider] = useState<"zai" | "openai">("zai");
   const [apiMode, setApiMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const onThemeChange = useCallback(
@@ -108,6 +117,12 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setApiKey,
         apiMode,
         setApiMode,
+        zaiApiKey,
+        setZaiApiKey,
+        openAiApiKey,
+        setOpenAiApiKey,
+        activeProvider,
+        setActiveProvider,
       }}
     >
       <ThemeProvider theme={currentTheme}>{children}</ThemeProvider>

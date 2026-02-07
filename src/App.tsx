@@ -13,13 +13,25 @@ import { PlanPreview } from "./components/PlanPreview";
 import { SelectedFiles } from "./components/SelectedFiles";
 import ModeButtons from "./components/ModeButtons";
 import ActionButtons from "./components/ActionButtons";
+import ChatInterface from "./components/ChatInterface";
+import HorizontalSeparator from "./components/HorizontalSeparator";
+import { useUserContext } from "./context/UserContext";
+import { useAppContext } from "./context/AppContext";
 import "./App.css";
-function App() {
+
+function AppContent() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const rightPanelRef = useRef<HTMLDivElement>(null);
   const [explorerWidth, setExplorerWidth] = useState(300);
+  const [selectedFilesHeight, setSelectedFilesHeight] = useState(200);
+  const { formatOutput, apiMode } = useUserContext();
+  const { selectedFiles } = useAppContext();
+
+  const isChatMode = !formatOutput && apiMode;
+  const showSelectedFiles = !isChatMode || selectedFiles.length > 0;
 
   return (
-    <Providers>
+    <>
       <Grid
         ref={containerRef}
         style={{ display: "flex", height: "100vh", padding: "16px" }}
@@ -47,6 +59,7 @@ function App() {
         />
         {/* Right Panel */}
         <Grid
+          ref={rightPanelRef}
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -56,17 +69,49 @@ function App() {
           }}
           justifyContent="flex-start"
         >
-          <ModeButtons />
-          <InstructionsInput />
+          {!isChatMode && <ModeButtons />}
+          {!isChatMode && <PlanInput />}
+          {!isChatMode && <PlanPreview />}
+
+          {showSelectedFiles && (
+            <Box
+              sx={{
+                height: isChatMode ? selectedFilesHeight : "auto",
+                overflow: "auto",
+                flexShrink: 0,
+              }}
+            >
+              <SelectedFiles />
+            </Box>
+          )}
+
+          {/* Chat section */}
+          {isChatMode && (
+            <>
+              {selectedFiles.length > 0 && (
+                <HorizontalSeparator
+                  containerRef={rightPanelRef}
+                  setHeight={setSelectedFilesHeight}
+                />
+              )}
+              <ChatInterface />
+            </>
+          )}
           <TemplateSelection />
-          <PlanInput />
-          <PlanPreview />
-          <SelectedFiles />
+          <InstructionsInput />
           <ActionButtons />
         </Grid>
       </Grid>
       <FilePreview />
       <AutoUpdateModal />
+    </>
+  );
+}
+
+function App() {
+  return (
+    <Providers>
+      <AppContent />
     </Providers>
   );
 }

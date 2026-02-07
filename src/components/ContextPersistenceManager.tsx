@@ -36,11 +36,15 @@ const ContextPersistenceManager = () => {
     primaryColor,
     secondaryColor,
     themeMode,
-    apiKey,
-    setApiKey,
     apiMode,
     setApiMode,
     onThemeChange,
+    zaiApiKey,
+    setZaiApiKey,
+    openAiApiKey,
+    setOpenAiApiKey,
+    activeProvider,
+    setActiveProvider,
   } = useUserContext();
   // On application startup, load the saved context and update both contexts.
   useEffect(() => {
@@ -75,8 +79,15 @@ const ContextPersistenceManager = () => {
               contextObj.userContext.secondaryColor,
               contextObj.userContext.themeMode,
             );
-            setApiKey(contextObj.userContext.apiKey || "");
             setApiMode(contextObj.userContext.apiMode || false);
+            // Migration: preserve old apiKey as zaiApiKey if zaiApiKey is missing
+            const storedZaiKey =
+              contextObj.userContext.zaiApiKey ||
+              contextObj.userContext.apiKey ||
+              "";
+            setZaiApiKey(storedZaiKey);
+            setOpenAiApiKey(contextObj.userContext.openAiApiKey || "");
+            setActiveProvider(contextObj.userContext.activeProvider || "zai");
           }
         }
       } catch (err) {
@@ -100,9 +111,10 @@ const ContextPersistenceManager = () => {
     setCountTokens,
     setFormatOutput,
     setLoading,
-    onThemeChange,
-    setApiKey,
     setApiMode,
+    setZaiApiKey,
+    setOpenAiApiKey,
+    setActiveProvider,
   ]);
   // Save context on app exit using the beforeunload event.
   useEffect(() => {
@@ -128,7 +140,9 @@ const ContextPersistenceManager = () => {
             primaryColor,
             secondaryColor,
             themeMode,
-            apiKey,
+            zaiApiKey,
+            openAiApiKey,
+            activeProvider,
             apiMode,
           },
         };
@@ -163,7 +177,9 @@ const ContextPersistenceManager = () => {
     primaryColor,
     secondaryColor,
     themeMode,
-    apiKey,
+    zaiApiKey,
+    openAiApiKey,
+    activeProvider,
     apiMode,
   ]);
   return null;

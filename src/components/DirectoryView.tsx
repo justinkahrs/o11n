@@ -49,7 +49,7 @@ export default function DirectoryView({
 
   const handleToggle = async (
     _event: React.SyntheticEvent,
-    nodeIds: string[]
+    nodeIds: string[],
   ) => {
     const newlyExpanded = nodeIds.filter((id) => !expanded.includes(id));
     // Load children for the root node if it is newly expanded.
@@ -60,7 +60,7 @@ export default function DirectoryView({
     for (const id of newlyExpanded) {
       if (id !== node.id) {
         const child = node.children.find(
-          (c) => c.id === id && c.isDirectory && !c.loadedChildren
+          (c) => c.id === id && c.isDirectory && !c.loadedChildren,
         );
         if (child) {
           await loadChildren(child);
@@ -72,7 +72,7 @@ export default function DirectoryView({
 
   const handleSearchNodeSelect = async (
     _event: React.SyntheticEvent,
-    nodeId: string
+    nodeId: string,
   ) => {
     const hit = hits.find((h) => h.id === nodeId);
     if (!hit) return;
@@ -95,7 +95,7 @@ export default function DirectoryView({
   };
   const handleNodeSelect = async (
     _event: React.SyntheticEvent,
-    nodeIds: string | string[]
+    nodeIds: string | string[],
   ) => {
     _event.stopPropagation();
     const nodeId = Array.isArray(nodeIds) ? nodeIds[0] : nodeIds;
@@ -152,7 +152,7 @@ export default function DirectoryView({
       setExpanded([]);
     }
   }, [node.loadedChildren]);
-useEffect(() => {
+  useEffect(() => {
     if (searchQuery) {
       setSelectedHitIndex(-1);
     }
@@ -171,7 +171,7 @@ useEffect(() => {
       if (selectedHitIndex !== -1) setSelectedHitIndex(-1);
     }
   }, [isActive, hits, searchQuery, selectedHitIndex, onMoveNext]);
-useShortcut(
+  useShortcut(
     "ArrowDown",
     (_e) => {
       if (!isActive) return;
@@ -191,9 +191,9 @@ useShortcut(
         });
       }
     },
-    { targetSelector: ".search-files" }
+    { targetSelector: ".search-files" },
   );
-useShortcut(
+  useShortcut(
     "ArrowUp",
     (_e) => {
       if (!isActive) return;
@@ -211,20 +211,20 @@ useShortcut(
         });
       }
     },
-    { targetSelector: ".search-files" }
+    { targetSelector: ".search-files" },
   );
-useShortcut(
+  useShortcut(
     "Enter",
     (_e) => {
       if (!isActive) return;
       if (searchQuery && hits.length > 0 && selectedHitIndex !== -1) {
         handleSearchNodeSelect(
           {} as React.SyntheticEvent,
-          hits[selectedHitIndex].id
+          hits[selectedHitIndex].id,
         );
       }
     },
-    { targetSelector: ".search-files" }
+    { targetSelector: ".search-files" },
   );
 
   return searchQuery ? (
@@ -238,7 +238,7 @@ useShortcut(
         aria-label="search results"
         defaultCollapseIcon={<ExpandMore />}
         defaultExpandIcon={<ChevronRight />}
-selected={
+        selected={
           isActive && selectedHitIndex !== -1 && hits.length > 0
             ? [hits[selectedHitIndex].id]
             : []
@@ -279,23 +279,25 @@ selected={
       {node.loadedChildren
         ? node.children.map((child) => {
             if (child.isDirectory) {
-              return (<TreeItem
-  key={child.path}
-  nodeId={child.path}
-  label={
-    <Box
-      sx={{
-        display: "flex",
-        alignItems: "center",
-        gap: 1,
-        "&:hover .file-icon": { color: "primary.main" },
-      }}
-    >
-      <FolderIcon className="file-icon" fontSize="small" />
-      <span>{child.name}/</span>
-    </Box>
-  }
-><DirectoryView
+              return (
+                <TreeItem
+                  key={child.path}
+                  nodeId={child.path}
+                  label={
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                        "&:hover .file-icon": { color: "primary.main" },
+                      }}
+                    >
+                      <FolderIcon className="file-icon" fontSize="small" />
+                      <span>{child.name}/</span>
+                    </Box>
+                  }
+                >
+                  <DirectoryView
                     onPreviewFile={onPreviewFile}
                     node={child}
                     onFileSelect={onFileSelect}
@@ -305,20 +307,23 @@ selected={
                     isActive={isActive}
                     onMoveNext={onMoveNext}
                     onMovePrev={onMovePrev}
-                  /></TreeItem>
+                  />
+                </TreeItem>
               );
             }
-            return (<FileItemWithHover
-  key={child.path}
-  file={{
-    id: child.path,
-    name: child.name,
-    path: child.path,
-    size: 0,
-  }}
-  nodeId={child.path}
-  onPreviewFile={onPreviewFile}
-/>);
+            return (
+              <FileItemWithHover
+                key={child.path}
+                file={{
+                  id: child.path,
+                  name: child.name,
+                  path: child.path,
+                  size: 0,
+                }}
+                nodeId={child.path}
+                onPreviewFile={onPreviewFile}
+              />
+            );
           })
         : null}
     </TreeView>

@@ -6,6 +6,14 @@ import useShortcut from "../utils/useShortcut";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 
+const getPlatform = () => {
+  try {
+    return platform();
+  } catch (e) {
+    return "unknown";
+  }
+};
+
 export function InstructionsInput() {
   const { instructions, mode, setInstructions } = useAppContext();
   const { formatOutput, showShortcuts } = useUserContext();
@@ -23,7 +31,7 @@ export function InstructionsInput() {
     {
       ctrlKey: true,
       metaKey: true,
-    }
+    },
   );
   useEffect(() => {
     if (mode === "plan" && inputRef.current) {
@@ -31,7 +39,7 @@ export function InstructionsInput() {
     }
   }, [mode]);
   const cmd =
-    platform() === "macos" ? (
+    getPlatform() === "macos" ? (
       <>
         (
         <KeyboardCommandKey

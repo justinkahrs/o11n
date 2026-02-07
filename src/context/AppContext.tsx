@@ -12,7 +12,7 @@ interface AppContextType {
   handleFileSelect: (file: FileNode) => void;
   handleFilePreviewClick: (
     _event: React.SyntheticEvent,
-    file: FileNode
+    file: FileNode,
   ) => void;
   mode: "talk" | "plan" | "do";
   plan: string;
@@ -40,6 +40,22 @@ interface AppContextType {
   setTotalTokenCount: React.Dispatch<React.SetStateAction<number>>;
   errorReports: ErrorReport[];
   setErrorReports: React.Dispatch<React.SetStateAction<ErrorReport[]>>;
+  chatMessages: {
+    role: "user" | "assistant";
+    content: string;
+    displayContent?: string;
+    selectedFiles?: FileNode[];
+  }[];
+  setChatMessages: React.Dispatch<
+    React.SetStateAction<
+      {
+        role: "user" | "assistant";
+        content: string;
+        displayContent?: string;
+        selectedFiles?: FileNode[];
+      }[]
+    >
+  >;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -58,10 +74,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [errorReports, setErrorReports] = useState<ErrorReport[]>([]);
   const [fileSuccesses, setFileSuccesses] = useState<SuccessReport[]>([]);
   const [configFiles, setConfigFiles] = useState<TreeItemData[]>([]);
+  const [chatMessages, setChatMessages] = useState<
+    {
+      role: "user" | "assistant";
+      content: string;
+      displayContent?: string;
+      selectedFiles?: FileNode[];
+    }[]
+  >([]);
   const [totalTokenCount, setTotalTokenCount] = useState<number>(0);
   const handleFilePreviewClick = (
     _event: React.SyntheticEvent,
-    file: FileNode
+    file: FileNode,
   ) => {
     // If the same file is clicked again, toggle off the preview.
     if (selectedFile && file && selectedFile.id === file.id) {
@@ -108,6 +132,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setTotalTokenCount,
         configFiles,
         setConfigFiles,
+        chatMessages,
+        setChatMessages,
       }}
     >
       {children}
