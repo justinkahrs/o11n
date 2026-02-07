@@ -33,10 +33,6 @@ const ChatInterface = () => {
     });
   };
 
-  if (chatMessages.length === 0) {
-    return null;
-  }
-
   return (
     <Box
       sx={{
@@ -45,6 +41,7 @@ const ChatInterface = () => {
         p: 2,
         display: "flex",
         flexDirection: "column",
+        justifyContent: "flex-end",
         gap: 2,
       }}
     >

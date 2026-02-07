@@ -71,7 +71,6 @@ function AppContent() {
         >
           {!isChatMode && <ModeButtons />}
           {!isChatMode && <PlanInput />}
-          {!isChatMode && <PlanPreview />}
 
           {showSelectedFiles && (
             <Box
@@ -84,6 +83,8 @@ function AppContent() {
               <SelectedFiles />
             </Box>
           )}
+
+          {!isChatMode && <PlanPreview />}
 
           {/* Chat section */}
           {isChatMode && (
