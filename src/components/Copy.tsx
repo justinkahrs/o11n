@@ -4,7 +4,12 @@ import { readTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { generateFileMap } from "../utils/generateFileMap";
 import formattingInstructions from "../utils/mdFormattingInstructions.txt?raw";
 import { getMarkdownLanguage } from "../utils/markdownLanguages";
-import { Clear, ContentCopy, KeyboardCommandKey } from "@mui/icons-material";
+import {
+  Clear,
+  ContentCopy,
+  KeyboardCommandKey,
+  PlayArrow,
+} from "@mui/icons-material";
 import { useAppContext } from "../context/AppContext";
 import { useUserContext } from "../context/UserContext";
 import { invoke } from "@tauri-apps/api/core";
@@ -24,14 +29,21 @@ export default function Copy() {
     setTotalTokenCount,
     setSelectedFiles,
     setInstructions,
+    setMode,
   } = useAppContext();
-  const { countTokens, formatOutput, includeFileTree, showShortcuts } =
-    useUserContext();
+  const {
+    countTokens,
+    formatOutput,
+    includeFileTree,
+    showShortcuts,
+    apiMode,
+    apiKey,
+  } = useUserContext();
 
   const [copying, setCopying] = useState(false);
   const [promptCopied, setPromptCopied] = useState(false);
   const [_promptTokenCount, setPromptTokenCount] = useState<number | null>(
-    null
+    null,
   );
 
   const lastBuildTimeRef = useRef<number>(0);
@@ -105,7 +117,7 @@ export default function Copy() {
             content = `/* Error reading template file: ${err} */`;
           }
           const markdownExtension = getMarkdownLanguage(
-            getExtension(template.path)
+            getExtension(template.path),
           );
           lines.push(`**File:** ${template.path}`);
           lines.push(`\`\`\`${markdownExtension}`);
@@ -164,13 +176,55 @@ export default function Copy() {
   async function handleCopy() {
     setCopying(true);
     const promptText = await buildPromptText();
-    await writeText(promptText);
+
+    if (apiMode) {
+      if (!apiKey) {
+        alert("Please set an API Key in Settings first.");
+        setCopying(false);
+        return;
+      }
+
+      try {
+        const url = "https://api.z.ai/api/coding/paas/v4/chat/completions";
+        const response = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "Accept-Language": "en-US,en",
+          },
+          body: JSON.stringify({
+            model: "glm-4.7-Flash",
+            messages: [{ role: "user", content: promptText }],
+            temperature: 1.0,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`API call failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        const content =
+          result.choices[0]?.message?.content || "No content received.";
+        setMode("plan");
+        setPlan(content);
+      } catch (error: any) {
+        console.error("API Error:", error);
+        alert(`Error: ${error.message}`);
+      }
+    } else {
+      await writeText(promptText);
+      setPromptCopied(true);
+      setTimeout(() => {
+        setPromptCopied(false);
+      }, 3000);
+    }
+
     setCopying(false);
-    setPlan("");
-    setPromptCopied(true);
-    setTimeout(() => {
-      setPromptCopied(false);
-    }, 3000);
+    if (!apiMode) {
+      setPlan("");
+    }
   }
   function handleRefresh() {
     setInstructions("");
@@ -223,6 +277,8 @@ export default function Copy() {
         startIcon={
           copying ? (
             <CircularProgress size={20} color="inherit" />
+          ) : apiMode ? (
+            <PlayArrow />
           ) : (
             <ContentCopy />
           )
@@ -230,7 +286,8 @@ export default function Copy() {
         disabled={copying || instructions.trim() === ""}
         sx={{ m: 2 }}
       >
-        {copying ? "Processing..." : "Copy Prompt"} {showShortcuts && cmd}
+        {copying ? "Processing..." : apiMode ? "Run Prompt" : "Copy Prompt"}{" "}
+        {showShortcuts && cmd}
       </RetroButton>
       <RetroButton
         disabled={

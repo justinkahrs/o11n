@@ -38,6 +38,8 @@ interface UserContextType {
   setShowLogo: React.Dispatch<React.SetStateAction<boolean>>;
   apiKey: string;
   setApiKey: React.Dispatch<React.SetStateAction<string>>;
+  apiMode: boolean;
+  setApiMode: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -55,6 +57,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [formatOutput, setFormatOutput] = useState(true);
   const [includeFileTree, setIncludeFileTree] = useState(true);
   const [apiKey, setApiKey] = useState("");
+  const [apiMode, setApiMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const onThemeChange = useCallback(
     (primary: string, secondary: string, mode: "light" | "dark") => {
@@ -103,6 +106,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setShowShortcuts,
         apiKey,
         setApiKey,
+        apiMode,
+        setApiMode,
       }}
     >
       <ThemeProvider theme={currentTheme}>{children}</ThemeProvider>

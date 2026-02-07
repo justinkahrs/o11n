@@ -125,6 +125,7 @@ export default function SettingsMenu() {
             label="Show token counts"
           />
         </MenuItem>
+
         <MenuItem>
           <FormControlLabel
             control={

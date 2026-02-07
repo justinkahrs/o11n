@@ -7,6 +7,8 @@ import {
   TextField,
   InputAdornment,
   IconButton,
+  FormControlLabel,
+  Switch,
 } from "@mui/material";
 import { Visibility, VisibilityOff, Save, Close } from "@mui/icons-material";
 import { useUserContext } from "../context/UserContext";
@@ -18,7 +20,7 @@ type ApiKeysModalProps = {
 };
 
 export default function ApiKeysModal({ open, onClose }: ApiKeysModalProps) {
-  const { apiKey, setApiKey } = useUserContext();
+  const { apiKey, setApiKey, apiMode, setApiMode } = useUserContext();
   const [inputKey, setInputKey] = useState("");
   const [showKey, setShowKey] = useState(false);
 
@@ -63,6 +65,16 @@ export default function ApiKeysModal({ open, onClose }: ApiKeysModalProps) {
             ),
           }}
           sx={{ mt: 1 }}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={apiMode}
+              onChange={(e) => setApiMode(e.target.checked)}
+            />
+          }
+          label="API Mode"
+          sx={{ mt: 2 }}
         />
       </DialogContent>
       <DialogActions
