@@ -30,6 +30,7 @@ import { isImage } from "../utils/image";
 import CreateItemModal from "./CreateItemModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { writeTextFile, mkdir, remove } from "@tauri-apps/plugin-fs";
+import SettingsMenu from "./SettingsMenu";
 
 export default function FileExplorer() {
   const theme = useTheme();
@@ -434,8 +435,8 @@ export default function FileExplorer() {
   return (
     <Box
       sx={{
-        minWidth: "30%",
-        height: "95%",
+        width: "100%",
+        height: "100%",
         display: "flex",
         flexDirection: "column",
       }}
@@ -464,7 +465,16 @@ export default function FileExplorer() {
           setSearchQuery={setSearchQuery}
         />
       </Box>
-      <Box sx={{ flexGrow: 1, overflowY: "auto", overflowX: "auto", p: 1 }}>
+      {/* Project list */}
+      <Box
+        sx={{
+          flexGrow: 1,
+          overflowY: "auto",
+          overflowX: "hidden",
+          px: 1,
+          pb: 2,
+        }}
+      >
         {projects.length === 0 ? (
           <Typography color="primary" variant="body1">
             Load a project and select files to add context to your prompt.
@@ -573,7 +583,7 @@ export default function FileExplorer() {
                 <Box
                   sx={{
                     p: 1,
-                    // maxHeight: 400,
+                    maxHeight: "calc(100vh - 450px)",
                     overflowY: "auto",
                   }}
                 >
@@ -615,6 +625,17 @@ export default function FileExplorer() {
             </Box>
           ))
         )}
+      </Box>
+      <Box
+        sx={{
+          flexShrink: 0,
+          mt: "auto",
+          p: 1,
+          borderTop: "1px solid",
+          borderColor: "divider",
+        }}
+      >
+        <SettingsMenu />
       </Box>
       <CreateItemModal
         open={isModalOpen}

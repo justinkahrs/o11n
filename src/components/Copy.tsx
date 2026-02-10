@@ -239,7 +239,7 @@ export default function Copy() {
           } else if (activeProvider === "openai") {
             content = await callOpenAi(messagesToSend, openAiApiKey);
           }
-          setMode("plan");
+          setMode("do");
           setPlan(content);
         }
       } catch (error: any) {

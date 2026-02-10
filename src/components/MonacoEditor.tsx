@@ -2,6 +2,7 @@ import type React from "react";
 import { useRef, useEffect } from "react";
 import * as monaco from "monaco-editor";
 import { useAppContext } from "../context/AppContext";
+import { useUserContext } from "../context/UserContext";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import "monaco-editor/min/vs/editor/editor.main.css";
 import JSON5 from "json5";
@@ -21,6 +22,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
   originalValue = "",
 }) => {
   const { configFiles } = useAppContext();
+  const { themeMode } = useUserContext();
   const containerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<
     monaco.editor.IStandaloneCodeEditor | monaco.editor.IDiffEditor
@@ -36,6 +38,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       const diffEditor = monaco.editor.createDiffEditor(containerRef.current, {
         automaticLayout: true,
         minimap: { enabled: false },
+        theme: themeMode === "dark" ? "vs-dark" : "vs",
       });
       const originalModel = monaco.editor.createModel(originalValue, language);
       const modifiedModel = monaco.editor.createModel(value, language);
@@ -58,6 +61,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       language,
       automaticLayout: true,
       minimap: { enabled: false },
+      theme: themeMode === "dark" ? "vs-dark" : "vs",
     });
     editorRef.current = editor;
     const disposable = editor.onDidChangeModelContent(() => {
@@ -80,6 +84,10 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
       }
     }
   }, [value, isDiff]);
+  // Update theme when themeMode changes
+  useEffect(() => {
+    monaco.editor.setTheme(themeMode === "dark" ? "vs-dark" : "vs");
+  }, [themeMode]);
   // Load tsconfig compilerOptions from context into Monaco
   useEffect(() => {
     const tsConfigFile = configFiles?.find((c) => c.name === "tsconfig.json");
@@ -103,7 +111,7 @@ const MonacoEditor: React.FC<MonacoEditorProps> = ({
           const parsed = JSON5.parse(text);
           if (parsed.compilerOptions) {
             monaco.languages.typescript.typescriptDefaults.setCompilerOptions(
-              parsed.compilerOptions
+              parsed.compilerOptions,
             );
           }
         } catch (e) {

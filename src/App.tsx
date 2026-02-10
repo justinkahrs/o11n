@@ -4,7 +4,6 @@ import AutoUpdateModal from "./components/AutoUpdateModal";
 import FileExplorer from "./components/FileExplorer";
 import FilePreview from "./components/FilePreview";
 import { Providers } from "./components/Providers";
-import SettingsMenu from "./components/SettingsMenu";
 import VerticalSeparator from "./components/VerticalSeparator";
 import { InstructionsInput } from "./components/InstructionsInput";
 import TemplateSelection from "./components/TemplateSelection";
@@ -23,7 +22,7 @@ function AppContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const rightPanelRef = useRef<HTMLDivElement>(null);
   const [explorerWidth, setExplorerWidth] = useState(300);
-  const [selectedFilesHeight, setSelectedFilesHeight] = useState(200);
+  const [selectedFilesHeight, setSelectedFilesHeight] = useState(250);
   const { formatOutput, apiMode } = useUserContext();
   const { selectedFiles } = useAppContext();
 
@@ -46,12 +45,7 @@ function AppContent() {
             height: "100%",
           }}
         >
-          <div style={{ flexGrow: 1, overflow: "auto" }}>
-            <FileExplorer />
-          </div>
-          <Box sx={{ alignSelf: "flex-start" }}>
-            <SettingsMenu />
-          </Box>
+          <FileExplorer />
         </Grid>
         <VerticalSeparator
           containerRef={containerRef}
@@ -70,7 +64,7 @@ function AppContent() {
           justifyContent="flex-start"
         >
           {formatOutput && <ModeButtons />}
-          {!isChatMode && <PlanInput />}
+          {!isChatMode && !apiMode && <PlanInput />}
 
           {showSelectedFiles && (
             <Box
