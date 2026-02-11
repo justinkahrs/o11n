@@ -32,7 +32,7 @@ const getLanguage = (fileName: string): string => {
       return "javascript";
     case "json":
       return "json";
-case "html":
+    case "html":
     case "xml":
       return "xml";
     case "rs":
@@ -71,7 +71,7 @@ function FilePreview({ file }: FilePreviewProps) {
   }, [file, text, configFiles]);
 
   const isSelected = selectedFiles.some(
-    (selected) => selected.path === file.path
+    (selected) => selected.path === file.path,
   );
   useEffect(() => {
     let isMounted = true;
@@ -122,11 +122,19 @@ function FilePreview({ file }: FilePreviewProps) {
     ) : (
       "(Ctrl+S)"
     );
-  return (<Card
+  return (
+    <Card
       className="file-preview-card"
       variant="outlined"
-      sx={{ display: "flex", flexDirection: "column", height: "100%", width: "100%", overflow: "auto" }}
-><CardHeader
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        width: "100%",
+        overflow: "auto",
+      }}
+    >
+      <CardHeader
         title={
           <Grid container alignItems="center" justifyContent="space-between">
             <Grid item>
@@ -169,7 +177,15 @@ function FilePreview({ file }: FilePreviewProps) {
           zIndex: 1,
         }}
       />
-      <CardContent sx={{ margin: 0, padding: 0, display: "flex", flexDirection: "column", flexGrow: 1 }}>
+      <CardContent
+        sx={{
+          margin: 0,
+          padding: 0,
+          display: "flex",
+          flexDirection: "column",
+          flexGrow: 1,
+        }}
+      >
         {isImage(file.name) ? (
           <Box
             sx={{
@@ -202,6 +218,7 @@ function FilePreview({ file }: FilePreviewProps) {
                 setText(value);
                 setIsDirty(true);
               }}
+              filePath={file.path}
             />
           </Box>
         )}

@@ -1,0 +1,24 @@
+/* Git diff indicators */
+.git-added-gutter {
+  border-left: 3px solid #4caf50;
+  margin-left: 5px;
+}
+
+.git-modified-gutter {
+  border-left: 3px solid #2196f3;
+  margin-left: 5px;
+}
+
+.git-removed-gutter {
+  /* For removed lines, we might want a different indicator, e.g. a triangle */
+  border-left: 3px solid #f44336;
+  margin-left: 5px;
+}
+
+/* Optional: faint background for the line content */
+.git-added-line-content {
+  background-color: rgba(76, 175, 80, 0.1);
+}
+.git-modified-line-content {
+  background-color: rgba(33, 150, 243, 0.1);
+}
