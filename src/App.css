@@ -1,21 +1,62 @@
- * {
-     -webkit-user-select: none;
-     -moz-user-select: none;
-     -ms-user-select: none;
-     user-select: none;
- }
+html,
+body,
+#root {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
 
- * input,
- textarea,
- [contenteditable="true"],
- select {
-     user-select: text;
- }
+* {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 
- .file-preview-card,
- .file-preview-card * {
-     -webkit-user-select: text !important;
-     -moz-user-select: text !important;
-     -ms-user-select: text !important;
-     user-select: text !important;
- }
+* input,
+textarea,
+[contenteditable="true"],
+select {
+  user-select: text;
+}
+
+.file-preview-card,
+.file-preview-card * {
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  user-select: text !important;
+}
+
+.app-container {
+  display: grid;
+  grid-template-columns: var(--explorer-width, 300px) auto 1fr;
+  height: 100vh;
+  padding: 16px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.app-container:not(.resizing) {
+  transition: grid-template-columns 0.3s ease;
+}
+
+.left-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.left-panel.collapsed {
+  align-items: center;
+}
+
+.right-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}

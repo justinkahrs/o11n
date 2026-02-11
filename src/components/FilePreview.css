@@ -1,6 +1,6 @@
 pre .comment,
 pre .title {
-    color: #969896;
+  color: #969896;
 }
 
 pre .variable,
@@ -15,7 +15,7 @@ pre .html .doctype,
 pre .css .id,
 pre .css .class,
 pre .css .pseudo {
-    color: #d54e53;
+  color: #d54e53;
 }
 
 pre .number,
@@ -24,13 +24,13 @@ pre .built_in,
 pre .literal,
 pre .params,
 pre .constant {
-    color: #e78c45;
+  color: #e78c45;
 }
 
 pre .class,
 pre .ruby .class .title,
 pre .css .rules .attribute {
-    color: #e7c547;
+  color: #e7c547;
 }
 
 pre .string,
@@ -39,12 +39,12 @@ pre .inheritance,
 pre .header,
 pre .ruby .symbol,
 pre .xml .cdata {
-    color: #b9ca4a;
+  color: #b9ca4a;
 }
 
 .tomorrow-aqua,
 pre .css .hexcolor {
-    color: #70c0b1;
+  color: #70c0b1;
 }
 
 pre .function,
@@ -55,24 +55,24 @@ pre .ruby .title .keyword,
 pre .perl .sub,
 pre .javascript .title,
 pre .coffeescript .title {
-    color: #7aa6da;
+  color: #7aa6da;
 }
 
 pre .keyword,
 pre .javascript .function {
-    color: #c397d8;
+  color: #c397d8;
 }
 
 pre code {
-    display: block;
-    background: black;
-    color: #eaeaea;
-    font-family: Menlo, Monaco, Consolas, monospace;
-    line-height: 1.5;
-    border: 1px solid #ccc;
-    padding: 10px;
+  display: block;
+  background: black;
+  color: #eaeaea;
+  font-family: Menlo, Monaco, Consolas, monospace;
+  line-height: 1.5;
+  border: 1px solid #ccc;
+  padding: 10px;
 }
 
 .file-preview-card pre {
-    user-select: text !important;
+  user-select: text !important;
 }

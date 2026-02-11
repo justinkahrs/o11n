@@ -8,7 +8,11 @@ import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useUserContext } from "../context/UserContext";
 
-export function SelectedFiles() {
+interface SelectedFilesProps {
+  isCollapsed?: boolean;
+}
+
+export function SelectedFiles({ isCollapsed = false }: SelectedFilesProps) {
   const { mode, selectedFiles, setSelectedFiles, totalTokenCount } =
     useAppContext();
   const { countTokens } = useUserContext();
@@ -31,7 +35,7 @@ export function SelectedFiles() {
               return { ...file, tokenSize: Number(tokenCount) };
             }
             return file;
-          })
+          }),
         );
         if (hasUpdate) {
           setSelectedFiles(updatedFiles);
@@ -50,7 +54,7 @@ export function SelectedFiles() {
       acc[folder].push(file);
       return acc;
     },
-    {} as { [folder: string]: FileNode[] }
+    {} as { [folder: string]: FileNode[] },
   );
 
   function handleRemoveFile(fileId: string) {
@@ -59,7 +63,64 @@ export function SelectedFiles() {
 
   function handleRemoveFolder(folderPath: string) {
     setSelectedFiles((prev) =>
-      prev.filter((file) => file.projectRoot !== folderPath)
+      prev.filter((file) => file.projectRoot !== folderPath),
+    );
+  }
+
+  if (isCollapsed) {
+    return (
+      !doMode && (
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            px: 2,
+            height: "100%",
+            overflow: "hidden",
+          }}
+        >
+          {countTokens && (
+            <Typography
+              variant="caption"
+              sx={{ fontWeight: "bold", whiteSpace: "nowrap" }}
+            >
+              Tokens: {totalTokenCount}
+            </Typography>
+          )}
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              overflowX: "auto",
+              flex: 1,
+              "&::-webkit-scrollbar": { display: "none" },
+              msOverflowStyle: "none",
+              scrollbarWidth: "none",
+            }}
+          >
+            {selectedFiles
+              .sort((a, b) => a.name.localeCompare(b.name))
+              .map((file) => (
+                <Tooltip key={file.id} title={file.path} arrow>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      backgroundColor: "action.hover",
+                      px: 1,
+                      borderRadius: 1,
+                      whiteSpace: "nowrap",
+                      cursor: "default",
+                      fontSize: "0.7rem",
+                    }}
+                  >
+                    {file.name}
+                  </Typography>
+                </Tooltip>
+              ))}
+          </Box>
+        </Box>
+      )
     );
   }
 
@@ -111,7 +172,7 @@ export function SelectedFiles() {
             const filesInFolder = groupedFiles[folder];
             const folderSize = filesInFolder.reduce(
               (sum, f) => sum + (f.size ?? 0),
-              0
+              0,
             );
             const percentage = totalSize
               ? ((folderSize / totalSize) * 100).toFixed(1)

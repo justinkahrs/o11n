@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { Grid, Box } from "@mui/material";
 import AutoUpdateModal from "./components/AutoUpdateModal";
 import FileExplorer from "./components/FileExplorer";
 import FilePreview from "./components/FilePreview";
@@ -22,60 +21,58 @@ function AppContent() {
   const containerRef = useRef<HTMLDivElement>(null);
   const rightPanelRef = useRef<HTMLDivElement>(null);
   const [explorerWidth, setExplorerWidth] = useState(300);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   const [selectedFilesHeight, setSelectedFilesHeight] = useState(250);
+  const [isHorizontalCollapsed, setIsHorizontalCollapsed] = useState(false);
   const { formatOutput, apiMode } = useUserContext();
   const { selectedFiles } = useAppContext();
 
   const isChatMode = !formatOutput && apiMode;
   const showSelectedFiles = !isChatMode || selectedFiles.length > 0;
 
+  const effectiveWidth = isCollapsed ? 60 : explorerWidth;
+  const effectiveSelectedFilesHeight = isHorizontalCollapsed
+    ? "40px"
+    : isChatMode
+      ? `${selectedFilesHeight}px`
+      : "auto";
+
   return (
     <>
-      <Grid
+      <div
         ref={containerRef}
-        style={{ display: "flex", height: "100vh", padding: "16px" }}
+        className={`app-container ${isResizing ? "resizing" : ""}`}
+        style={
+          { "--explorer-width": `${effectiveWidth}px` } as React.CSSProperties
+        }
       >
         {/* Left Panel */}
-        <Grid
-          style={{
-            width: explorerWidth,
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            height: "100%",
-          }}
-        >
-          <FileExplorer />
-        </Grid>
+        <div className={`left-panel ${isCollapsed ? "collapsed" : ""}`}>
+          <FileExplorer isCollapsed={isCollapsed} />
+        </div>
         <VerticalSeparator
           containerRef={containerRef}
           setExplorerWidth={setExplorerWidth}
+          isCollapsed={isCollapsed}
+          setIsCollapsed={setIsCollapsed}
+          setIsResizing={setIsResizing}
         />
         {/* Right Panel */}
-        <Grid
-          ref={rightPanelRef}
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            flexGrow: 1,
-            height: "100%",
-            minWidth: 0,
-          }}
-          justifyContent="flex-start"
-        >
+        <div ref={rightPanelRef} className="right-panel">
           {formatOutput && <ModeButtons />}
           {!isChatMode && !apiMode && <PlanInput />}
 
           {showSelectedFiles && (
-            <Box
-              sx={{
-                height: isChatMode ? selectedFilesHeight : "auto",
-                overflow: "auto",
+            <div
+              style={{
+                height: effectiveSelectedFilesHeight,
+                overflow: isHorizontalCollapsed ? "hidden" : "auto",
                 flexShrink: 0,
               }}
             >
-              <SelectedFiles />
-            </Box>
+              <SelectedFiles isCollapsed={isHorizontalCollapsed} />
+            </div>
           )}
 
           {!isChatMode && <PlanPreview />}
@@ -87,6 +84,8 @@ function AppContent() {
                 <HorizontalSeparator
                   containerRef={rightPanelRef}
                   setHeight={setSelectedFilesHeight}
+                  isCollapsed={isHorizontalCollapsed}
+                  setIsCollapsed={setIsHorizontalCollapsed}
                 />
               )}
               <ChatInterface />
@@ -95,8 +94,8 @@ function AppContent() {
           <TemplateSelection />
           <InstructionsInput />
           <ActionButtons />
-        </Grid>
-      </Grid>
+        </div>
+      </div>
       <FilePreview />
       <AutoUpdateModal />
     </>

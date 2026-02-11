@@ -14,6 +14,7 @@ import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
 import DirectoryView from "./DirectoryView";
 import LogoSVG from "./LogoSVG";
+import SmallLogoSVG from "./SmallLogoSVG";
 import SearchFiles from "./SearchFiles";
 import RetroButton from "./RetroButton";
 import { useAppContext } from "../context/AppContext";
@@ -21,7 +22,6 @@ import { useUserContext } from "../context/UserContext";
 import useShortcut from "../utils/useShortcut";
 import { platform } from "@tauri-apps/plugin-os";
 import { KeyboardCommandKey } from "@mui/icons-material";
-import { Grid } from "@mui/material";
 import { useFS } from "../api/fs";
 // Add imports for file metadata and token counting
 import { stat, BaseDirectory } from "@tauri-apps/plugin-fs";
@@ -32,7 +32,11 @@ import DeleteConfirmModal from "./DeleteConfirmModal";
 import { writeTextFile, mkdir, remove } from "@tauri-apps/plugin-fs";
 import SettingsMenu from "./SettingsMenu";
 
-export default function FileExplorer() {
+export default function FileExplorer({
+  isCollapsed,
+}: {
+  isCollapsed?: boolean;
+}) {
   const theme = useTheme();
   const { getChildren, watch, searchConfigFiles } = useFS();
   const { showDotfiles, showLogo, showShortcuts, useIgnoreFiles, countTokens } =
@@ -417,16 +421,45 @@ export default function FileExplorer() {
 
   const buttonLabel = showShortcuts ? (
     platform() === "macos" ? (
-      <Grid container spacing={1}>
-        <Grid item>Load Project</Grid>
-        <Grid item>
-          (
-          <KeyboardCommandKey sx={{ paddingTop: "2px", fontSize: "14px" }} /> +
-          o)
-        </Grid>
-      </Grid>
+      <Box
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 0.5,
+          justifyContent: "center",
+        }}
+      >
+        Load Project
+        <Box
+          component="span"
+          sx={{
+            display: "inline-flex",
+            alignItems: "center",
+            opacity: 0.8,
+            fontSize: "0.85em",
+            ml: 0.5,
+          }}
+        >
+          (<KeyboardCommandKey sx={{ fontSize: "14px" }} /> + O)
+        </Box>
+      </Box>
     ) : (
-      <>Load Project (Ctrl + O)</>
+      <Box
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 0.5,
+          justifyContent: "center",
+        }}
+      >
+        Load Project
+        <Box
+          component="span"
+          sx={{ opacity: 0.8, fontSize: "0.85em", ml: 0.5 }}
+        >
+          (Ctrl + O)
+        </Box>
+      </Box>
     )
   ) : (
     "Load Project"
@@ -442,190 +475,254 @@ export default function FileExplorer() {
       }}
     >
       <Box sx={{ p: 1 }}>
-        <Box sx={{ textAlign: "center", mb: 2 }}>{showLogo && <LogoSVG />}</Box>
-        <RetroButton
-          fullWidth
-          onClick={openProject}
-          startIcon={<FolderSpecial />}
-          sx={{ height: 40, mb: 1 }}
+        <Box
+          sx={{
+            textAlign: "center",
+            mt: isCollapsed ? 0 : 2,
+            mb: isCollapsed ? 0 : 4,
+            position: "relative",
+            height: isCollapsed ? "40px" : "60px",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            ...(isCollapsed && {
+              marginTop: "0px",
+              marginBottom: "20px",
+            }),
+          }}
         >
-          {buttonLabel}
-        </RetroButton>
-        <RetroButton
-          fullWidth
-          onClick={newFile} // to-do actually make a new file
-          startIcon={<InsertDriveFile />}
-          sx={{ height: 40, mt: 1 }}
-          variant="outlined"
-        >
-          Load File
-        </RetroButton>
-        <SearchFiles
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-        />
-      </Box>
-      {/* Project list */}
-      <Box
-        sx={{
-          flexGrow: 1,
-          overflowY: "auto",
-          overflowX: "hidden",
-          px: 1,
-          pb: 2,
-        }}
-      >
-        {projects.length === 0 ? (
-          <Typography color="primary" variant="body1">
-            Load a project and select files to add context to your prompt.
-          </Typography>
-        ) : (
-          projects.map((project, index) => (
-            <Box
-              key={project.path}
-              sx={{
-                mb: 3,
-                border: "1px solid #ccc",
-                borderRadius: 1,
-                overflow: "hidden",
-              }}
-            >
-              {/* Header with project name on left and drag icon + delete on right */}
+          {showLogo && (
+            <>
+              {/* Full Logo */}
               <Box
                 sx={{
+                  position: "absolute",
+                  opacity: isCollapsed ? 0 : 1,
+                  transform: isCollapsed
+                    ? "rotate(-180deg) scale(0.5)"
+                    : "rotate(0deg) scale(1)",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  pointerEvents: isCollapsed ? "none" : "auto",
                   display: "flex",
+                  justifyContent: "center",
                   alignItems: "center",
-                  backgroundColor: theme.palette.secondary.main,
-                  px: 1,
-                  py: 0.5,
-                  justifyContent: "space-between",
-                  position: "sticky",
-                  top: 0,
-                  zIndex: 1,
+                  width: "100%",
                 }}
               >
-                <Typography
-                  onClick={() =>
-                    setExpanded((prev) => ({
-                      ...prev,
-                      [project.path]: prev[project.path] === false,
-                    }))
-                  }
+                <LogoSVG />
+              </Box>
+              {/* Small Logo */}
+              <Box
+                sx={{
+                  position: "absolute",
+                  opacity: isCollapsed ? 1 : 0,
+                  transform: isCollapsed
+                    ? "rotate(0deg) scale(1)"
+                    : "rotate(180deg) scale(0.5)",
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  pointerEvents: isCollapsed ? "auto" : "none",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  width: "100%",
+                }}
+              >
+                <SmallLogoSVG width="32px" height="32px" />
+              </Box>
+            </>
+          )}
+        </Box>
+
+        {!isCollapsed && (
+          <>
+            <RetroButton
+              fullWidth
+              onClick={openProject}
+              startIcon={<FolderSpecial />}
+              sx={{ height: 40, mb: 1, py: 0 }}
+            >
+              {buttonLabel}
+            </RetroButton>
+            <RetroButton
+              fullWidth
+              onClick={newFile}
+              startIcon={<InsertDriveFile />}
+              sx={{ height: 40, mt: 1, py: 0 }}
+              variant="outlined"
+            >
+              Load File
+            </RetroButton>
+            <SearchFiles
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+            />
+          </>
+        )}
+      </Box>
+      {/* Project list */}
+      {!isCollapsed && (
+        <Box
+          sx={{
+            flexGrow: 1,
+            overflowY: "auto",
+            overflowX: "hidden",
+            px: 1,
+            pb: 2,
+          }}
+        >
+          {projects.length === 0 ? (
+            <Typography color="primary" variant="body1">
+              Load a project and select files to add context to your prompt.
+            </Typography>
+          ) : (
+            projects.map((project, index) => (
+              <Box
+                key={project.path}
+                sx={{
+                  mb: 3,
+                  border: "1px solid #ccc",
+                  borderRadius: 1,
+                  overflow: "hidden",
+                }}
+              >
+                {/* Header ... */}
+                <Box
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    cursor: "pointer",
-                    width: "100%",
+                    backgroundColor: theme.palette.secondary.main,
+                    px: 1,
+                    py: 0.5,
+                    justifyContent: "space-between",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 1,
                   }}
                 >
-                  <Folder
-                    className="file-icon"
-                    fontSize="small"
-                    sx={{ mr: 1 }}
-                  />
+                  <Typography
+                    onClick={() =>
+                      setExpanded((prev) => ({
+                        ...prev,
+                        [project.path]: prev[project.path] === false,
+                      }))
+                    }
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                      width: "100%",
+                    }}
+                  >
+                    <Folder
+                      className="file-icon"
+                      fontSize="small"
+                      sx={{ mr: 1 }}
+                    />
 
-                  {project.name}
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                  <Tooltip
-                    arrow
-                    disableInteractive
-                    enterDelay={500}
-                    title="New folder"
-                  >
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNewItemOpen(project.path, "folder");
-                      }}
-                      size="small"
+                    {project.name}
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Tooltip
+                      arrow
+                      disableInteractive
+                      enterDelay={500}
+                      title="New folder"
                     >
-                      <CreateNewFolder fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip
-                    arrow
-                    disableInteractive
-                    enterDelay={500}
-                    title="New file"
-                  >
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleNewItemOpen(project.path, "file");
-                      }}
-                      size="small"
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleNewItemOpen(project.path, "folder");
+                        }}
+                        size="small"
+                      >
+                        <CreateNewFolder fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip
+                      arrow
+                      disableInteractive
+                      enterDelay={500}
+                      title="New file"
                     >
-                      <NoteAdd fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip
-                    arrow
-                    disableInteractive
-                    enterDelay={500}
-                    title="Remove project"
-                  >
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeProject(project.path);
-                      }}
-                      size="small"
-                      disabled={!!searchQuery}
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleNewItemOpen(project.path, "file");
+                        }}
+                        size="small"
+                      >
+                        <NoteAdd fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip
+                      arrow
+                      disableInteractive
+                      enterDelay={500}
+                      title="Remove project"
                     >
-                      <Delete fontSize="inherit" />
-                    </IconButton>
-                  </Tooltip>
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeProject(project.path);
+                        }}
+                        size="small"
+                        disabled={!!searchQuery}
+                      >
+                        <Delete fontSize="inherit" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                 </Box>
+                {/* Animated Directory tree */}
+                <AccordionItem isOpen={expanded[project.path] !== false}>
+                  <Box
+                    sx={{
+                      p: 1,
+                      maxHeight: "calc(100vh - 450px)",
+                      overflowY: "auto",
+                    }}
+                  >
+                    <DirectoryView
+                      node={project}
+                      onPreviewFile={handleFilePreviewClick}
+                      onFileSelect={(file) =>
+                        handleFileSelect({ ...file, projectRoot: project.path })
+                      }
+                      loadChildren={loadChildren}
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      isActive={
+                        searchQuery ? index === activeSearchProjectIndex : false
+                      }
+                      onMoveNext={() =>
+                        setActiveSearchProjectIndex((prev) =>
+                          prev + 1 < projects.length ? prev + 1 : 0,
+                        )
+                      }
+                      onMovePrev={() =>
+                        setActiveSearchProjectIndex(
+                          (prev) =>
+                            (prev - 1 + projects.length) % projects.length,
+                        )
+                      }
+                      onDelete={(_e, type, path, name) =>
+                        setDeleteModal({
+                          open: true,
+                          type,
+                          path,
+                          name,
+                          projectPath: project.path,
+                        })
+                      }
+                    />
+                  </Box>
+                </AccordionItem>
               </Box>
-              {/* Animated Directory tree */}
-              <AccordionItem isOpen={expanded[project.path] !== false}>
-                <Box
-                  sx={{
-                    p: 1,
-                    maxHeight: "calc(100vh - 450px)",
-                    overflowY: "auto",
-                  }}
-                >
-                  <DirectoryView
-                    node={project}
-                    onPreviewFile={handleFilePreviewClick}
-                    onFileSelect={(file) =>
-                      handleFileSelect({ ...file, projectRoot: project.path })
-                    }
-                    loadChildren={loadChildren}
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    isActive={
-                      searchQuery ? index === activeSearchProjectIndex : false
-                    }
-                    onMoveNext={() =>
-                      setActiveSearchProjectIndex((prev) =>
-                        prev + 1 < projects.length ? prev + 1 : 0,
-                      )
-                    }
-                    onMovePrev={() =>
-                      setActiveSearchProjectIndex(
-                        (prev) =>
-                          (prev - 1 + projects.length) % projects.length,
-                      )
-                    }
-                    onDelete={(_e, type, path, name) =>
-                      setDeleteModal({
-                        open: true,
-                        type,
-                        path,
-                        name,
-                        projectPath: project.path,
-                      })
-                    }
-                  />
-                </Box>
-              </AccordionItem>
-            </Box>
-          ))
-        )}
-      </Box>
+            ))
+          )}
+        </Box>
+      )}
       <Box
         sx={{
           flexShrink: 0,
@@ -633,6 +730,8 @@ export default function FileExplorer() {
           p: 1,
           borderTop: "1px solid",
           borderColor: "divider",
+          display: "flex",
+          justifyContent: isCollapsed ? "center" : "flex-start",
         }}
       >
         <SettingsMenu />
