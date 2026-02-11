@@ -9,6 +9,7 @@ import {
   InsertDriveFile,
   NoteAdd,
   CreateNewFolder,
+  AddBox,
 } from "@mui/icons-material";
 import type { TreeItemData } from "../types";
 import { AccordionItem } from "./AccordionItem";
@@ -31,6 +32,7 @@ import CreateItemModal from "./CreateItemModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 import { writeTextFile, mkdir, remove } from "@tauri-apps/plugin-fs";
 import SettingsMenu from "./SettingsMenu";
+import NewProjectModal from "./NewProjectModal";
 
 export default function FileExplorer({
   isCollapsed,
@@ -59,6 +61,7 @@ export default function FileExplorer({
   const [newFileProjectBase, setNewFileProjectBase] = useState<string | null>(
     null,
   );
+  const [newProjectModalOpen, setNewProjectModalOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{
     open: boolean;
     type: "file" | "folder";
@@ -188,6 +191,15 @@ export default function FileExplorer({
       const configs = await searchConfigFiles(selected);
       setConfigFiles(configs);
     }
+  };
+
+  const handleNewProjectCreated = async (projectPath: string) => {
+    const newRoot = createRootNode(projectPath);
+    setProjects((prev) => [...prev, newRoot]);
+    setExpanded((prev) => ({ ...prev, [newRoot.path]: true }));
+    await watch(projectPath);
+    const configs = await searchConfigFiles(projectPath);
+    setConfigFiles(configs);
   };
 
   const handleNewItemOpen = (projectPath: string, type: "file" | "folder") => {
@@ -538,6 +550,14 @@ export default function FileExplorer({
           <>
             <RetroButton
               fullWidth
+              onClick={() => setNewProjectModalOpen(true)}
+              startIcon={<AddBox />}
+              sx={{ height: 40, mb: 1, py: 0 }}
+            >
+              New Project
+            </RetroButton>
+            <RetroButton
+              fullWidth
               onClick={openProject}
               startIcon={<FolderSpecial />}
               sx={{ height: 40, mb: 1, py: 0 }}
@@ -755,6 +775,11 @@ export default function FileExplorer({
         onConfirm={handleDeleteConfirm}
         itemName={deleteModal.name}
         itemType={deleteModal.type}
+      />
+      <NewProjectModal
+        open={newProjectModalOpen}
+        onClose={() => setNewProjectModalOpen(false)}
+        onProjectCreated={handleNewProjectCreated}
       />
     </Box>
   );

@@ -73,6 +73,33 @@ fn get_git_original_content(path: &str) -> Result<String, String> {
         Err(String::from_utf8_lossy(&output.stderr).to_string())
     }
 }
+
+#[tauri::command]
+async fn run_scaffold_command(
+    command: String,
+    args: Vec<String>,
+    cwd: String,
+) -> Result<String, String> {
+    use std::process::Command;
+
+    let output = Command::new(&command)
+        .args(&args)
+        .current_dir(&cwd)
+        .output()
+        .map_err(|e| format!("Failed to spawn {}: {}", command, e))?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        Err(format!(
+            "Command failed (exit {}):\n{}\n{}",
+            output.status, stderr, stdout
+        ))
+    }
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_os::init())
@@ -103,6 +130,7 @@ pub fn run() {
             start_watch,
             get_git_diff,
             get_git_original_content,
+            run_scaffold_command,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
