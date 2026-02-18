@@ -44,8 +44,12 @@ interface UserContextType {
   setZaiApiKey: React.Dispatch<React.SetStateAction<string>>;
   openAiApiKey: string;
   setOpenAiApiKey: React.Dispatch<React.SetStateAction<string>>;
-  activeProvider: "zai" | "openai";
-  setActiveProvider: React.Dispatch<React.SetStateAction<"zai" | "openai">>;
+  geminiApiKey: string;
+  setGeminiApiKey: React.Dispatch<React.SetStateAction<string>>;
+  activeProvider: "zai" | "openai" | "gemini";
+  setActiveProvider: React.Dispatch<
+    React.SetStateAction<"zai" | "openai" | "gemini">
+  >;
 }
 const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: ReactNode }) => {
@@ -65,7 +69,10 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const [apiKey, setApiKey] = useState("");
   const [zaiApiKey, setZaiApiKey] = useState("");
   const [openAiApiKey, setOpenAiApiKey] = useState("");
-  const [activeProvider, setActiveProvider] = useState<"zai" | "openai">("zai");
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [activeProvider, setActiveProvider] = useState<
+    "zai" | "openai" | "gemini"
+  >("gemini");
   const [apiMode, setApiMode] = useState(false);
   const [loading, setLoading] = useState(false);
   const onThemeChange = useCallback(
@@ -121,6 +128,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         setZaiApiKey,
         openAiApiKey,
         setOpenAiApiKey,
+        geminiApiKey,
+        setGeminiApiKey,
         activeProvider,
         setActiveProvider,
       }}

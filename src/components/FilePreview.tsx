@@ -136,36 +136,44 @@ function FilePreview({ file }: FilePreviewProps) {
     >
       <CardHeader
         title={
-          <Grid container alignItems="center" justifyContent="space-between">
-            <Grid item>
-              <Box>{file.name}</Box>
-              <Box sx={{ typography: "caption", color: "text.secondary" }}>
+          <Grid
+            container
+            alignItems="center"
+            justifyContent="space-between"
+            wrap="nowrap"
+            spacing={2}
+          >
+            <Grid item xs zeroMinWidth>
+              <Box
+                sx={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  fontWeight: "bold",
+                }}
+              >
+                {file.name}
+              </Box>
+              <Box
+                sx={{
+                  typography: "caption",
+                  color: "text.secondary",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  display: "block",
+                }}
+              >
                 {file.path}
               </Box>
             </Grid>
-            <Grid item>
+            <Grid item sx={{ flexShrink: 0 }}>
               <RetroButton
                 onClick={closePreview}
                 sx={{ height: 40, minWidth: 40 }}
                 variant="outlined"
               >
                 Close {showShortcuts && "(Esc)"}
-              </RetroButton>
-            </Grid>
-            <Grid item xs={12}>
-              <RetroButton
-                onClick={() => handleFileSelect(file)}
-                sx={{ height: 30, m: 1 }}
-                variant="outlined"
-              >
-                {isSelected ? "Remove" : "Add"}
-              </RetroButton>
-              <RetroButton
-                onClick={saveToFile}
-                disabled={!isDirty}
-                sx={{ height: 30, m: 1 }}
-              >
-                Save{showShortcuts && <> {cmd}</>}
               </RetroButton>
             </Grid>
           </Grid>
@@ -222,6 +230,33 @@ function FilePreview({ file }: FilePreviewProps) {
             />
           </Box>
         )}
+        <Box
+          sx={{
+            p: 2,
+            display: "flex",
+            gap: 1.5,
+            flexWrap: "wrap",
+            borderTop: 1,
+            borderColor: "divider",
+            backgroundColor: "background.paper",
+            mt: "auto",
+          }}
+        >
+          <RetroButton
+            onClick={() => handleFileSelect(file)}
+            sx={{ height: 40 }}
+            variant="outlined"
+          >
+            {isSelected ? "Remove" : "Add"}
+          </RetroButton>
+          <RetroButton
+            onClick={saveToFile}
+            disabled={!isDirty}
+            sx={{ height: 40 }}
+          >
+            Save{showShortcuts && <> {cmd}</>}
+          </RetroButton>
+        </Box>
       </CardContent>
     </Card>
   );

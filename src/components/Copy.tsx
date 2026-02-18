@@ -18,7 +18,7 @@ import { Box, CircularProgress } from "@mui/material";
 import useShortcut from "../utils/useShortcut";
 import RetroButton from "./RetroButton";
 import Toast from "./Toast";
-import { callZai, callOpenAi } from "../api/llm";
+import { callZai, callOpenAi, callGemini } from "../api/llm";
 
 const getPlatform = () => {
   try {
@@ -51,6 +51,7 @@ export default function Copy() {
     activeProvider,
     zaiApiKey,
     openAiApiKey,
+    geminiApiKey,
   } = useUserContext();
 
   const [copying, setCopying] = useState(false);
@@ -201,6 +202,11 @@ export default function Copy() {
         setCopying(false);
         return;
       }
+      if (activeProvider === "gemini" && !geminiApiKey) {
+        alert("Please set a Gemini API Key in Settings first.");
+        setCopying(false);
+        return;
+      }
 
       try {
         let content = "";
@@ -226,6 +232,8 @@ export default function Copy() {
             content = await callZai(messagesToSend, zaiApiKey);
           } else if (activeProvider === "openai") {
             content = await callOpenAi(messagesToSend, openAiApiKey);
+          } else if (activeProvider === "gemini") {
+            content = await callGemini(messagesToSend, geminiApiKey);
           }
 
           setChatMessages((prev) => [...prev, { role: "assistant", content }]);
@@ -238,6 +246,8 @@ export default function Copy() {
             content = await callZai(messagesToSend, zaiApiKey);
           } else if (activeProvider === "openai") {
             content = await callOpenAi(messagesToSend, openAiApiKey);
+          } else if (activeProvider === "gemini") {
+            content = await callGemini(messagesToSend, geminiApiKey);
           }
           setMode("do");
           setPlan(content);

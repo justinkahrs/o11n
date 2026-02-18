@@ -43,6 +43,8 @@ const ContextPersistenceManager = () => {
     setZaiApiKey,
     openAiApiKey,
     setOpenAiApiKey,
+    geminiApiKey,
+    setGeminiApiKey,
     activeProvider,
     setActiveProvider,
   } = useUserContext();
@@ -87,6 +89,7 @@ const ContextPersistenceManager = () => {
               "";
             setZaiApiKey(storedZaiKey);
             setOpenAiApiKey(contextObj.userContext.openAiApiKey || "");
+            setGeminiApiKey(contextObj.userContext.geminiApiKey || "");
             setActiveProvider(contextObj.userContext.activeProvider || "zai");
           }
         }
@@ -114,6 +117,7 @@ const ContextPersistenceManager = () => {
     setApiMode,
     setZaiApiKey,
     setOpenAiApiKey,
+    setGeminiApiKey,
     setActiveProvider,
   ]);
   // Save context on app exit using the beforeunload event.
@@ -142,6 +146,7 @@ const ContextPersistenceManager = () => {
             themeMode,
             zaiApiKey,
             openAiApiKey,
+            geminiApiKey,
             activeProvider,
             apiMode,
           },
@@ -179,6 +184,7 @@ const ContextPersistenceManager = () => {
     themeMode,
     zaiApiKey,
     openAiApiKey,
+    geminiApiKey,
     activeProvider,
     apiMode,
   ]);

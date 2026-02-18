@@ -28,6 +28,8 @@ export default function ApiKeysModal({ open, onClose }: ApiKeysModalProps) {
     setZaiApiKey,
     openAiApiKey,
     setOpenAiApiKey,
+    geminiApiKey,
+    setGeminiApiKey,
     activeProvider,
     setActiveProvider,
     apiMode,
@@ -43,13 +45,16 @@ export default function ApiKeysModal({ open, onClose }: ApiKeysModalProps) {
       if (activeProvider === "openai") {
         setCurrentTab(1);
         setInputKey(openAiApiKey || "");
+      } else if (activeProvider === "gemini") {
+        setCurrentTab(2);
+        setInputKey(geminiApiKey || "");
       } else {
         setCurrentTab(0);
         setInputKey(zaiApiKey || "");
       }
       setShowKey(false);
     }
-  }, [open, activeProvider, zaiApiKey, openAiApiKey]);
+  }, [open, activeProvider, zaiApiKey, openAiApiKey, geminiApiKey]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     // Save current input to the *previous* tab's key before switching?
@@ -59,20 +64,36 @@ export default function ApiKeysModal({ open, onClose }: ApiKeysModalProps) {
     // ALSO, we should probably save the inputKey to the *previous* provider if modified?
     // For simplicity, let's just switch the input value to the new provider's stored key.
     setCurrentTab(newValue);
-    const newProvider = newValue === 0 ? "zai" : "openai";
+    let newProvider: "zai" | "openai" | "gemini" = "zai";
+    let key = "";
+
+    if (newValue === 0) {
+      newProvider = "zai";
+      key = zaiApiKey || "";
+    } else if (newValue === 1) {
+      newProvider = "openai";
+      key = openAiApiKey || "";
+    } else if (newValue === 2) {
+      newProvider = "gemini";
+      key = geminiApiKey || "";
+    }
+
     setActiveProvider(newProvider);
-    setInputKey(newValue === 0 ? zaiApiKey || "" : openAiApiKey || "");
+    setInputKey(key);
     setShowKey(false);
   };
 
   const handleSave = () => {
     if (currentTab === 0) {
       setZaiApiKey(inputKey);
-    } else {
+      setActiveProvider("zai");
+    } else if (currentTab === 1) {
       setOpenAiApiKey(inputKey);
+      setActiveProvider("openai");
+    } else if (currentTab === 2) {
+      setGeminiApiKey(inputKey);
+      setActiveProvider("gemini");
     }
-    // We also essentially confirmed the active provider is the current tab
-    setActiveProvider(currentTab === 0 ? "zai" : "openai");
     onClose();
   };
 
@@ -88,13 +109,20 @@ export default function ApiKeysModal({ open, onClose }: ApiKeysModalProps) {
           >
             <Tab label="Z.AI" />
             <Tab label="OpenAI" />
+            <Tab label="Gemini" />
           </Tabs>
         </Box>
         <TextField
           autoFocus
           margin="dense"
           id="apiKey"
-          label={currentTab === 0 ? "Z.AI Key" : "OpenAI Key"}
+          label={
+            currentTab === 0
+              ? "Z.AI Key"
+              : currentTab === 1
+                ? "OpenAI Key"
+                : "Gemini Key"
+          }
           type={showKey ? "text" : "password"}
           fullWidth
           variant="outlined"

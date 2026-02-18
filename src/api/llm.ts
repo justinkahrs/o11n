@@ -50,3 +50,38 @@ export async function callOpenAi(
   const result = await response.json();
   return result.choices[0]?.message?.content || "No content received.";
 }
+
+export async function callGemini(
+  messages: { role: string; content: string }[],
+  apiKey: string,
+): Promise<string> {
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+  const geminiMessages = messages.map((m) => ({
+    role: m.role === "assistant" ? "model" : "user",
+    parts: [{ text: m.content }],
+  }));
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      contents: geminiMessages,
+    }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(
+      `Gemini API call failed: ${response.status} - ${
+        err.error?.message || response.statusText
+      }`,
+    );
+  }
+
+  const result = await response.json();
+  return (
+    result.candidates?.[0]?.content?.parts?.[0]?.text || "No content received."
+  );
+}
