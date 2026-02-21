@@ -32,6 +32,7 @@
     "@tauri-apps/plugin-updater": "^2.7.1",
     "@tauri-apps/plugin-window-state": "^2.2.2",
     "@types/prismjs": "^1.26.5",
+    "diff": "^8.0.3",
     "framer-motion": "^12.6.3",
     "highlight.js": "^11.11.1",
     "json5": "^2.2.3",
@@ -49,6 +50,7 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
+    "@types/diff": "^7.0.2",
     "@types/node": "^22.14.1",
     "@types/react": "^18.3.1",
     "@types/react-color": "^3.0.13",
